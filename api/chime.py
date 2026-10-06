@@ -54,16 +54,27 @@ from datetime import datetime
 from typing import Tuple
 from urllib.parse import urlparse
 
-from config import (
-    AIMEDB_HOST,
-    AIMEDB_PATH,
-    AIMEDB_PORT,
-    KEYCHIP_ID,
-    QR_OPEN_GAME_ID,
-    QR_SIGN_KEY,
-    QR_TITLE_KEY,
-    QR_USER_AGENT,
-)
+from config import KEYCHIP_ID
+
+# =============================================================================
+# aimedb 扫码登录常量（原在 config.py，2026-10-06 下沉到本模块）
+# =============================================================================
+# 依据：source/ChimeLib.NET/ChimeLib/NET/COMM/CCommGetUserData.cs
+#       + docs 分支《舞萌DX_扫码登录协议技术规范》
+
+#: aimedb 服务器
+AIMEDB_HOST = "ai.sys-allnet.cn"
+AIMEDB_PORT = 443
+AIMEDB_PATH = "/wc_aime/api/get_data"
+
+#: 签名密钥（含前导 X，32 字符）
+#: 来源：chimelib_dll.dll .rdata UTF-16 @0x00B040，抓包验证一致
+QR_SIGN_KEY = "XcW5FW4cPArBXEk4vzKz3CIrMuA5EVVW"
+
+#: 固定字段
+QR_OPEN_GAME_ID = "MAID"
+QR_TITLE_KEY = "SDGB"
+QR_USER_AGENT = "WC_AIME_LIB"
 
 from .log_setup import log_debug, log_error, log_info, log_request, log_response
 

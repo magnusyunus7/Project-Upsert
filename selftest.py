@@ -78,12 +78,30 @@ from api.upsert_user_all import (
 )
 from api.upsert_user_chargelog import _now_string
 
-from config import (
+# ★ 这些常量原先在 config.py，2026-10-06 已下沉到各 api 模块 —— 从 api 取。
+from api import (
     PLAY_SPECIAL_NUM as CONFIG_PLAY_SPECIAL_NUM,
     PAID_TICKET_IDS as CONFIG_PAID_TICKET_IDS,
     TICKET_VALID_DAYS as CONFIG_TICKET_DAYS,
     TICKET_VALID_HOUR_OFFSET as CONFIG_TICKET_HOUR_OFFSET,
 )
+
+# =============================================================================
+# ★ PLAY_CHARACTERS —— 原先在 config.py，现移到自检脚本里作为**测试数据**
+# =============================================================================
+#
+# 说明：PlayData.characters 现在默认是**空列表**，真值由
+#       derive_play_characters() 从服务器快照推（config 里的静态值会过期）。
+#       这里保留一份真机样本，供自检做「离线组包」用例。
+#
+# 值 = 真机 charaSlot [395, 101, 400402, 400401, 200401] 的游玩前等级
+PLAY_CHARACTERS = [
+    {"characterId": 395,    "level": 3800, "awakening": 5},
+    {"characterId": 101,    "level": 4455, "awakening": 5},
+    {"characterId": 400402, "level": 134,  "awakening": 3},
+    {"characterId": 400401, "level": 134,  "awakening": 3},
+    {"characterId": 200401, "level": 134,  "awakening": 3},
+]
 
 _PASS = 0
 _FAIL = 0
@@ -150,9 +168,9 @@ check("deflate 往返一致", deflate_decompress(packed) == sample)
 enc = aes_encrypt(packed)
 check("AES 密文长度是 16 的倍数", len(enc) % 16 == 0, str(len(enc)))
 check("AES 往返一致", aes_decrypt(enc) == packed)
-check("AES 是 256 位密钥（config.AES_KEY 32 字节）",
-      len(__import__("config").AES_KEY) == 32)
-check("AES IV 是 16 字节", len(__import__("config").AES_IV) == 16)
+check("AES 是 256 位密钥（api.AES_KEY 32 字节）",
+      len(api.AES_KEY) == 32)
+check("AES IV 是 16 字节", len(api.AES_IV) == 16)
 
 
 # =============================================================================
@@ -350,7 +368,8 @@ check("PLAYLOG_FIELDS 共 110 个", len(PLAYLOG_FIELDS) == 110, str(len(PLAYLOG_
 
 # ★ 显式传中性值，**不依赖 config.py** —— 否则用户改了 config 这里就红
 pl = build_user_playlog(7692848101484135861, 1791159576,
-                        PlayData(before_rating=15000, after_rating=15000),
+                        PlayData(before_rating=15000, after_rating=15000,
+                                 characters=PLAY_CHARACTERS),
                         place_id=1000, client_id="TESTCLIENT1")
 check("构造出的 playlog 有 110 个键", len(pl) == 110, str(len(pl)))
 check("无缺失字段", all(f in pl for f in PLAYLOG_FIELDS))
@@ -438,7 +457,8 @@ REAL_GP = {
     "playlogId": 7692848101484135861, "version": "1.56.00",
     "playMode": 0, "useTicketId": -1, "playCredit": 1, "playTrack": 1,
     "clientId": "TESTCLIENT1", "isPlayTutorial": False, "isEventMode": False,
-    "isNewFree": False, "playCount": 8, "playOtherUserId": 0,
+    # ★ PLAY_LOCAL_PLAY_COUNT 现恒为 2（原 config 值 8 已废弃）
+    "isNewFree": False, "playCount": 2, "playOtherUserId": 0,
 }
 gp_mismatch = {k: (gp.get(k), v) for k, v in REAL_GP.items() if gp.get(k) != v}
 check("字段与真机报文一致", not gp_mismatch, json.dumps(gp_mismatch, ensure_ascii=False))
@@ -466,7 +486,7 @@ def _rev32(n: int) -> int:
 check("真机 playSpecial 反推出 CalcSpecialNum=1024",
       _rev32(892014272) % 2069 == CONFIG_PLAY_SPECIAL_NUM,
       str(_rev32(892014272) % 2069))
-check("config.PLAY_SPECIAL_NUM 默认 1024",
+check("api.PLAY_SPECIAL_NUM 默认 1024",
       CONFIG_PLAY_SPECIAL_NUM == 1024, str(CONFIG_PLAY_SPECIAL_NUM))
 check("calc_play_special 把 CalcSpecialNum 叠加进去",
       all(_rev32(calc_play_special()) % 2069 == CONFIG_PLAY_SPECIAL_NUM
@@ -535,7 +555,8 @@ ua2 = build_user_all(baseline, login_date_time=1791159576,
 #   ua2b 显式把增量调回真机值（地图 +11000 / 角色 +1 级），用来验证演算逻辑本身没坏。
 ua2b = build_user_all(baseline, login_date_time=1791159576,
                       auth_date_time=1791134329, playlog_id=7692848101484135861,
-                      play=PlayData(map_distance_gain=11000, character_exp_gain=1))
+                      play=PlayData(map_distance_gain=11000, character_exp_gain=1,
+                                    characters=PLAY_CHARACTERS))
 
 check("产出 36 个节点", len(ua2) == 36, str(len(ua2)))
 check("节点顺序与 NODE_ORDER 一致", list(ua2.keys()) == list(NODE_ORDER))
@@ -578,8 +599,8 @@ check("userCharacterList 是游玩后等级（101: 4455->4456）",
 _plv = [pl["characterLevel" + str(i)] for i in range(1, 6)]
 check("playlog.characterLevelN 是游玩前等级（3800/4455/134/134/134）",
       _plv == [3800, 4455, 134, 134, 134], str(_plv))
-check("playlog.characterLevelN 逐个等于 config.PLAY_CHARACTERS 的 level",
-      _plv == [int(c["level"]) for c in __import__("config").PLAY_CHARACTERS], str(_plv))
+check("playlog.characterLevelN 逐个等于 PLAY_CHARACTERS 的 level",
+      _plv == [int(c["level"]) for c in PLAY_CHARACTERS], str(_plv))
 check("playlog 与 userCharacterList 的等级差恰好等于本局经验增量",
       all(pl["characterLevel" + str(i)] + 1 == _clv[pl["characterId" + str(i)]]
           for i in range(1, 6) if pl["characterId" + str(i)] in _clv),
@@ -641,15 +662,18 @@ check("传给 build_user_playlog 后 characterLevelN 与快照一致",
       [build_user_playlog(1, 1791159576,
                           PlayData(characters=_dpc))["characterLevel" + str(i)]
        for i in range(1, 6)] == [3802, 4457, 136, 136, 136])
-check("快照缺角色时回退到 config.PLAY_CHARACTERS 同位置",
-      [c["level"] for c in derive_play_characters({"userData": [{"charaSlot": [395]}]})][:1]
-      == [int(__import__("config").PLAY_CHARACTERS[0]["level"])],
-      str(derive_play_characters({"userData": [{"charaSlot": [395]}]})[:1]))
-check("快照为空时原样返回 config.PLAY_CHARACTERS 的 5 条",
-      derive_play_characters(None)
+# ★ PlayData.characters 现在默认为空（真值由快照推），所以要显式传 PLAY_CHARACTERS
+_FALLBACK_PLAY = PlayData(characters=PLAY_CHARACTERS)
+check("快照缺角色时回退到 PLAY_CHARACTERS 同位置",
+      [c["level"] for c in derive_play_characters(
+          {"userData": [{"charaSlot": [395]}]}, _FALLBACK_PLAY)][:1]
+      == [int(PLAY_CHARACTERS[0]["level"])],
+      str(derive_play_characters({"userData": [{"charaSlot": [395]}]}, _FALLBACK_PLAY)[:1]))
+check("快照为空时原样返回 PLAY_CHARACTERS 的 5 条",
+      derive_play_characters(None, PlayData(characters=PLAY_CHARACTERS))
       == [{"characterId": int(c["characterId"]), "level": int(c["level"]),
            "awakening": int(c["awakening"])}
-          for c in __import__("config").PLAY_CHARACTERS])
+          for c in PLAY_CHARACTERS])
 
 # 差分节点
 # ★ 默认 PLAY_MUSIC_PLAY_COUNT_GAIN = 0 -> **条目照传、次数不变**（不能留空！）
@@ -931,7 +955,7 @@ check("付费票 creditNum：2->1 3->2 4->3 5->4 6->5",
 check("非付费票 creditNum 为 0", ticket_price(11001) == 0)
 check("price 可显式覆盖", ticket_price(2, 99) == 99)
 check("ticket_name 能查到中文名", ticket_name(2) == "2倍チケット", ticket_name(2))
-check("config.PAID_TICKET_IDS = (2,3,4,5,6)", tuple(CONFIG_PAID_TICKET_IDS) == (2, 3, 4, 5, 6))
+check("api.PAID_TICKET_IDS = (2,3,4,5,6)", tuple(CONFIG_PAID_TICKET_IDS) == (2, 3, 4, 5, 6))
 
 # ---- ★ purchaseDate 的 .f 格式（TimeManager.cs:7 DateTimeFormat = "yyyy-MM-dd HH:mm:ss.f"）----
 check("_now_string 带一位小数（.f）",
@@ -1111,13 +1135,13 @@ check("dry_run 未联网（能正常返回即证明）", req2.playlogId == 76928
 section("15. config 与源码常量")
 
 import config
-check("AES_KEY 来自 CipherAES.cs", config.AES_KEY == b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W")
-check("AES_IV 来自 CipherAES.cs", config.AES_IV == b"F>;24DjU9W6ZsRH[")
-check("混淆盐来自 Packet.cs", config.OBFUSCATE_PARAM == "8bF76dE9")
+check("AES_KEY 来自 CipherAES.cs", api.AES_KEY == b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W")
+check("AES_IV 来自 CipherAES.cs", api.AES_IV == b"F>;24DjU9W6ZsRH[")
+check("混淆盐来自 Packet.cs", api.OBFUSCATE_PARAM == "8bF76dE9")
 check("Mai-Encoding 来自 NetHttpClient.cs", config.MAI_ENCODING == "1.55")
 check("BASE_URL 指向 Maimai2Servlet",
-      config.BASE_URL == "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/")
-check("扫码签名密钥 32 字符", len(config.QR_SIGN_KEY) == 32)
+      api.BASE_URL == "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/")
+check("扫码签名密钥 32 字符", len(api.QR_SIGN_KEY) == 32)
 check("LOG_LEVEL 合法", config.LOG_LEVEL in ("info", "debug"), config.LOG_LEVEL)
 check("UPSERT_CONFIRM 默认 False（安全）", config.UPSERT_CONFIRM is False)
 

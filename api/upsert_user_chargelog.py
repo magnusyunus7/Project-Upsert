@@ -56,7 +56,7 @@ upsert_user_chargelog.py —— 购买功能票 / 上传购买记录（UpsertUse
 --------------------------------------------------------------------------------
     游戏本地主数据：
         <游戏目录>\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket.xml
-    已抄进 config.TICKET_CREDIT_NUM（付费票 2/3/4/5/6 -> creditNum 1/2/3/4/5）。
+    已抄进 TICKET_CREDIT_NUM（付费票 2/3/4/5/6 -> creditNum 1/2/3/4/5）。
 
 --------------------------------------------------------------------------------
 四、安全闸门
@@ -91,13 +91,54 @@ from config import (
     CLIENT_ID,
     PLACE_ID,
     REGION_ID,
-    TICKET_CREDIT_NUM,
-    TICKET_NAMES,
-    TICKET_VALID_DAYS,
-    TICKET_VALID_HOUR_OFFSET,
     TIMEOUT_MS,
     UPSERT_CHARGELOG_CONFIRM,
 )
+
+# =============================================================================
+# 功能票（Ticket）主数据（原在 config.py，2026-10-06 下沉到本模块）
+# =============================================================================
+#
+# 依据：游戏本地主数据
+#         Sinmai_Data/StreamingAssets/A000/ticket/ticketXXXXXX/Ticket.xml
+#       源码侧 Manager.MaiStudio.TicketData.creditNum
+#
+# ★ 为什么需要它：
+#     UpsertUserChargelogApi（购买功能票）的 userChargelog.price 取的是
+#     **ticket.creditNum（票的信用点倍数）**，不是 GetGameChargeApi 里的 money price：
+#         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:410
+#             result.price = ticket.creditNum;
+#
+# ticketKind 含义：1=Paid(付费，可在机台买) 2=Event 3=Free 4=Link 5=ShopWeekly 6=ShopChara
+
+#: chargeId -> creditNum
+TICKET_CREDIT_NUM = {
+    0: 0,
+    2: 1, 3: 2, 4: 3, 5: 4, 6: 5,          # 付费票：N 倍券的 creditNum = N-1
+    10005: 0, 10105: 0, 10205: 0,           # 活动票
+    11001: 0,                               # 免费 1.5 倍券
+    30001: 0, 30002: 0, 30003: 0,           # 连动 / 商店票
+}
+
+#: 票名（只用于日志好看，不影响协议）
+TICKET_NAMES = {
+    0: "使用しない",
+    2: "2倍チケット", 3: "3倍チケット", 4: "4倍チケット", 5: "5倍チケット", 6: "6倍チケット",
+    10005: "イベント5倍チケット_1", 10105: "イベント5倍チケット_2",
+    10205: "イベント5倍チケット_3", 11001: "無料1.5倍チケット",
+    30001: "連動チケット", 30002: "每周区域前进2倍票", 30003: "旅行伙伴等级提升5倍票",
+}
+
+#: 付费票（ticketKind=1）—— 只有这些能在机台购买
+PAID_TICKET_IDS = (2, 3, 4, 5, 6)
+
+#: 票有效期算法参数
+#:   依据 source/Assembly-CSharp/Manager/TicketManager.cs:564
+#:        DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
+#:   真机验证：chargeId=5 的 purchaseDate=2026-10-04 18:22:10
+#:             -> 减 4 小时 = 10-04 14:22，加 90 天 = 2027-01-02 -> "2027-01-02 04:00:00"
+TICKET_VALID_HOUR_OFFSET = -4
+TICKET_VALID_DAYS = 90
 
 from .log_setup import log_debug, log_error, log_info, log_warning
 from .maimai_net import MaimaiNetClient, request_dict
@@ -173,12 +214,12 @@ def ticket_price(charge_id: int, override: Optional[int] = None) -> int:
     取 userChargelog.price —— 即 ticket.creditNum。
 
     依据 VOExtensions.cs:410  result.price = ticket.creditNum;
-    数据来源 config.TICKET_CREDIT_NUM（抄自游戏 Ticket.xml）。
+    数据来源 TICKET_CREDIT_NUM（抄自游戏 Ticket.xml）。
     """
     if override is not None:
         return int(override)
     if int(charge_id) not in TICKET_CREDIT_NUM:
-        log_warning("config.TICKET_CREDIT_NUM 里没有 chargeId=" + str(charge_id)
+        log_warning("TICKET_CREDIT_NUM 里没有 chargeId=" + str(charge_id)
                     + " —— 按 0 处理，建议补进配置")
         return 0
     return int(TICKET_CREDIT_NUM[int(charge_id)])
@@ -304,14 +345,14 @@ def UpsertUserChargelog(
     参数：
         user_id:         用户 ID（必填）
         charge_id:       要买的票 ID（必填，= GetGameChargeApi 里的 chargeId）
-                         ★ 付费票是 2/3/4/5/6（config.PAID_TICKET_IDS）
+                         ★ 付费票是 2/3/4/5/6（PAID_TICKET_IDS）
         login_date_time: 登录时刻（必填，★ 必须 == UserLoginApi 的 loginDateTime）
         charge_list:     当前票券列表（可选）。不传则自动调 GetUserChargeApi。
                          用来算「购买后库存」和是否已有该票。
         user_data:       当前 userData（可选）。不传则自动调 GetUserDataApi。
                          用来填 playCount / playerRating。
         stock:           ★ 购买后该票的库存；不传 = 现有 + 1
-        price:           ★ userChargelog.price；不传 = config.TICKET_CREDIT_NUM[charge_id]
+        price:           ★ userChargelog.price；不传 = TICKET_CREDIT_NUM[charge_id]
         purchase_date:   购买时刻字符串；不传 = 现在
         valid_date:      有效期字符串；不传 = 现在-4h+90d（见 calc_valid_date）
         play_count:      覆盖 playCount（不传则取 userData.playCount）
@@ -342,9 +383,9 @@ def UpsertUserChargelog(
     log_info("购买功能票：user_id=" + str(user_id) + " chargeId=" + str(charge_id)
              + "（" + name + "）dry_run=" + str(dry_run))
 
-    if int(charge_id) not in tuple(config.PAID_TICKET_IDS):
-        log_warning("chargeId=" + str(charge_id) + " 不在 config.PAID_TICKET_IDS="
-                    + str(tuple(config.PAID_TICKET_IDS)) + " 里 —— 它可能不是可购买的付费票")
+    if int(charge_id) not in tuple(PAID_TICKET_IDS):
+        log_warning("chargeId=" + str(charge_id) + " 不在 PAID_TICKET_IDS="
+                    + str(tuple(PAID_TICKET_IDS)) + " 里 —— 它可能不是可购买的付费票")
 
     # ---------- 1. 取当前状态 ----------
     if charge_list is None:

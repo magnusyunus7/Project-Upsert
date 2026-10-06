@@ -69,12 +69,7 @@ api 包 —— 统一导出
 
   取数 —— GetGame*
     get_game_settings.py         GetGameSettingApi
-    get_game_ranking.py          GetGameRankingApi
-    get_game_event.py            GetGameEventApi
     get_game_charge.py           GetGameChargeApi
-    get_game_weekly_data.py      GetGameWeeklyDataApi
-    get_game_tournament_info.py  GetGameTournamentInfoApi
-    get_game_ng_music_id.py      GetGameNgMusicIdApi
 """
 
 from .log_setup import (
@@ -113,6 +108,11 @@ from .log_setup import (
 # ---------------------------------------------------------------------------
 
 from .maimai_net import (
+    # 协议常量（原在 config.py，已下沉到 maimai_net.py）
+    BASE_URL,
+    AES_KEY,
+    AES_IV,
+    OBFUSCATE_PARAM,
     MaimaiNetClient,
     MaimaiNetError,
     get_default_client,
@@ -141,7 +141,17 @@ from .maimai_net import (
 # 2) 会话链路
 # ---------------------------------------------------------------------------
 
-from .chime import ParseQRCode
+from .chime import (
+    ParseQRCode,
+    # aimedb / QR 常量（原在 config.py，已下沉到 chime.py）
+    AIMEDB_HOST,
+    AIMEDB_PORT,
+    AIMEDB_PATH,
+    QR_SIGN_KEY,
+    QR_OPEN_GAME_ID,
+    QR_TITLE_KEY,
+    QR_USER_AGENT,
+)
 
 from .get_game_settings import (
     GetGameSettings,
@@ -188,6 +198,13 @@ from .upsert_user_all import (
     PlayData,
     build_play_from_config,
     derive_play_characters,
+    derive_play_rating,
+    derive_play_grade,
+    find_music_detail,
+    PLAY_SPECIAL_NUM,
+    PLAY_LOCAL_PLAY_COUNT,
+    PLAY_AFTER_GRADE_RANK,
+    DERIVE_GRADE_FROM_MUSIC_DETAIL,
     UserAllRequestVO,
     UpsertResponseVO,
     UpsertUserAllError,
@@ -254,6 +271,12 @@ from .get_need_user_data import (
 )
 
 from .upsert_user_chargelog import (
+    # 票券主数据（原在 config.py，已下沉到 upsert_user_chargelog.py）
+    TICKET_CREDIT_NUM,
+    TICKET_NAMES,
+    PAID_TICKET_IDS,
+    TICKET_VALID_HOUR_OFFSET,
+    TICKET_VALID_DAYS,
     UpsertUserChargelog,
     ChargelogConfirmError,
     ChargelogGuardError,
@@ -325,12 +348,7 @@ from .get_user_region import GetUserRegion
 from .get_user_recommend_music import GetUserRecommendRateMusic, GetUserRecommendSelectMusic
 from .get_user_new_item import GetUserNewItemList, UserNewItemListRequestVO
 
-from .get_game_ranking import GetGameRanking, GameRankingRequestVO
-from .get_game_event import GetGameEvent, GameEventRequestVO
 from .get_game_charge import GetGameCharge, GameChargeRequestVO
-from .get_game_weekly_data import GetGameWeeklyData
-from .get_game_tournament_info import GetGameTournamentInfo
-from .get_game_ng_music_id import GetGameNgMusicId
 
 # ---------------------------------------------------------------------------
 # 6) 需要日志跟踪的 api 函数（新增 api 时把函数名加到这里）
@@ -405,12 +423,7 @@ _API_FUNCS = (
     "GetUserRecommendSelectMusic",   # GetUserRecommendSelectMusicApi
     "GetUserNewItemList",       # GetUserNewItemListApi
     # --- 取数：游戏侧 ---
-    "GetGameRanking",        # GetGameRankingApi
-    "GetGameEvent",          # GetGameEventApi
     "GetGameCharge",         # GetGameChargeApi
-    "GetGameWeeklyData",     # GetGameWeeklyDataApi
-    "GetGameTournamentInfo", # GetGameTournamentInfoApi
-    "GetGameNgMusicId",      # GetGameNgMusicIdApi
 )
 
 # ---------------------------------------------------------------------------
@@ -507,8 +520,11 @@ __all__ = [
     "GetUserRegion",
     "GetUserRecommendRateMusic", "GetUserRecommendSelectMusic",
     "GetUserNewItemList", "UserNewItemListRequestVO",
-    "GetGameRanking", "GameRankingRequestVO",
-    "GetGameEvent", "GameEventRequestVO",
     "GetGameCharge", "GameChargeRequestVO",
-    "GetGameWeeklyData", "GetGameTournamentInfo", "GetGameNgMusicId",
+    # --- 协议常量（原在 config.py，已下沉到各 api 模块）---
+    "BASE_URL", "AES_KEY", "AES_IV", "OBFUSCATE_PARAM",
+    "AIMEDB_HOST", "AIMEDB_PORT", "AIMEDB_PATH",
+    "QR_SIGN_KEY", "QR_OPEN_GAME_ID", "QR_TITLE_KEY", "QR_USER_AGENT",
+    "TICKET_CREDIT_NUM", "TICKET_NAMES", "PAID_TICKET_IDS",
+    "TICKET_VALID_HOUR_OFFSET", "TICKET_VALID_DAYS",
 ]

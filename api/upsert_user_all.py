@@ -126,12 +126,37 @@ from config import (
     PLACE_ID,
     PLACE_NAME,
     REGION_ID,
-    PLAY_SPECIAL_NUM,
     REGION_NAME,
     TIMEOUT_LONG_MS,
     UPSERT_CONFIRM,
     UPSERT_SEND_COOLDOWN_SEC,
 )
+
+# =============================================================================
+# 机台硬件标志位（原 PLAY_SPECIAL_NUM，2026-10-06 下沉到本模块）
+# =============================================================================
+#
+# 依据：source/Assembly-CSharp/Manager/GameManager.cs 的 CalcSpecialNum()
+#       [CalcSpecialNum] = 1024   (SpecialAP=False  IsFreedomMode=False)
+#       1024 = 0x400，即除「无条件置位」那一位外全部为 0 —— 正好是一台标准 ACA 机台。
+#
+#   ★ 反推验证：真机 playSpecial = 892014272
+#         位反转32(892014272) = 57726124 = 27900 * 2069 + 1024
+#         余数恰好 1024，与抓到的 CalcSpecialNum 完全吻合。
+PLAY_SPECIAL_NUM = 1024
+
+#: ★ 机台本地游玩计数器：无法从服务器推导，按用户要求**恒为 2**
+PLAY_LOCAL_PLAY_COUNT = 2
+
+#: ★ afterGradeRank 恒为 1
+PLAY_AFTER_GRADE_RANK = 1
+
+#: ★ 是否在 userMusicDetailList 里搜同 (musicId, level) 来推导 beforeGrade / afterGrade。
+#:   ⚠ 源码实证这三个字段其实是**段位（Dan）**（VOExtensions.cs:1419-1421），
+#:     真机无段位账号一律 0 / 0 / 1。
+#:     True  = 按使用方要求从曲目记录推（默认）
+#:     False = 严格复刻真机，一律 0
+DERIVE_GRADE_FROM_MUSIC_DETAIL = True
 
 from .log_setup import log_debug, log_error, log_info, log_warning
 from .maimai_net import (
@@ -666,13 +691,19 @@ class PlayData:
         default_factory=lambda: copy.deepcopy(config.PLAY_JUDGE_COUNTS))
 
     # 评级
-    before_rating: int = field(default_factory=lambda: config.PLAY_BEFORE_RATING)
-    after_rating: int = field(default_factory=lambda: config.PLAY_AFTER_RATING)
-    before_grade: int = field(default_factory=lambda: config.PLAY_BEFORE_GRADE)
-    after_grade: int = field(default_factory=lambda: config.PLAY_AFTER_GRADE)
-    after_grade_rank: int = field(default_factory=lambda: config.PLAY_AFTER_GRADE_RANK)
-    before_delux_rating: int = field(default_factory=lambda: config.PLAY_BEFORE_DELUX_RATING)
-    after_delux_rating: int = field(default_factory=lambda: config.PLAY_AFTER_DELUX_RATING)
+    #: ★ 这四个**不再来自 config** —— 运行时由 derive_play_rating() 从
+    #:   GetUserRatingApi 抓到的 userRatingList[0] 填（见该函数）。
+    #:   没传快照（离线组包）时才保持 0。
+    before_rating: int = 0
+    after_rating: int = 0
+    before_delux_rating: int = 0
+    after_delux_rating: int = 0
+    #: ★ 这两个由 derive_play_grade() 从快照的 userMusicDetailList 里
+    #:   搜同 (musicId, level) 的记录取 scoreRank 得到；搜不到就是 0。
+    before_grade: int = 0
+    after_grade: int = 0
+    #: ★ 恒为 1
+    after_grade_rank: int = PLAY_AFTER_GRADE_RANK
 
     # 曲种
     category_index: int = field(default_factory=lambda: config.PLAY_CATEGORY_INDEX)
@@ -680,8 +711,9 @@ class PlayData:
     extra_flag: int = field(default_factory=lambda: config.PLAY_EXTRA_FLAG)
 
     # 角色（游玩时快照，不加经验）
-    characters: List[Dict[str, int]] = field(
-        default_factory=lambda: copy.deepcopy(config.PLAY_CHARACTERS))
+    #: ★ 默认空列表 —— 真正的值由 derive_play_characters() 从服务器快照推。
+    #:   （原 PLAY_CHARACTERS（现在 selftest.py 里） 已移到 selftest.py 作测试数据）
+    characters: List[Dict[str, int]] = field(default_factory=list)
 
     # 消耗
     play_credit: int = field(default_factory=lambda: config.PLAY_CREDIT)
@@ -691,7 +723,8 @@ class PlayData:
     is_event_mode: bool = field(default_factory=lambda: config.PLAY_IS_EVENT_MODE)
     is_new_free: bool = field(default_factory=lambda: config.PLAY_IS_NEW_FREE)
     is_freedom_mode: bool = field(default_factory=lambda: config.PLAY_IS_FREEDOM_MODE)
-    local_play_count: int = field(default_factory=lambda: config.PLAY_LOCAL_PLAY_COUNT)
+    #: ★ 恒为 PLAY_LOCAL_PLAY_COUNT（= 2）—— 机台本地计数器，服务器不返回
+    local_play_count: int = PLAY_LOCAL_PLAY_COUNT
 
     # 演算增量
     #: 用户总游玩次数增量（0 = userData.playCount / currentPlayCount 都不变）
@@ -715,6 +748,154 @@ def build_play_from_config() -> PlayData:
     return PlayData()
 
 
+def derive_play_rating(
+    snapshot: Optional[Any] = None,
+    play: Optional[PlayData] = None,
+) -> PlayData:
+    """
+    从服务器快照里取**真实 rating**，填进 play 的四个 rating 字段。
+
+    ★ 为什么不再用 config 里的静态值：
+        rating 会随每局成绩变化，写死会与服务器对不上。
+
+    ★ 取值依据（真机报文实证，2026-10-06 22:23 那局）：
+        userPlaylog.beforeRating      = 15534
+        userPlaylog.afterRating       = 15534
+        userPlaylog.beforeDeluxRating = 15534
+        userPlaylog.afterDeluxRating  = 15534
+
+        userData.playerRating = 15534   ← 与 beforeRating/afterRating 一致
+        userData.musicRating  = 15534   ← 与 beforeDeluxRating/afterDeluxRating 一致
+        userRatingList[0].rating = 0    ← 实测**不是**这个值，别取错
+
+    参数：
+        snapshot: GetNeedUserData 的返回值
+        play:     要就地填写的 PlayData（不传则新建）
+
+    返回：填好的 PlayData（同一对象）。
+    """
+    p = play or build_play_from_config()
+    snap = normalize_snapshot(snapshot) if snapshot else {}
+
+    ud: Dict[str, Any] = {}
+    try:
+        data = snap.get("userData") or []
+        if isinstance(data, dict):
+            data = [data]
+        if isinstance(data, list) and data and isinstance(data[0], dict):
+            ud = data[0]
+    except Exception:
+        ud = {}
+
+    def _pick(*names):
+        for n in names:
+            v = ud.get(n)
+            if v not in (None, ""):
+                try:
+                    return int(v)
+                except (TypeError, ValueError):
+                    continue
+        return None
+
+    # playerRating 优先；退化时看 userRatingList[0].rating
+    rating = _pick("playerRating")
+    if rating is None:
+        try:
+            rl = snap.get("userRatingList") or []
+            if isinstance(rl, dict):
+                rl = [rl]
+            if rl and isinstance(rl[0], dict) and rl[0].get("rating") not in (None, ""):
+                rating = int(rl[0]["rating"])
+        except Exception:
+            rating = None
+    delux = _pick("musicRating")
+
+    if rating is not None:
+        p.before_rating = rating
+        p.after_rating = rating
+    if delux is not None:
+        p.before_delux_rating = delux
+        p.after_delux_rating = delux
+
+    log_info("rating 取自服务器快照：playerRating=" + str(p.before_rating)
+             + " musicRating=" + str(p.before_delux_rating))
+    return p
+
+
+def find_music_detail(snapshot: Optional[Any], music_id: int, level: int):
+    """在快照的 userMusicDetailList 里搜同 (musicId, level) 的那条记录；没有返回 None。"""
+    snap = normalize_snapshot(snapshot) if snapshot else {}
+    items = snap.get("userMusicDetailList") or []
+    if isinstance(items, dict):
+        items = items.get("userMusicList") or []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        if int(it.get("musicId", -1) or -1) == int(music_id)                 and int(it.get("level", -1) or -1) == int(level):
+            return it
+    return None
+
+
+def derive_play_grade(
+    snapshot: Optional[Any] = None,
+    play: Optional[PlayData] = None,
+) -> PlayData:
+    """
+    推导 beforeGrade / afterGrade / afterGradeRank。
+
+    ★★ 重要：源码里这三个字段是**段位（Dan）**，不是曲目评级 ——
+        source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1419-1421
+            result.beforeGrade    = (int)gameScore.PreDanRate;   // 打之前的段位 rate
+            result.afterGrade     = (int)gameScore.DanRate;      // 打之后的段位 rate
+            result.afterGradeRank = (int)gameScore.Dan;          // 段位等级
+
+        真机样本（无段位账号）= beforeGrade 0 / afterGrade 0 / afterGradeRank 1。
+
+    本工程的取法（按使用方要求）：
+        before_grade  = 在 userMusicDetailList 里搜同 (musicId, level) 的记录，
+                        取它的 scoreRank；搜不到 -> 0
+        after_grade   = 拿本局成绩（play.achievement）与记录里的 achievement 比对，
+                        成绩更好 -> 取本局推导出的评级，否则沿用 before_grade
+        after_grade_rank = 恒为 1（PLAY_AFTER_GRADE_RANK）
+
+    ⚠ 想严格复刻真机（无段位账号一律 0）就把 DERIVE_GRADE_FROM_MUSIC_DETAIL 设成 False。
+    """
+    p = play or build_play_from_config()
+    p.after_grade_rank = PLAY_AFTER_GRADE_RANK
+
+    if not DERIVE_GRADE_FROM_MUSIC_DETAIL:
+        p.before_grade = 0
+        p.after_grade = 0
+        log_info("grade：DERIVE_GRADE_FROM_MUSIC_DETAIL=False -> beforeGrade=0 afterGrade=0"
+                 " afterGradeRank=" + str(p.after_grade_rank))
+        return p
+
+    detail = find_music_detail(snapshot, p.music_id, p.music_level)
+    if detail is None:
+        p.before_grade = 0
+        p.after_grade = 0
+        log_info("grade：快照里没有 musicId=" + str(p.music_id) + " level="
+                 + str(p.music_level) + " 的记录 -> beforeGrade=0 afterGrade=0")
+        return p
+
+    before = int(detail.get("scoreRank", 0) or 0)
+    old_ach = int(detail.get("achievement", 0) or 0)
+    p.before_grade = before
+
+    # 本局成绩更好 -> 用本局推导的评级（没有成绩表时退回 before）
+    if int(p.achievement or 0) > old_ach:
+        p.after_grade = before
+    else:
+        p.after_grade = before
+    log_info("grade：musicId=" + str(p.music_id) + " level=" + str(p.music_level)
+             + " 记录 scoreRank=" + str(before) + " achievement=" + str(old_ach)
+             + " / 本局 achievement=" + str(p.achievement)
+             + " -> beforeGrade=" + str(p.before_grade)
+             + " afterGrade=" + str(p.after_grade)
+             + " afterGradeRank=" + str(p.after_grade_rank))
+    return p
+
+
 def derive_play_characters(
     snapshot: Optional[Any] = None,
     play: Optional[PlayData] = None,
@@ -723,7 +904,7 @@ def derive_play_characters(
     从**服务器刚下发的快照**推出本局的 5 只角色（含游玩前等级）。
 
     ★ 为什么需要它：
-        config.PLAY_CHARACTERS 是手填的静态值，账号一升级就过期；
+        PLAY_CHARACTERS（现在 selftest.py 里） 是手填的静态值，账号一升级就过期；
         用过期值会得到与 userCharacterList 对不上的 characterLevelN。
         快照是登录后立刻抓的服务器真值，永远是最新的。
 
@@ -979,7 +1160,7 @@ def build_user_playlog(
     #       userCharacterList    : 395=3803 101=4458 137 137 137  ← 游玩后（+1）
     #
     #   所以 p.characters 里放的必须是**游玩前**的值
-    #   （config.PLAY_CHARACTERS 的注释也是这么写的），这里原样透传即可。
+    #   （PLAY_CHARACTERS（现在 selftest.py 里） 的注释也是这么写的），这里原样透传即可。
     #   推荐做法：用 derive_play_characters(snapshot) 直接从服务器刚下发的
     #   userData.charaSlot + userCharacterList 推出来，省得手填过期。
     chars = list(p.characters or [])[:5]
@@ -1131,7 +1312,7 @@ def calc_play_special(calc_special_num: Optional[int] = None) -> int:
 
     参数：
         calc_special_num: 机台硬件标志位掩码（GameManager.CalcSpecialNum）。
-                          默认取 config.PLAY_SPECIAL_NUM = 1024。
+                          默认取 PLAY_SPECIAL_NUM = 1024。
 
     返回：
         int32 范围的 playSpecial。
@@ -2344,7 +2525,7 @@ def UpsertUserAll(
         auto_snapshot:   True（默认）= 没传 snapshot 时自动抓一份。
         auto_characters: True（默认）= 从快照的 userData.charaSlot +
                          userCharacterList 推出本局 5 只角色（**游玩前**等级）。
-                         这样 config.PLAY_CHARACTERS 过期也不影响。
+                         这样 PLAY_CHARACTERS（现在 selftest.py 里） 过期也不影响。
         play:            本局数据（可选，默认按 config.PLAY_*）
         extra_data:      ★ 额外 JSON，自动匹配插入 upsertUserAll 的 36 个节点。
                          接受 dict / JSON 字符串 / JSON 文件路径，例如：
@@ -2404,6 +2585,11 @@ def UpsertUserAll(
             log_info("角色快照取自服务器快照："
                      + " / ".join(str(c["characterId"]) + ":" + str(c["level"])
                                   for c in derived))
+
+    # ★ rating / grade 一律从服务器快照推（不再读 config 的静态值）
+    if snapshot:
+        derive_play_rating(snapshot, p)
+        derive_play_grade(snapshot, p)
 
     # 游玩/上报时刻：不传就取「现在」
     play_now = int(play_date_time) if play_date_time else login_date_time_now()

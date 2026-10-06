@@ -12,7 +12,8 @@ UpsertUserChargelog 内部会自动做这些事（所以主脚本不用管）：
     1. 调 GetUserChargeApi 取当前票券列表（算「购买后库存」）
     2. 调 GetUserDataApi 取 playCount / playerRating
     3. 按 TicketManager.cs:564 算 validDate（现在 -4h +90d，取日期补 04:00:00）
-    4. 查 config.TICKET_CREDIT_NUM 得到 userChargelog.price（= ticket.creditNum）
+    4. 查 TICKET_CREDIT_NUM（已下沉到 api/upsert_user_chargelog.py）得到
+   userChargelog.price（= ticket.creditNum）
     5. 闸门 → 发包
 
 --------------------------------------------------------------------------------
@@ -25,7 +26,7 @@ UpsertUserChargelog 内部会自动做这些事（所以主脚本不用管）：
     python buy_ticket.py <二维码> --charge-id 2 --send --debug
     python buy_ticket.py <二维码> --charge-id 2 --send --skip-entry   # 跳过入场数据下载
 
-付费票（config.PAID_TICKET_IDS）：
+付费票（api.PAID_TICKET_IDS）：
     2 = 2倍チケット   creditNum 1
     3 = 3倍チケット   creditNum 2
     4 = 4倍チケット   creditNum 3

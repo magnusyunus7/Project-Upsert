@@ -35,7 +35,7 @@ use_ticket.py —— 消耗账号当前持有的功能券（用 UpsertUserAll �
                    + TicketManager.GetTicketCredit(ticketId)  // 票的 creditNum
 
       2 倍券的 creditNum = 1 -> playCredit = 1 + 1 = 2  （与真机抓包一致）
-      creditNum 表见 config.TICKET_CREDIT_NUM。
+      creditNum 表见 TICKET_CREDIT_NUM。
 
     ★ 真机报文里**没有** isNewChargeList 这个节点（它不在 36 个节点里），
       所以这里也不需要给位串。
@@ -78,6 +78,8 @@ from api import (
     ConfirmRequiredError,
     ticket_name,
     Ping,
+    # ★ 原先在 config.py，已下沉到 api/upsert_user_chargelog.py
+    TICKET_CREDIT_NUM,
 )
 from config import (
     PLACE_ID,
@@ -85,7 +87,6 @@ from config import (
     PLAY_MUSIC_ID,
     PLAY_MUSIC_LEVEL,
     PLAY_CREDIT,
-    TICKET_CREDIT_NUM,
 )
 
 

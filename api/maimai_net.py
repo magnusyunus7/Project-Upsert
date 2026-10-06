@@ -113,16 +113,25 @@ import requests
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
-from config import (
-    AES_KEY,
-    AES_IV,
-    BASE_URL,
-    CLIENT_ID,
-    MAI_ENCODING,
-    OBFUSCATE_PARAM,
-    TIMEOUT_LONG_MS,
-    TIMEOUT_MS,
-)
+from config import CLIENT_ID, MAI_ENCODING, TIMEOUT_LONG_MS, TIMEOUT_MS
+
+# =============================================================================
+# 协议常量（原在 config.py，2026-10-06 下沉到本模块 —— 它们只服务于网络层）
+# =============================================================================
+
+#: 游戏服务器（Maimai2Servlet）
+#: 依据 source/Assembly-CSharp/Manager/OperationManager.cs:225,338
+#:     _operationData.ServerUri = Auth.GameServerUri + MovieServerUri("mE2s3Jhd/")
+BASE_URL = "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/"
+
+#: AES 参数，依据 source/Assembly-CSharp/Net/CipherAES.cs:11-12
+#:   AesKey 32 字节 -> AES-256；AesIV 16 字节
+AES_KEY = b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W"
+AES_IV = b"F>;24DjU9W6ZsRH["
+
+#: API 名混淆盐，依据 source/Assembly-CSharp/Net.Packet/Packet.cs:44
+#: 用法：URL 尾段 = md5(逻辑接口名 + "MaimaiChn" + OBFUSCATE_PARAM) 小写 hex
+OBFUSCATE_PARAM = "8bF76dE9"
 
 from .log_setup import log_debug, log_error, log_request, log_response
 
