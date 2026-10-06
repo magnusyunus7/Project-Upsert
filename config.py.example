@@ -47,17 +47,12 @@ TIMEOUT_LONG_MS = 60000     # 登录 / 结算上传
 # 二、机台与店铺标识
 # =============================================================================
 
-# Keychip ID（机台唯一标识，完整格式带连字符）
-# ★★ 这是你自己的机台身份，不要外传；填错服务端会拒。
-# 依据：source/Assembly-CSharp/Manager/ChimeReaderManager.cs:250
-#       KeychipID = AMDaemon.System.KeychipId.Value
-KEYCHIP_ID = ""                 # ★★ 必填：形如 "XXXX-XXXXXXXXXXX"（带连字符）
-
-# 客户端 ID（Keychip 短值，去掉连字符取前 11 位）
+# 客户端 ID（Keychip 短值）
 # 依据：source/Assembly-CSharp/Net.Packet.Mai2/PacketGetGameSetting.cs:23
 #       clientId = AMDaemon.System.KeychipId.ShortValue
 # 实测：真机日志里 clientId 恒等于 Keychip 短值
-CLIENT_ID = ""                  # ★★ 必填：Keychip 短值，去掉连字符取前 11 位
+# ★ 形态 = 15 位 Keychip 去掉连字符后的**前 11 位**（大写十六进制）。
+CLIENT_ID = ""                  # ★★ 必填：形如 "A63E01C3047"
 
 # 区域 ID / 店铺 ID
 # 依据：source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogin.cs:24-25
@@ -66,9 +61,18 @@ CLIENT_ID = ""                  # ★★ 必填：Keychip 短值，去掉连字�
 REGION_ID = 0                   # ★★ 必填：你所在区域 ID
 PLACE_ID = 0                    # ★★ 必填：你所在店铺 ID
 
+# Keychip ID（机台唯一标识，完整格式带连字符）
+# ★★ 这是你自己的机台身份，不要外传；填错服务端会拒。
+# 依据：source/Assembly-CSharp/Manager/ChimeReaderManager.cs:250
+#       KeychipID = AMDaemon.System.KeychipId.Value
+# ★ 组成 = CLIENT_ID 的前 4 位 + "-" + CLIENT_ID 第 5 位起 + PLACE_ID
+#     例：CLIENT_ID "A63E01C3047" + PLACE_ID 1007  ->  "A63E-01C30471007"
+#   所以它由上面两个值**推导**，不要手改。
+KEYCHIP_ID = (CLIENT_ID[:4] + "-" + CLIENT_ID[4:] + str(PLACE_ID)) if CLIENT_ID else ""
+
 # 店铺名 / 区域名
 #
-# ★ 为什么必须手工填：**游戏服务器没有任何接口返回店铺名**。
+# ★ 为什么以前必须手工填：**游戏服务器没有任何接口返回店铺名**。
 #   逐行扫过 source/2026-10-05.log 全部响应：
 #     - GetGameSettingApi 只回 gameSetting，无店名
 #     - GetUserDataApi 的 lastPlaceName 回的是 null
@@ -77,11 +81,25 @@ PLACE_ID = 0                    # ★★ 必填：你所在店铺 ID
 #     source/AMDaemon.NET/AMDaemon/Allnet/Auth.cs:33  LocationName <- allnet_Auth_getLocationName()
 #   是开机时 ALL.Net 认证下发的，客户端本地就有，不会向游戏服务器索取。
 #
-# 取值示例（真机 UpsertUserAll 报文）：
-#   userPlaylogList[0].placeName = "<你的店铺名>"
-#   userData[0].lastRegionName   = "<你的区域名>"
-PLACE_NAME = ""                 # ★★ 必填：店铺名（游戏服务器不返回，只能手填）
+# ★★ 现在不用手工抄了：python authv1.py <你的Keychip> 会直接问 ALL.Net
+#    认证服务器要回 name / region_name0。把下面的 AUTHV1_WRITE_CONFIG 打开，
+#    它还能把结果自动写回 config.py。
+PLACE_NAME = ""                 # ★★ 必填：店铺名
 REGION_NAME = ""                # ★★ 必填：区域名
+
+
+# --- authv1 回写开关 ---
+#
+# authv1.py（Keychip -> 机台身份）查到结果后，是否**自动写回 config.py**。
+#
+#   True  : 每次查询成功后，把 CLIENT_ID / REGION_ID / PLACE_ID /
+#           PLACE_NAME / REGION_NAME 五个值改写进 config.py。
+#           （KEYCHIP_ID 是推导值，会自动跟着变，不用写。）
+#           改写前会把原文件备份成 config.py.bak，写坏不落盘。
+#   False : 只打印结果，不动 config.py。（默认，安全）
+#
+# 命令行可临时覆盖：--write 强制写 / --no-write 强制不写。
+AUTHV1_WRITE_CONFIG = False
 
 
 # =============================================================================
@@ -356,6 +374,7 @@ __all__ = [
     "TIMEOUT_MS", "TIMEOUT_LONG_MS",
     # 机台与店铺
     "KEYCHIP_ID", "CLIENT_ID", "REGION_ID", "PLACE_ID", "PLACE_NAME", "REGION_NAME",
+    "AUTHV1_WRITE_CONFIG",
     # 功能票
     "TICKET_CREDIT_NUM", "TICKET_NAMES", "PAID_TICKET_IDS",
     "UPSERT_CHARGELOG_CONFIRM", "TICKET_VALID_HOUR_OFFSET", "TICKET_VALID_DAYS",

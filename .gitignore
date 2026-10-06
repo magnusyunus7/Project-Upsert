@@ -19,6 +19,15 @@ docs/
 gamehook/bin/
 gamehook/obj/
 
+# ---- netdelivery 下载目录（.app / .opt 更新包很大，不入库）----
+download/
+
+# ---- get_auth_list：clientId 遍历脚本与其产物（默认不入库、不推送）----
+#   产物默认落在 data/ 下（data/ 本就已经整目录忽略）；
+#   authentication.* 再兜一层，防止用 --csv/--state 指到别处
+get_auth_list.py
+authentication.*
+
 # ---- 编辑器 / 系统 ----
 .vs/
 .vscode/
