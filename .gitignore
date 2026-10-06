@@ -1,5 +1,6 @@
 # ---- 运行产物 ----
-data/            # 每账号一份用户数据快照（<userId>.json）
+# 每账号一份用户数据快照（<userId>.json）
+data/
 logs/
 __pycache__/
 *.pyc

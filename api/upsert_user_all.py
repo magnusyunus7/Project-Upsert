@@ -154,9 +154,9 @@ PLAY_AFTER_GRADE_RANK = 1
 #: ★ 是否在 userMusicDetailList 里搜同 (musicId, level) 来推导 beforeGrade / afterGrade。
 #:   ⚠ 源码实证这三个字段其实是**段位（Dan）**（VOExtensions.cs:1419-1421），
 #:     真机无段位账号一律 0 / 0 / 1。
-#:     True  = 按使用方要求从曲目记录推（默认）
-#:     False = 严格复刻真机，一律 0
-DERIVE_GRADE_FROM_MUSIC_DETAIL = True
+#:     False = **一律 0**（默认，与真机一致 —— 使用方已确认走这条）
+#:     True  = 从曲目记录推（仅调试用）
+DERIVE_GRADE_FROM_MUSIC_DETAIL = False
 
 from .log_setup import log_debug, log_error, log_info, log_warning
 from .maimai_net import (
