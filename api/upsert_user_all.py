@@ -57,6 +57,13 @@ source/2026-10-05.log:123 逐节点核对：
       写入后「看起来什么都没发生」，这就是「returnCode=1 但没落库」的根因。
       差分节点若为空，服务端也看不出本局有任何变化。
 
+    ⚠ 本工程的默认值与上表（真机）**有意不同**：
+      config.PLAY_USER_PLAY_COUNT_GAIN = 0（默认）
+        -> userData.playCount / currentPlayCount **保持不变**，不复刻真机的 +1。
+        想复刻真机就把它改成 1。
+      其它增量同理：PLAY_MUSIC_PLAY_COUNT_GAIN / PLAY_MAP_DISTANCE_GAIN /
+      PLAY_CHARACTER_EXP_GAIN 默认都是 0。
+
 所以本模块的流程是：
 
     1. 从 snapshot（登录后抓的 Get 响应）建立**基线**
@@ -687,7 +694,11 @@ class PlayData:
     local_play_count: int = field(default_factory=lambda: config.PLAY_LOCAL_PLAY_COUNT)
 
     # 演算增量
-    #: 曲目历史游玩次数增量（0 = 不回传 userMusicDetailList）
+    #: 用户总游玩次数增量（0 = userData.playCount / currentPlayCount 都不变）
+    #: ★ 默认 0：不再自动 +1。想复刻真机就设成 1。
+    user_play_count_gain: int = field(
+        default_factory=lambda: getattr(config, "PLAY_USER_PLAY_COUNT_GAIN", 0))
+    #: 曲目历史游玩次数增量（0 = 条目照传但次数不变）
     music_play_count_gain: int = field(
         default_factory=lambda: config.PLAY_MUSIC_PLAY_COUNT_GAIN)
     map_distance_gain: int = field(default_factory=lambda: config.PLAY_MAP_DISTANCE_GAIN)
@@ -1504,8 +1515,9 @@ def apply_play_effects(
 
     ★ 这是本模块最关键的一步。真机对照（source/2026-10-05.log）：
 
-        userData.playCount        1257 -> 1258            (+1)
-        userData.currentPlayCount 185  -> 186             (+1)
+        userData.playCount        1257 -> 1258            (+1)  ← 真机
+        userData.currentPlayCount 185  -> 186             (+1)  ← 真机
+        ★ 本工程默认 PLAY_USER_PLAY_COUNT_GAIN = 0，这两个**不变**。
         userData.lastPlayDate     旧   -> 本局时刻
         userData.lastPlayMode     2    -> 0
         userData.lastLoginDate    旧   -> 本次登录时刻
@@ -1550,8 +1562,11 @@ def apply_play_effects(
         ud["lastRegionId"] = region_id
         ud["lastClientId"] = client_id
         ud["lastCountryCode"] = ud.get("lastCountryCode") or "CHN"
-        ud["playCount"] = int(ud.get("playCount", 0) or 0) + 1
-        ud["currentPlayCount"] = int(ud.get("currentPlayCount", 0) or 0) + 1
+        # ★ 默认增量 0：playCount / currentPlayCount 保持不变
+        #   （config.PLAY_USER_PLAY_COUNT_GAIN，想复刻真机 +1 就改成 1）
+        _pc_gain = int(getattr(play, "user_play_count_gain", 0) or 0)
+        ud["playCount"] = int(ud.get("playCount", 0) or 0) + _pc_gain
+        ud["currentPlayCount"] = int(ud.get("currentPlayCount", 0) or 0) + _pc_gain
         ud["lastPlayDate"] = wall                # 本局上报时刻
         ud["lastPlayMode"] = play.play_mode
         ud["lastLoginDate"] = login_wall         # 本次登录时刻
@@ -1585,9 +1600,10 @@ def apply_play_effects(
     # ---------------- userMusicDetailList（差分：本局那条曲目）----------------
     # ★★ 这个节点**必须回传本局那条**，不能留空 —— 实测证明：
     #     同一份代码、同一账号，唯一差别是这里留空 vs 回传 1 条：
-    #       回传 1 条 -> returnCode=1 且 userData.playCount 真的 +1（落库）
-    #       留空     -> returnCode=1 但 playCount 纹丝不动（**没落库**）
+    #       回传 1 条 -> returnCode=1 且服务端确实写入（当时靠 playCount +1 观察到）
+    #       留空     -> returnCode=1 但什么都没变（**没落库**）
     #     即「本局有 playlog 却没有任何曲目明细」会被服务端当成无效包静默丢弃。
+    #   ★ 现在 playCount 默认不再 +1，落库判据改看 lastPlayDate（见 verify_upsert_landing）。
     #
     # ★ 但 playCount 的**增量**可以自由控制：
     #     config.PLAY_MUSIC_PLAY_COUNT_GAIN = 0（默认）-> 条目照传，次数不变
@@ -1794,8 +1810,8 @@ def build_user_all(
     #   PLAY_MUSIC_PLAY_COUNT_GAIN = 0（本局不改次数）且成绩也没刷新时，
     #   本局那条会被剔光 -> 节点变空。
     #   ★ 实测（同一份代码、同一账号，唯一差别就是这个节点）：
-    #       回传 1 条 -> returnCode=1 且 userData.playCount 真的 +1（落库）
-    #       留空     -> returnCode=1 但 playCount 纹丝不动（**整包没生效**）
+    #       回传 1 条 -> returnCode=1 且服务端确实写入
+    #       留空     -> returnCode=1 但什么都没变（**整包没生效**）
     #   所以这里兜底：只要本局确实打了一首歌，就一定回传它那一条。
     #   位串给 "0" = 服务器侧已有该 (musicId, level)，属于更新而非新增。
     if not (user_all.get("userMusicDetailList") or []):
@@ -2239,12 +2255,29 @@ def verify_upsert_landing(
     except Exception as exc:
         log_warning("  曲目明细回查失败：" + str(exc))
 
-    ok = (int(after_ud.get("playCount") or 0) > int(before_ud.get("playCount") or 0))
-    if ok:
-        log_info("【落库成功】userData.playCount 已 +1")
+    # ★ 判定依据随增量走：
+    #   增量 > 0 -> playCount 应当变大（原来的判据）
+    #   增量 = 0 -> playCount 本来就不该变，改用 lastPlayDate 是否更新来判断
+    _pc_gain = int(getattr(p, "user_play_count_gain", 0) or 0)
+    if _pc_gain:
+        ok = (int(after_ud.get("playCount") or 0)
+              > int(before_ud.get("playCount") or 0))
+        detail = "userData.playCount 已 +" + str(_pc_gain)
     else:
-        log_error("【疑似未落库】userData.playCount 没有变化，"
+        _b_lpd = str(before_ud.get("lastPlayDate") or "")
+        _a_lpd = str(after_ud.get("lastPlayDate") or "")
+        ok = bool(_a_lpd) and _a_lpd != _b_lpd
+        detail = "userData.lastPlayDate " + _b_lpd + " -> " + _a_lpd
+
+    if ok:
+        log_info("【落库成功】" + detail)
+    else:
+        log_error("【疑似未落库】" + detail + "，"
                   "请对照 docs/UpsertUserAll踩坑清单.md 排查")
+        if not _pc_gain:
+            log_warning("  提示：PLAY_USER_PLAY_COUNT_GAIN=0 时 playCount 不变属正常，"
+                        "此处看的是 lastPlayDate；若刚上传的就是同一局，"
+                        "lastPlayDate 本来就可能相等（假阴性）")
     return ok
 
 

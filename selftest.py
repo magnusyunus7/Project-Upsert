@@ -542,8 +542,18 @@ check("节点顺序与 NODE_ORDER 一致", list(ua2.keys()) == list(NODE_ORDER))
 
 # userData 演算
 ud = ua2["userData"][0]
-check("playCount +1", ud["playCount"] == 1258, str(ud["playCount"]))
-check("currentPlayCount +1", ud["currentPlayCount"] == 186, str(ud["currentPlayCount"]))
+# ★ 默认 PLAY_USER_PLAY_COUNT_GAIN = 0 -> 总次数**保持不变**
+check("playCount 不变（默认增量 0）", ud["playCount"] == 1257, str(ud["playCount"]))
+check("currentPlayCount 不变（默认增量 0）", ud["currentPlayCount"] == 185,
+      str(ud["currentPlayCount"]))
+# 显式把增量调回 1 -> 复刻真机 +1
+_ud_gain = build_user_all(baseline, login_date_time=1791159576,
+                          auth_date_time=1791134329, playlog_id=7692848101484135861,
+                          play=PlayData(user_play_count_gain=1))["userData"][0]
+check("显式 user_play_count_gain=1 时 playCount +1", _ud_gain["playCount"] == 1258,
+      str(_ud_gain["playCount"]))
+check("显式 user_play_count_gain=1 时 currentPlayCount +1",
+      _ud_gain["currentPlayCount"] == 186, str(_ud_gain["currentPlayCount"]))
 check("lastGameId 兜底为 SDGB", ud["lastGameId"] == "SDGB")
 check("accessCode 兜底为空串", ud["accessCode"] == "")
 check("lastPlaceId = config.PLACE_ID", ud["lastPlaceId"] == __import__("config").PLACE_ID)
@@ -843,8 +853,8 @@ check("extra_data 插入对应位串",
       _ua_x["isNewKaleidxScopeList"] == "1", _ua_x["isNewKaleidxScopeList"])
 check("合并后仍是 36 个节点且顺序不变",
       list(_ua_x.keys()) == list(NODE_ORDER), str(len(_ua_x)))
-check("合并没有破坏别的节点（userData.playCount 仍 +1）",
-      _ua_x["userData"][0]["playCount"] == 1258, str(_ua_x["userData"][0]["playCount"]))
+check("合并没有破坏别的节点（userData.playCount 仍为基线值）",
+      _ua_x["userData"][0]["playCount"] == 1257, str(_ua_x["userData"][0]["playCount"]))
 
 # 只给数组不给位串 -> 按长度补 "0" 并在说明里提示
 _ua_only_arr = build_user_all(baseline, login_date_time=1791159576,

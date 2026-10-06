@@ -314,6 +314,18 @@ PLAY_LOCAL_PLAY_COUNT = 8
 #   改成 0 不会报错，但 playSpecial 的位模式就不是真机那种了。
 PLAY_SPECIAL_NUM = 1024
 
+# --- 用户总游玩次数增量 ---
+#
+# ★ 默认 0 = **userData.playCount / currentPlayCount 都不变**（本局不计入总次数）。
+#   想复刻真机的「+1」就改成 1。
+#
+#   为什么默认改成 0：
+#     playCount 是账号的**总游玩次数**，是玩家可见的统计值；
+#     本工程做「成绩上传」时不需要改动它，保持与上传前一致更安全。
+#   ★ 改成 0 之后的副作用：「落库回查」不能再靠 playCount 是否 +1 判断，
+#     会自动改用 lastPlayDate 是否更新来判断（见 verify_upsert_landing）。
+PLAY_USER_PLAY_COUNT_GAIN = 0
+
 # --- 曲目历史游玩次数增量 ---
 #
 # ★ 默认 0 = 本局**不改动**该曲目的历史游玩次数。
@@ -439,6 +451,7 @@ __all__ = [
     "PLAY_CHARACTERS", "PLAY_CREDIT", "PLAY_USE_TICKET_ID", "PLAY_MODE",
     "PLAY_IS_TUTORIAL", "PLAY_IS_EVENT_MODE", "PLAY_IS_NEW_FREE", "PLAY_IS_FREEDOM_MODE",
     "PLAY_LOCAL_PLAY_COUNT", "PLAY_SPECIAL_NUM",
+    "PLAY_USER_PLAY_COUNT_GAIN",
     "PLAY_MUSIC_PLAY_COUNT_GAIN", "PLAY_MAP_DISTANCE_GAIN", "PLAY_CHARACTER_EXP_GAIN",
     "PLAY_SHOP_ITEM_IDS",
     # 闸门

@@ -87,7 +87,7 @@ namespace MaimaiNetSpy
                                 nameof(PreAddCookie), null);
                 n += PatchBySig(h, "Net.NetHttpClient", "Request",
                                 new[] { typeof(byte[]), typeof(string), typeof(string) },
-                                nameof(PreRequest), null);
+                                nameof(PreRequest), nameof(PostRequestDumpHeaders));
                 n += PatchBySig(h, "Net.NetHttpClient", "GetResponse",
                                 Type.EmptyTypes,
                                 null, nameof(PostGetResponse));
@@ -266,12 +266,84 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
+        // ★ 真实 HTTP 请求头 dump
+        // ------------------------------------------------------------------
+        //
+        // 为什么必须用 postfix：
+        //   PreRequest 跑在 Request() 方法体**之前**，那时
+        //   Method / ContentType / UserAgent / Content-Encoding 都还没设置。
+        //   只有 postfix 才能看到最终真正要发出去的头（含框架自带的）。
+        //
+        // 目的：把真机的**完整请求头**抓下来，和纯 Python 脚本发的做逐字节对比。
+        //       （排查「报文一致但服务端 returnCode=0」这类问题）
+        private static void PostRequestDumpHeaders(Net.NetHttpClient __instance)
+        {
+            try
+            {
+                var fld = AccessTools.Field(typeof(Net.NetHttpClient), "_request");
+                var wr = (fld == null ? null : fld.GetValue(__instance)) as System.Net.HttpWebRequest;
+                if (wr == null) { Line("| [头 dump] _request 取不到"); return; }
+
+                var sb = new StringBuilder();
+                sb.AppendLine("| ---- ★ 真实 HTTP 请求头（HttpWebRequest，含框架自带）----");
+                sb.AppendLine("|   [Method]        : " + wr.Method);
+                sb.AppendLine("|   [ContentType]   : " + wr.ContentType);
+                sb.AppendLine("|   [UserAgent]     : " + wr.UserAgent);
+                sb.AppendLine("|   [ContentLength] : " + wr.ContentLength);
+                sb.AppendLine("|   [KeepAlive]     : " + wr.KeepAlive);
+                sb.AppendLine("|   [Expect]        : " + wr.Expect);
+                sb.AppendLine("|   [AutomaticDecompression] : " + wr.AutomaticDecompression);
+                sb.AppendLine("|   [AllowAutoRedirect]      : " + wr.AllowAutoRedirect);
+                try
+                {
+                    foreach (string k in wr.Headers.AllKeys)
+                        sb.AppendLine("|   " + k + ": " + wr.Headers[k]);
+                }
+                catch (Exception e2) { sb.AppendLine("|   [Headers 枚举失败] " + e2.Message); }
+                try
+                {
+                    sb.AppendLine("|   [Cookie 头] : "
+                        + (wr.CookieContainer == null ? "(null container)"
+                           : "[" + wr.CookieContainer.GetCookieHeader(wr.RequestUri) + "]"));
+                }
+                catch (Exception e3) { sb.AppendLine("|   [Cookie 取失败] " + e3.Message); }
+                Line(sb.ToString());
+            }
+            catch (Exception e)
+            {
+                Line("| [头 dump 失败] " + e);
+            }
+        }
+
+        // ------------------------------------------------------------------
         // GetResponse —— 解密后的响应
         // ------------------------------------------------------------------
 
-        private static void PostGetResponse(ref MemoryStream __result)
+        private static void PostGetResponse(Net.NetHttpClient __instance, ref MemoryStream __result)
         {
             _respCount++;
+
+            // ★ 响应头 dump（尤其看 UserLoginApi 的 Set-Cookie: JSESSIONID）
+            try
+            {
+                var fldR = AccessTools.Field(typeof(Net.NetHttpClient), "_response");
+                var resp = (fldR == null ? null : fldR.GetValue(__instance)) as System.Net.HttpWebResponse;
+                if (resp != null)
+                {
+                    var sh = new StringBuilder();
+                    sh.AppendLine("| ---- ★ 真实 HTTP 响应头 ----");
+                    sh.AppendLine("|   [StatusCode] : " + (int)resp.StatusCode);
+                    try
+                    {
+                        foreach (string k in resp.Headers.AllKeys)
+                            sh.AppendLine("|   " + k + ": " + resp.Headers[k]);
+                    }
+                    catch (Exception e4) { sh.AppendLine("|   [响应头枚举失败] " + e4.Message); }
+                    Line(sh.ToString());
+                }
+            }
+            catch (Exception e5) { Line("| [响应头 dump 失败] " + e5.Message); }
+
             try
             {
                 if (__result == null) return;

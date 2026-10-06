@@ -98,7 +98,7 @@ def show_charges(user_id, label):
 
 def parse_args(argv):
     opts = {"qr": "", "charge_id": 5, "send": False, "list": False,
-            "debug": False, "skip_entry": False, "wait_before": 5.0}
+            "debug": False, "skip_entry": False, "wait_before": 30.0}
     i = 0
     while i < len(argv):
         a = argv[i]
