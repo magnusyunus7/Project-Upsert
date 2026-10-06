@@ -85,16 +85,16 @@ source/2026-10-05.log:123 逐节点核对：
 --------------------------------------------------------------------------------
 五、调用示例
 --------------------------------------------------------------------------------
-    from api import (setup_logging, ParseQRCode, UserPreview, UserLogin,
-                     fetch_upsert_snapshot, UpsertUserAll, build_play_from_config)
+    from api import (setup_logging, ParseQRCode, GetUserPreview, UserLogin,
+                     GetNeedUserData, UpsertUserAll, build_play_from_config)
 
     setup_logging("结算")
     user_id, token = ParseQRCode(qr)
-    UserPreview(user_id, token)
+    GetUserPreview(user_id, token)
     login = UserLogin(user_id, token)
 
     # 1) 登录后立刻抓基线快照（差分的基准）
-    snapshot = fetch_upsert_snapshot(user_id, token=token)
+    snapshot = GetNeedUserData(user_id, token=token)
 
     # 2) 组装本局数据（默认读 config.py 的 PLAY_*）
     play = build_play_from_config()
@@ -527,7 +527,7 @@ def build_favorite_delta(
         "2" = 服务器侧有对应 itemKind（无论内容是否一致）
         "1" = 服务器侧查不到该 itemKind
 
-    ★ 关键：**优先用 Get 侧最原始的响应建索引**，不要先用 user_favorite.py
+    ★ 关键：**优先用 Get 侧最原始的响应建索引**，不要先用 get_user_favorite.py
       的「补 itemKind」逻辑归一化 —— 真机里 itemKind=10 的响应回的是
       {"itemKind":null, "itemIdList":[]}，正因为查不到才自然产生 "1"。
 
@@ -729,12 +729,12 @@ def derive_play_characters(
 
     数据来源（都在 Get 响应里）：
         userData.charaSlot         本局 5 个角色槽的 characterId（顺序即 slot1..5）
-                                   source/Assembly-CSharp/Net.VO.Mai2/UserData.cs
+                                   source/Assembly-CSharp/Net.VO.Mai2/GetUserData.cs
         userCharacterList          每只角色的 level / awakening
                                    GetUserCharacterApi 响应
 
     参数：
-        snapshot: fetch_upsert_snapshot 的返回值（或任何含 userData /
+        snapshot: GetNeedUserData 的返回值（或任何含 userData /
                   userCharacterList 的字典）。
         play:     当前的 PlayData；快照里查不到的槽位回退到它同位置的配置。
 
@@ -811,7 +811,7 @@ def build_post_play_user_data(
           **完全一致**（playCount=1258、point=4460、lastPlayDate=19:22:53.0）。
 
     返回：
-        游玩后的 userData 字典（可直接放进 [ ] 传给 UserNewItemList）
+        游玩后的 userData 字典（可直接放进 [ ] 传给 GetUserNewItemList）
     """
     p = play or build_play_from_config()
     ua = build_user_all(
@@ -1265,7 +1265,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
                "userMapList":    <GetUserMapApi 的响应>,
                ...
              }
-             也接受 fetch_upsert_snapshot() 已经整理好的节点字典（幂等）。
+             也接受 GetNeedUserData() 已经整理好的节点字典（幂等）。
 
     返回：
         节点名 -> 节点值（已裁剪）
@@ -1318,7 +1318,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
     #   真机值 = 服务器下发的周界，**不是本地算的**：
     #       GetGameWeeklyDataApi.updateDate   = "2026-09-28 04:00:00"
     #       Upsert 侧 lastLoginWeek           = "2026-09-28 04:00:00"   ← 完全一致
-    #   依据 source/Assembly-CSharp/Manager/UserData.cs:1040-1049
+    #   依据 source/Assembly-CSharp/Manager/GetUserData.cs:1040-1049
     #       WeeklyData.LastLoginWeek = gameWeeklyData.updateDate;
     #   所以优先用快照里的值；只有拿不到时才退回本地推导。
     if "userWeeklyData" not in out and "userMissionDataList" in raw:
@@ -1364,7 +1364,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
                 # ★ 曲目成绩有两种形态，都要支持：
                 #   a) 接口原始响应：两层嵌套（UserMusic.cs 外层按曲分组，
                 #      内层 userMusicDetailList 才是 (musicId, level) 条目）
-                #   b) UserMusicDetailAll() 的产物：已摊平成单条
+                #   b) GetUserMusicDetailAll() 的产物：已摊平成单条
                 #   判据：元素里带 "userMusicDetailList" 键 -> 嵌套；否则已摊平。
                 groups = src.get("userMusicList") or []
                 nested = any(
@@ -1382,7 +1382,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 items = src.get(list_key)
                 # ★ 兜底：取数脚本返回的字典有时用**节点名**作键
-                #   （如 UserFavoriteAll -> {"userFavoriteList": [...], "_raw": [...]}，
+                #   （如 GetUserFavoriteAll -> {"userFavoriteList": [...], "_raw": [...]}，
                 #    而 GetUserFavoriteApi 的原始响应是 {"userFavorite": {...}}）。
                 if items is None:
                     items = src.get(node)
@@ -2152,7 +2152,7 @@ def _resolve_api_func(name: str, fallback: Any = None) -> Any:
     ★ 为什么要绕这一下：
         autowrap() 只替换 api/__init__.py 命名空间里的名字
         （见 log_setup.autowrap 的注释），模块内部的直接引用拿到的还是原始函数。
-        UpsertUserAll 内部要调 fetch_upsert_snapshot / UserNewItemList / UserData，
+        UpsertUserAll 内部要调 GetNeedUserData / GetUserNewItemList / GetUserData，
         绕这一下它们才会像用户直接调用那样打印「=== xxx 开始运行 ===」，
         主脚本就完全不用自己写日志了。
     """
@@ -2168,18 +2168,18 @@ def _resolve_api_func(name: str, fallback: Any = None) -> Any:
 
 def _lazy(name: str) -> Any:
     """按名字延迟取 api 子模块里的原始函数（_resolve_api_func 的兜底）。"""
-    if name == "fetch_upsert_snapshot":
-        from .upsert_snapshot import fetch_upsert_snapshot
-        return fetch_upsert_snapshot
-    if name == "UserNewItemList":
-        from .user_new_item import UserNewItemList
-        return UserNewItemList
-    if name == "UserData":
-        from .userdata import UserData
-        return UserData
-    if name == "UserMusicDetailAll":
-        from .user_music import UserMusicDetailAll
-        return UserMusicDetailAll
+    if name == "GetNeedUserData":
+        from .get_need_user_data import GetNeedUserData
+        return GetNeedUserData
+    if name == "GetUserNewItemList":
+        from .get_user_new_item import GetUserNewItemList
+        return GetUserNewItemList
+    if name == "GetUserData":
+        from .get_user_data import GetUserData
+        return GetUserData
+    if name == "GetUserMusicDetailAll":
+        from .get_user_music import GetUserMusicDetailAll
+        return GetUserMusicDetailAll
     raise PatchError("未知的内部 api：" + str(name))
 
 
@@ -2227,7 +2227,7 @@ def verify_upsert_landing(
     before_ud = (base.get("userData") or [{}])[0] if base.get("userData") else {}
 
     try:
-        after_raw = _api("UserData")(user_id, client_id=client_id,
+        after_raw = _api("GetUserData")(user_id, client_id=client_id,
                                      timeout_ms=timeout_ms, client=client)
         after_ud = (after_raw.get("userData") or {}) if isinstance(after_raw, dict) else {}
     except Exception as exc:
@@ -2245,7 +2245,7 @@ def verify_upsert_landing(
 
     # 本局曲目的 playCount
     try:
-        music_raw = _api("UserMusicDetailAll")(user_id, client_id=client_id,
+        music_raw = _api("GetUserMusicDetailAll")(user_id, client_id=client_id,
                                                timeout_ms=timeout_ms, client=client)
         rows = music_raw.get("userMusicList") or [] if isinstance(music_raw, dict) else []
         hit = [m for m in rows
@@ -2336,7 +2336,7 @@ def UpsertUserAll(
         auth_date_time:  UserLoginApi 请求里的 dateTime（可选；
                          userData.dateTime 要用它，真机实测两处一致）
         token:           会话令牌（可选）。★ 只在「没传 snapshot 且 auto_snapshot=True」
-                         时需要 —— 内部用它自动调 fetch_upsert_snapshot。
+                         时需要 —— 内部用它自动调 GetNeedUserData。
         snapshot:        基线快照（可选，见 normalize_snapshot）。
                          传了就用它；不传则按 auto_snapshot 自动抓。
                          ★ 服务器对 userData 是整表覆盖、对差分节点是「只回传变化项」，
@@ -2390,7 +2390,7 @@ def UpsertUserAll(
                         "推荐传 token=...（自动抓）或 snapshot=...（自己抓好传进来）")
         else:
             log_info("未传 snapshot，自动抓取结算基线快照 ...")
-            snapshot = _api("fetch_upsert_snapshot")(
+            snapshot = _api("GetNeedUserData")(
                 user_id, token=token, client_id=client_id,
                 place_id=place_id, region_id=region_id, client=client,
             )
@@ -2426,7 +2426,7 @@ def UpsertUserAll(
                 region_id=region_id, region_name=region_name, client_id=client_id,
                 play_date_time=play_now,
             )
-            _api("UserNewItemList")(
+            _api("GetUserNewItemList")(
                 user_id, version=p.version_int,
                 user_data=[post_user_data],
                 user_playlog_list=list(user_playlog_list),

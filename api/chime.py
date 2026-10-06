@@ -235,7 +235,7 @@ def ParseQRCode(qr_input: str, *, chip_id: str = DEFAULT_CHIP_ID) -> Tuple[int, 
         chip_id:  机台 Keychip 短值（可选，默认取 config.CLIENT_ID）
 
     返回：
-        (user_id, token) 元组，可直接传给 UserPreview / UserLogin 等
+        (user_id, token) 元组，可直接传给 GetUserPreview / UserLogin 等
 
     异常：
         ValueError:   二维码格式不合法

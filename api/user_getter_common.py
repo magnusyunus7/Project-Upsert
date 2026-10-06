@@ -7,7 +7,7 @@ user_getter_common.py —— 各取数脚本的公共底座
 
     1. 各接口的请求 VO（严格对应 source/.../Net.VO.Mai2/*RequestVO.cs）
     2. _get()            发一次请求并返回**原始响应 dict**
-    3. fetch_all_pages() 自动翻页
+    3. get_all_pages() 自动翻页
 
 --------------------------------------------------------------------------------
 ★ 为什么单独抽出来：各接口的请求体并不统一
@@ -187,7 +187,7 @@ def _get(
     return raw or {}
 
 
-def fetch_all_pages(
+def get_all_pages(
     api_name: str,
     user_id: int,
     list_key: str,

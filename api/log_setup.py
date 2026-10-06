@@ -57,7 +57,7 @@ log_setup.py —— 统一日志模块（INFO / DEBUG 双模式）
 
     from api import log_info, log_debug, log_request, log_response
 
-    def UserPreview(user_id, token, ...):
+    def GetUserPreview(user_id, token, ...):
         # 函数的第一行 docstring 会成为日志里的「[接口说明]」
         # 例如： '''获取用户预览信息'''
         log_info(f"请求用户预览 user_id={user_id}")   # 可选，想额外记话时才写

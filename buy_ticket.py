@@ -6,7 +6,7 @@ buy_ticket.py —— 主脚本范例：扫码登录 → 购买功能票 → 登�
 
 一条完整的「买票」链路：
 
-    ParseQRCode -> UserPreview -> UserLogin -> UpsertUserChargelog -> UserLogout
+    ParseQRCode -> GetUserPreview -> UserLogin -> UpsertUserChargelog -> UserLogout
 
 UpsertUserChargelog 内部会自动做这些事（所以主脚本不用管）：
     1. 调 GetUserChargeApi 取当前票券列表（算「购买后库存」）
@@ -51,17 +51,17 @@ from api import (
     log_error,
     log_info,
     ParseQRCode,
-    UserPreview,
+    GetUserPreview,
     UserLogin,
     UserLogout,
     LogoutType,
     UpsertUserChargelog,
     ChargelogConfirmError,
     ChargelogGuardError,
-    UserCharge,
+    GetUserCharge,
     GetGameCharge,
     ticket_name,
-    fetch_upsert_snapshot,
+    GetNeedUserData,
     summarize_snapshot,
     Ping,
 )
@@ -78,7 +78,7 @@ def show_charges(user_id, label):
         **已经持票还去买，服务端看到的是重复购买，有封号风险。**
         所以买之前必须确认没有持票；买之后要确认状态符合预期。
     """
-    raw = UserCharge(user_id)
+    raw = GetUserCharge(user_id)
     lst = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
     log_info("[" + label + "] 当前票券 " + str(len(lst)) + " 条：")
     if not lst:
@@ -164,7 +164,7 @@ def main() -> int:
         user_id, token = ParseQRCode(opts["qr"])
         session.update(user_id=user_id, token=token)
 
-        preview = UserPreview(user_id, token)
+        preview = GetUserPreview(user_id, token)
         if preview.isLogin:
             log_error("账号处于已登录状态，请先在机台登出或等待会话超时")
             return 2
@@ -177,7 +177,7 @@ def main() -> int:
         #        -> 13:20:10 才发 UpsertUserChargelogApi
         #   本脚本原来 login 后直接买，跳过了这一段。
         if not opts["skip_entry"]:
-            snap = fetch_upsert_snapshot(user_id, token=token,
+            snap = GetNeedUserData(user_id, token=token,
                                          place_id=PLACE_ID, region_id=REGION_ID)
             _sum = summarize_snapshot(snap)
             log_info("入场数据下载完成：" + str(len(_sum)) + " 个节点，失败 "

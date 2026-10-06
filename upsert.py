@@ -106,7 +106,7 @@ from api import (
     log_warning,
     log_error,
     ParseQRCode,
-    UserPreview,
+    GetUserPreview,
     UserLogin,
     UserLogout,
     LogoutType,
@@ -194,7 +194,7 @@ def main() -> int:
         session.update(user_id=user_id, token=token)
 
         # ---- 预览：顺便挡住「账号已在游戏中」的情况，避免顶号 ----
-        preview = UserPreview(user_id, token)
+        preview = GetUserPreview(user_id, token)
         if preview.isLogin:
             log_error("账号处于已登录状态，请先在机台登出或等待会话超时")
             return 2

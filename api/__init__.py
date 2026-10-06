@@ -25,48 +25,56 @@ api 包 —— 统一导出
     user_getter_common.py    取数脚本公共底座（请求 VO / _get / 翻页）
 
   会话链路
-    chime.py                 扫码登录 -> userId + token
-    gamesettings.py          取游戏设置
-    ping.py                  心跳探活
-    userpreview.py           用户预览
-    userlogin.py             正式登录 -> loginId + loginDateTime
-    userlogout.py            登出
+    chime.py                     扫码登录 -> userId + token
+    get_game_settings.py         GetGameSettingApi（游戏设置）
+    ping.py                      心跳探活
+    get_user_preview.py          GetUserPreviewApi（用户预览）
+    userlogin.py                 UserLoginApi（正式登录 -> loginId + loginDateTime）
+    userlogout.py                UserLogoutApi（登出）
 
-  上传成绩
-    upsert_user_all.py       ★ 上传成绩（唯一有副作用的接口）
-    upsert_snapshot.py       结算快照编排（统一调用下面的取数脚本）
+  上传 / 结算（有副作用的接口）
+    upsert_user_all.py           ★ UpsertUserAllApi（上传成绩）
+    upsert_user_chargelog.py     UpsertUserChargelogApi（购买功能票）
+    get_need_user_data.py        ★ 结算快照编排（统一调用下面的取数脚本），
+                                 并把结果落盘到 <工程根>/data/<userId>.json
 
-  取数（一个接口一个脚本）
-    userdata.py              GetUserDataApi
-    user_extend.py           GetUserExtendApi
-    user_option.py           GetUserOptionApi
-    user_character.py        GetUserCharacterApi
-    user_ghost.py            GetUserGhostApi
-    user_map.py              GetUserMapApi
-    user_login_bonus.py      GetUserLoginBonusApi
-    user_rating.py           GetUserRatingApi
-    user_item.py             GetUserItemApi
-    user_music.py            GetUserMusicApi
-    user_course.py           GetUserCourseApi
-    user_charge.py           GetUserChargeApi
-    user_favorite.py         GetUserFavoriteApi
-    user_activity.py         GetUserActivityApi
-    user_mission.py          GetUserMissionDataApi
-    user_intimate.py         GetUserIntimateApi
-    user_shop_stock.py       GetUserShopStockApi
-    user_favorite_item.py    GetUserFavoriteItemApi
-    user_rival.py            GetUserRivalDataApi / GetUserRivalMusicApi
-    user_friend_bonus.py     GetUserFriendBonusApi
-    user_kaleidx_scope.py    GetUserKaleidxScopeApi / GetGameKaleidxScopeApi
-    user_region.py           GetUserRegionApi
-    user_recommend_music.py  GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi
-    user_new_item.py         GetUserNewItemListApi
-    game_ranking.py          GetGameRankingApi
-    game_event.py            GetGameEventApi
-    game_charge.py           GetGameChargeApi
-    game_weekly_data.py      GetGameWeeklyDataApi
-    game_tournament_info.py  GetGameTournamentInfoApi
-    game_ng_music_id.py      GetGameNgMusicIdApi
+  ★ 命名约定：服务端 API 名里带 Get 的，**脚本名与函数名一律带 get / Get**
+    （不要模棱两可）。所以下面这些文件全是 get_ 开头。
+
+  取数 —— GetUser*（一个接口一个脚本）
+    get_user_data.py             GetUserDataApi
+    get_user_extend.py           GetUserExtendApi
+    get_user_option.py           GetUserOptionApi
+    get_user_character.py        GetUserCharacterApi
+    get_user_ghost.py            GetUserGhostApi
+    get_user_map.py              GetUserMapApi
+    get_user_login_bonus.py      GetUserLoginBonusApi
+    get_user_rating.py           GetUserRatingApi
+    get_user_item.py             GetUserItemApi
+    get_user_music.py            GetUserMusicApi
+    get_user_course.py           GetUserCourseApi
+    get_user_charge.py           GetUserChargeApi
+    get_user_favorite.py         GetUserFavoriteApi
+    get_user_activity.py         GetUserActivityApi
+    get_user_mission.py          GetUserMissionDataApi
+    get_user_intimate.py         GetUserIntimateApi
+    get_user_shop_stock.py       GetUserShopStockApi
+    get_user_favorite_item.py    GetUserFavoriteItemApi
+    get_user_rival.py            GetUserRivalDataApi / GetUserRivalMusicApi
+    get_user_friend_bonus.py     GetUserFriendBonusApi
+    get_user_kaleidx_scope.py    GetUserKaleidxScopeApi / GetGameKaleidxScopeApi
+    get_user_region.py           GetUserRegionApi
+    get_user_recommend_music.py  GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi
+    get_user_new_item.py         GetUserNewItemListApi
+
+  取数 —— GetGame*
+    get_game_settings.py         GetGameSettingApi
+    get_game_ranking.py          GetGameRankingApi
+    get_game_event.py            GetGameEventApi
+    get_game_charge.py           GetGameChargeApi
+    get_game_weekly_data.py      GetGameWeeklyDataApi
+    get_game_tournament_info.py  GetGameTournamentInfoApi
+    get_game_ng_music_id.py      GetGameNgMusicIdApi
 """
 
 from .log_setup import (
@@ -135,7 +143,7 @@ from .maimai_net import (
 
 from .chime import ParseQRCode
 
-from .gamesettings import (
+from .get_game_settings import (
     GetGameSettings,
     GameSetting,
     GameSettingRequestVO,
@@ -146,8 +154,8 @@ from .gamesettings import (
 
 from .ping import Ping
 
-from .userpreview import (
-    UserPreview,
+from .get_user_preview import (
+    GetUserPreview,
     UserPreviewRequestVO,
     UserPreviewResponseVO,
 )
@@ -230,12 +238,19 @@ from .upsert_user_all import (
     USER_MISSION_DROP_KEYS,
 )
 
-from .upsert_snapshot import (
-    fetch_upsert_snapshot,
+from .get_need_user_data import (
+    GetNeedUserData,
     save_snapshot,
     load_snapshot,
     summarize_snapshot,
     DEFAULT_SNAPSHOT_NODES,
+    # ★ 用户数据落盘（<工程根>/data/<userId>.json）
+    PROJECT_ROOT,
+    DATA_DIR,
+    user_data_path,
+    save_user_data,
+    load_user_data,
+    list_saved_user_ids,
 )
 
 from .upsert_user_chargelog import (
@@ -269,7 +284,7 @@ from .user_getter_common import (
     UserShopStockRequestVO,
     UserRivalRequestVO,
     UserRivalMusicRequestVO,
-    fetch_all_pages,
+    get_all_pages,
     ITEM_KINDS,
     ITEM_NEXT_INDEX_FACTOR,
     FAVORITE_ITEM_KINDS,
@@ -280,42 +295,42 @@ from .user_getter_common import (
 # 5) 取数脚本（一个接口一个脚本）
 # ---------------------------------------------------------------------------
 
-from .userdata import UserData
-from .user_extend import UserExtend
-from .user_option import UserOption
-from .user_character import UserCharacter
-from .user_ghost import UserGhost
-from .user_map import UserMap, UserMapAll
-from .user_login_bonus import UserLoginBonus, UserLoginBonusAll
-from .user_rating import UserRating
-from .user_item import UserItem, UserItemAll
-from .user_music import UserMusicDetail, UserMusicDetailAll
-from .user_course import UserCourse, UserCourseAll
-from .user_charge import UserCharge
-from .user_favorite import UserFavorite, UserFavoriteAll
-from .user_activity import UserActivity
-from .user_mission import UserMissionData
-from .user_intimate import UserIntimate
-from .user_shop_stock import UserShopStock
-from .user_favorite_item import (
-    UserFavoriteItem,
-    UserFavoriteItemAll,
+from .get_user_data import GetUserData
+from .get_user_extend import GetUserExtend
+from .get_user_option import GetUserOption
+from .get_user_character import GetUserCharacter
+from .get_user_ghost import GetUserGhost
+from .get_user_map import GetUserMap, GetUserMapAll
+from .get_user_login_bonus import GetUserLoginBonus, GetUserLoginBonusAll
+from .get_user_rating import GetUserRating
+from .get_user_item import GetUserItem, GetUserItemAll
+from .get_user_music import GetUserMusicDetail, GetUserMusicDetailAll
+from .get_user_course import GetUserCourse, GetUserCourseAll
+from .get_user_charge import GetUserCharge
+from .get_user_favorite import GetUserFavorite, GetUserFavoriteAll
+from .get_user_activity import GetUserActivity
+from .get_user_mission import GetUserMissionData
+from .get_user_intimate import GetUserIntimate
+from .get_user_shop_stock import GetUserShopStock
+from .get_user_favorite_item import (
+    GetUserFavoriteItem,
+    GetUserFavoriteItemAll,
     FAVORITE_ITEM_KIND_MUSIC,
     FAVORITE_ITEM_KIND_RIVAL,
 )
-from .user_rival import UserRivalData, UserRivalMusic, UserRivalMusicAll
-from .user_friend_bonus import UserFriendBonus, extract_gift_points
-from .user_kaleidx_scope import UserKaleidxScope, GameKaleidxScope
-from .user_region import UserRegion
-from .user_recommend_music import UserRecommendRateMusic, UserRecommendSelectMusic
-from .user_new_item import UserNewItemList, UserNewItemListRequestVO
+from .get_user_rival import GetUserRivalData, GetUserRivalMusic, GetUserRivalMusicAll
+from .get_user_friend_bonus import GetUserFriendBonus, extract_gift_points
+from .get_user_kaleidx_scope import GetUserKaleidxScope, GetGameKaleidxScope
+from .get_user_region import GetUserRegion
+from .get_user_recommend_music import GetUserRecommendRateMusic, GetUserRecommendSelectMusic
+from .get_user_new_item import GetUserNewItemList, UserNewItemListRequestVO
 
-from .game_ranking import GetGameRanking, GameRankingRequestVO
-from .game_event import GetGameEvent, GameEventRequestVO
-from .game_charge import GetGameCharge, GameChargeRequestVO
-from .game_weekly_data import GetGameWeeklyData
-from .game_tournament_info import GetGameTournamentInfo
-from .game_ng_music_id import GetGameNgMusicId
+from .get_game_ranking import GetGameRanking, GameRankingRequestVO
+from .get_game_event import GetGameEvent, GameEventRequestVO
+from .get_game_charge import GetGameCharge, GameChargeRequestVO
+from .get_game_weekly_data import GetGameWeeklyData
+from .get_game_tournament_info import GetGameTournamentInfo
+from .get_game_ng_music_id import GetGameNgMusicId
 
 # ---------------------------------------------------------------------------
 # 6) 需要日志跟踪的 api 函数（新增 api 时把函数名加到这里）
@@ -326,7 +341,7 @@ _API_FUNCS = (
     "ParseQRCode",
     "GetGameSettings",
     "Ping",
-    "UserPreview",
+    "GetUserPreview",
     "UserLogin",
     "UserLogout",
     # --- 上传成绩 ---
@@ -350,45 +365,45 @@ _API_FUNCS = (
     "build_delta",
     "build_favorite_delta",
     "normalize_snapshot",
-    "fetch_upsert_snapshot",
+    "GetNeedUserData",
     "summarize_snapshot",
-    "UserNewItemList",
+    "GetUserNewItemList",
     # --- 取数：单接口 ---
-    "UserData",              # GetUserDataApi
-    "UserExtend",            # GetUserExtendApi
-    "UserOption",            # GetUserOptionApi
-    "UserCharacter",         # GetUserCharacterApi
-    "UserGhost",             # GetUserGhostApi
-    "UserMap",               # GetUserMapApi（单页）
-    "UserMapAll",            # GetUserMapApi（全量）
-    "UserLoginBonus",        # GetUserLoginBonusApi（单页）
-    "UserLoginBonusAll",     # GetUserLoginBonusApi（全量）
-    "UserRating",            # GetUserRatingApi
-    "UserItem",              # GetUserItemApi（单类）
-    "UserItemAll",           # GetUserItemApi（全量）
-    "UserMusicDetail",       # GetUserMusicApi（单页）
-    "UserMusicDetailAll",    # GetUserMusicApi（全量）
-    "UserCourse",            # GetUserCourseApi（单页）
-    "UserCourseAll",         # GetUserCourseApi（全量）
-    "UserCharge",            # GetUserChargeApi
-    "UserFavorite",          # GetUserFavoriteApi（单类）
-    "UserFavoriteAll",       # GetUserFavoriteApi（全量）
-    "UserActivity",          # GetUserActivityApi
-    "UserMissionData",       # GetUserMissionDataApi
-    "UserIntimate",          # GetUserIntimateApi
-    "UserShopStock",         # GetUserShopStockApi
-    "UserFavoriteItem",      # GetUserFavoriteItemApi（单页）
-    "UserFavoriteItemAll",   # GetUserFavoriteItemApi（全量）
-    "UserRivalData",         # GetUserRivalDataApi
-    "UserRivalMusic",        # GetUserRivalMusicApi（单页）
-    "UserRivalMusicAll",     # GetUserRivalMusicApi（全量）
-    "UserFriendBonus",       # GetUserFriendBonusApi
-    "UserKaleidxScope",      # GetUserKaleidxScopeApi
-    "GameKaleidxScope",      # GetGameKaleidxScopeApi
-    "UserRegion",            # GetUserRegionApi
-    "UserRecommendRateMusic",     # GetUserRecommendRateMusicApi
-    "UserRecommendSelectMusic",   # GetUserRecommendSelectMusicApi
-    "UserNewItemList",       # GetUserNewItemListApi
+    "GetUserData",              # GetUserDataApi
+    "GetUserExtend",            # GetUserExtendApi
+    "GetUserOption",            # GetUserOptionApi
+    "GetUserCharacter",         # GetUserCharacterApi
+    "GetUserGhost",             # GetUserGhostApi
+    "GetUserMap",               # GetUserMapApi（单页）
+    "GetUserMapAll",            # GetUserMapApi（全量）
+    "GetUserLoginBonus",        # GetUserLoginBonusApi（单页）
+    "GetUserLoginBonusAll",     # GetUserLoginBonusApi（全量）
+    "GetUserRating",            # GetUserRatingApi
+    "GetUserItem",              # GetUserItemApi（单类）
+    "GetUserItemAll",           # GetUserItemApi（全量）
+    "GetUserMusicDetail",       # GetUserMusicApi（单页）
+    "GetUserMusicDetailAll",    # GetUserMusicApi（全量）
+    "GetUserCourse",            # GetUserCourseApi（单页）
+    "GetUserCourseAll",         # GetUserCourseApi（全量）
+    "GetUserCharge",            # GetUserChargeApi
+    "GetUserFavorite",          # GetUserFavoriteApi（单类）
+    "GetUserFavoriteAll",       # GetUserFavoriteApi（全量）
+    "GetUserActivity",          # GetUserActivityApi
+    "GetUserMissionData",       # GetUserMissionDataApi
+    "GetUserIntimate",          # GetUserIntimateApi
+    "GetUserShopStock",         # GetUserShopStockApi
+    "GetUserFavoriteItem",      # GetUserFavoriteItemApi（单页）
+    "GetUserFavoriteItemAll",   # GetUserFavoriteItemApi（全量）
+    "GetUserRivalData",         # GetUserRivalDataApi
+    "GetUserRivalMusic",        # GetUserRivalMusicApi（单页）
+    "GetUserRivalMusicAll",     # GetUserRivalMusicApi（全量）
+    "GetUserFriendBonus",       # GetUserFriendBonusApi
+    "GetUserKaleidxScope",      # GetUserKaleidxScopeApi
+    "GetGameKaleidxScope",      # GetGameKaleidxScopeApi
+    "GetUserRegion",            # GetUserRegionApi
+    "GetUserRecommendRateMusic",     # GetUserRecommendRateMusicApi
+    "GetUserRecommendSelectMusic",   # GetUserRecommendSelectMusicApi
+    "GetUserNewItemList",       # GetUserNewItemListApi
     # --- 取数：游戏侧 ---
     "GetGameRanking",        # GetGameRankingApi
     "GetGameEvent",          # GetGameEventApi
@@ -435,7 +450,7 @@ __all__ = [
     "GetGameSettings", "GameSetting", "GameSettingRequestVO", "GameSettingResponseVO",
     "is_maintenance", "is_ping_disabled",
     "Ping",
-    "UserPreview", "UserPreviewRequestVO", "UserPreviewResponseVO",
+    "GetUserPreview", "UserPreviewRequestVO", "UserPreviewResponseVO",
     "UserLogin", "UserLoginRequestVO", "UserLoginResponseVO",
     "UserLogout", "LogoutType", "DelayLog", "RequestAPI",
     "UserLogoutRequestVO", "UserLogoutRequest2VO", "UserLogoutResponseVO",
@@ -462,34 +477,36 @@ __all__ = [
     "USER_DATA_DROP_KEYS", "USER_OPTION_DROP_KEYS", "USER_CHARACTER_KEEP_KEYS",
     "USER_MUSIC_DETAIL_DROP_KEYS", "USER_CHARGE_DROP_KEYS", "USER_MISSION_DROP_KEYS",
     # ---- 快照编排 ----
-    "fetch_upsert_snapshot", "save_snapshot", "load_snapshot",
+    "GetNeedUserData", "save_snapshot", "load_snapshot",
     "summarize_snapshot", "DEFAULT_SNAPSHOT_NODES",
+    "PROJECT_ROOT", "DATA_DIR", "user_data_path",
+    "save_user_data", "load_user_data", "list_saved_user_ids",
     # ---- 取数公共底座 ----
     "GetterEmptyRequestVO", "GetterUserIdRequestVO", "UserIdPageRequestVO",
     "UserLoginBonusRequestVO", "UserItemRequestVO", "UserMusicRequestVO",
     "UserCourseRequestVO", "UserFavoriteRequestVO", "UserFavoriteItemRequestVO",
     "UserShopStockRequestVO", "UserRivalRequestVO", "UserRivalMusicRequestVO",
-    "fetch_all_pages",
+    "get_all_pages",
     "ITEM_KINDS", "ITEM_NEXT_INDEX_FACTOR", "FAVORITE_ITEM_KINDS", "RIVAL_MUSIC_LEVELS",
     # ---- 取数脚本 ----
-    "UserData", "UserExtend", "UserOption", "UserCharacter", "UserGhost",
-    "UserMap", "UserMapAll",
-    "UserLoginBonus", "UserLoginBonusAll",
-    "UserRating",
-    "UserItem", "UserItemAll",
-    "UserMusicDetail", "UserMusicDetailAll",
-    "UserCourse", "UserCourseAll",
-    "UserCharge",
-    "UserFavorite", "UserFavoriteAll",
-    "UserActivity", "UserMissionData", "UserIntimate", "UserShopStock",
-    "UserFavoriteItem", "UserFavoriteItemAll",
+    "GetUserData", "GetUserExtend", "GetUserOption", "GetUserCharacter", "GetUserGhost",
+    "GetUserMap", "GetUserMapAll",
+    "GetUserLoginBonus", "GetUserLoginBonusAll",
+    "GetUserRating",
+    "GetUserItem", "GetUserItemAll",
+    "GetUserMusicDetail", "GetUserMusicDetailAll",
+    "GetUserCourse", "GetUserCourseAll",
+    "GetUserCharge",
+    "GetUserFavorite", "GetUserFavoriteAll",
+    "GetUserActivity", "GetUserMissionData", "GetUserIntimate", "GetUserShopStock",
+    "GetUserFavoriteItem", "GetUserFavoriteItemAll",
     "FAVORITE_ITEM_KIND_MUSIC", "FAVORITE_ITEM_KIND_RIVAL",
-    "UserRivalData", "UserRivalMusic", "UserRivalMusicAll",
-    "UserFriendBonus", "extract_gift_points",
-    "UserKaleidxScope", "GameKaleidxScope",
-    "UserRegion",
-    "UserRecommendRateMusic", "UserRecommendSelectMusic",
-    "UserNewItemList", "UserNewItemListRequestVO",
+    "GetUserRivalData", "GetUserRivalMusic", "GetUserRivalMusicAll",
+    "GetUserFriendBonus", "extract_gift_points",
+    "GetUserKaleidxScope", "GetGameKaleidxScope",
+    "GetUserRegion",
+    "GetUserRecommendRateMusic", "GetUserRecommendSelectMusic",
+    "GetUserNewItemList", "UserNewItemListRequestVO",
     "GetGameRanking", "GameRankingRequestVO",
     "GetGameEvent", "GameEventRequestVO",
     "GetGameCharge", "GameChargeRequestVO",

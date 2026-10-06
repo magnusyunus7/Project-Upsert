@@ -10,7 +10,7 @@ upsert_user_chargelog.py —— 购买功能票 / 上传购买记录（UpsertUse
           source/Assembly-CSharp/Net.VO.Mai2/UserChargelogRequestVO.cs
               public ulong userId;
               public UserChargelog userChargelog;
-              public UserCharge userCharge;
+              public GetUserCharge userCharge;
               public long loginDateTime;
 响应    ：{returnCode, apiName}
 
@@ -26,7 +26,7 @@ upsert_user_chargelog.py —— 购买功能票 / 上传购买记录（UpsertUse
         │     └─ 没有                      -> 新增一条 stock=1
         └─ TicketManager.cs:234  RequestUserCharge(playerId)
               ├─ VOExtensions.cs:436  ExportEnableUserCharge(ticketId)
-              │     -> 取**购买后**（stock > 0）的那条 UserCharge
+              │     -> 取**购买后**（stock > 0）的那条 GetUserCharge
               ├─ VOExtensions.cs:403  ExportUserChargelog(ticketId)
               │     -> chargeId = ticketId
               │        price    = DataManager.GetTicket(ticketId).creditNum   ★ 不是 money price
@@ -130,7 +130,7 @@ class ChargelogGuardError(RuntimeError):
 
 @dataclass
 class UserChargeVO:
-    """UserCharge —— 一张票的持有状态（UserCharge.cs，4 字段）。"""
+    """GetUserCharge —— 一张票的持有状态（GetUserCharge.cs，4 字段）。"""
     chargeId: int = 0
     stock: int = 0
     purchaseDate: str = ""
@@ -349,13 +349,13 @@ def UpsertUserChargelog(
     # ---------- 1. 取当前状态 ----------
     if charge_list is None:
         log_info("未传 charge_list，自动抓取当前票券 ...")
-        raw = resolve_api_func("UserCharge")(
+        raw = resolve_api_func("GetUserCharge")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         charge_list = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
 
     if user_data is None:
         log_info("未传 user_data，自动抓取当前档案 ...")
-        raw_ud = resolve_api_func("UserData")(
+        raw_ud = resolve_api_func("GetUserData")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         user_data = (raw_ud.get("userData") if isinstance(raw_ud, dict) else None) or {}
 

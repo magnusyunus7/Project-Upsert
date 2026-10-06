@@ -333,7 +333,7 @@ fav_server_raw.append({"itemKind": None, "itemIdList": []})
 _, fav_flags_raw = build_favorite_delta(fav_local, fav_server_raw)
 check("itemKind=null 的那条 -> 1（复刻真机 22212）", fav_flags_raw == "22212", fav_flags_raw)
 
-# 归一化兜底：基线被 user_favorite.py 补齐 itemKind 后，服务器列表里 5 个 kind 齐全，
+# 归一化兜底：基线被 get_user_favorite.py 补齐 itemKind 后，服务器列表里 5 个 kind 齐全，
 # 单看列表已看不出 itemKind=10 原本是 null，必须靠 assume_missing 显式声明。
 fav_server_norm = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 _, fav_flags_norm = build_favorite_delta(fav_local, fav_server_norm, (10,))
@@ -1137,7 +1137,7 @@ check("UpsertUserAll 已被包装", getattr(api.UpsertUserAll, "__mai_logged__",
 check("已挂载 api 数量 >= 40", len(api.get_called_apis()) == 0 or True)
 check("会话链路 6 个函数都在",
       all(hasattr(api, n) for n in
-          ("ParseQRCode", "GetGameSettings", "Ping", "UserPreview",
+          ("ParseQRCode", "GetGameSettings", "Ping", "GetUserPreview",
            "UserLogin", "UserLogout")))
 
 
