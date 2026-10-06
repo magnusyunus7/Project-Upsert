@@ -32,6 +32,11 @@ upsert.py —— 主脚本：扫码登录 → 上传成绩 → 登出
     python upsert.py <二维码> --send --cooldown 0   # 跳过发包前的 60 秒冷却
     python upsert.py <二维码> --send --no-verify    # 跳过上传后的落库回查
 
+    # ★ 额外塞节点（--extra-data，可重复，后给的覆盖先给的）
+    python upsert.py <二维码> --send --extra-data extra.json
+    python upsert.py <二维码> --send --extra-data '{"isNewMapList":"1"}'
+    python upsert.py <二维码> --send --extra-data a.json --extra-data b.json
+
 --------------------------------------------------------------------------------
 ★ UpsertUserAll 一个函数就把整条结算链路跑完了
 --------------------------------------------------------------------------------
@@ -45,22 +50,49 @@ upsert.py —— 主脚本：扫码登录 → 上传成绩 → 登出
     8. 冷却 -> 真实发包
     9. 落库回查（重新拉服务器数据，确认真的写进去了）
 
-想额外塞几个节点（比如本局拿到的新 KaleidxScope 门）就传 extra_data：
+--------------------------------------------------------------------------------
+★ --extra-data：额外塞节点
+--------------------------------------------------------------------------------
+    想手工覆盖 / 补上某几个节点（比如本局拿到的新 KaleidxScope 门）时用：
+
+        # ① 从文件读（★ 推荐，不用跟 shell 引号搏斗）
+        python upsert.py <二维码> --send --extra-data extra.json
+
+        # ② 直接写 JSON 字符串
+        python upsert.py <二维码> --send --extra-data '{"isNewMapList":"1"}'
+
+        # ③ 多个来源，后给的覆盖先给的
+        python upsert.py <二维码> --send --extra-data base.json --extra-data patch.json
+
+    extra.json 长这样：
+
+        {
+          "userKaleidxScopeList": [
+            {"gateId": 1, "isGateFound": true, "isKeyFound": true, "isClear": false,
+             "totalRestLife": 0, "totalAchievement": 0, "totalDeluxscore": 0,
+             "bestAchievement": 0, "bestDeluxscore": 0,
+             "bestAchievementDate": "", "bestDeluxscoreDate": "",
+             "playCount": 0, "clearDate": "", "lastPlayDate": "", "isInfoWatched": false}
+          ],
+          "isNewKaleidxScopeList": "1"
+        }
+
+    ★ 键必须是 upsertUserAll 的 36 个节点之一（含 11 条 isNew* 位串），
+      写错会明确报错并列出可用节点名。
+    ★ 没给对应位串时会按数组长度自动补 "0" 并提示 ——
+      新增条目请显式传 "1"，"0" 表示存量更新。
+    ★ JSON 在**扫码之前**就校验，写错了直接退出，不会浪费二维码。
+
+  ── 在代码里直接调 api 的等价写法 ──
 
     UpsertUserAll(
         user_id, login.loginId,
         login_date_time=login.loginDateTime,
         auth_date_time=login.dateTime,
         token=token,
-        extra_data={
-            "userKaleidxScopeList": [{"gateId": 1, "isGateFound": True, ...}],
-            "isNewKaleidxScopeList": "1",
-        },
+        extra_data={"userKaleidxScopeList": [...], "isNewKaleidxScopeList": "1"},
         confirm=True,
     )
-
-extra_data 接受 dict / JSON 字符串 / JSON 文件路径；
-键必须是 36 个节点之一，没给位串时会按数组长度自动补并给出提示。
 """
 
 from __future__ import annotations
@@ -70,6 +102,8 @@ import sys
 from api import (
     setup_logging,
     teardown_logging,
+    log_info,
+    log_warning,
     log_error,
     ParseQRCode,
     UserPreview,
@@ -78,13 +112,18 @@ from api import (
     LogoutType,
     UpsertUserAll,
     ConfirmRequiredError,
+    load_extra_data,
+    PatchError,
+    NODE_ORDER,
+    NODE_TYPES,
 )
 from config import PLACE_ID, REGION_ID
 
 
 def parse_args(argv):
     """极简命令行解析：第一个非 -- 开头的参数是二维码。"""
-    opts = {"qr": "", "send": False, "debug": False, "no_verify": False, "cooldown": None}
+    opts = {"qr": "", "send": False, "debug": False, "no_verify": False,
+            "cooldown": None, "extra_data": []}
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -94,6 +133,10 @@ def parse_args(argv):
             opts["debug"] = True
         elif a == "--no-verify":
             opts["no_verify"] = True
+        elif a == "--extra-data" and i + 1 < len(argv):
+            # 可重复；值是 JSON 字符串或 JSON 文件路径
+            opts["extra_data"].append(argv[i + 1])
+            i += 1
         elif a == "--cooldown" and i + 1 < len(argv):
             opts["cooldown"] = float(argv[i + 1])
             i += 1
@@ -116,6 +159,32 @@ def main() -> int:
 
     # 日志会话：开头一句。之后每次 api 调用都会自动记录，主脚本不用再写日志
     setup_logging("upsert")
+
+    # ---- ★ 先解析 --extra-data（放在扫码之前：JSON 写错就别浪费二维码了）----
+    extra = None
+    if opts["extra_data"]:
+        merged = {}
+        try:
+            for item in opts["extra_data"]:
+                part = load_extra_data(item)
+                merged.update(part)
+                log_info("--extra-data 读入 " + str(len(part)) + " 个节点：" + ", ".join(part))
+        except PatchError as exc:
+            log_error("--extra-data 解析失败：" + str(exc))
+            return 6
+
+        # 节点名也在这里查（不然要等到登录后组包时才报错，白跑一趟）
+        unknown = [k for k in merged if k not in NODE_TYPES]
+        if unknown:
+            log_error("--extra-data 里有未知节点名：" + ", ".join(unknown))
+            log_error("  可用节点（" + str(len(NODE_ORDER)) + " 个）：" + ", ".join(NODE_ORDER))
+            return 6
+
+        if not merged:
+            log_warning("--extra-data 解析出来是空的，忽略")
+        else:
+            extra = merged
+            log_info("--extra-data 合计 " + str(len(extra)) + " 个节点：" + ", ".join(extra))
 
     # 会话状态：保证异常时也能登出（否则账号会卡在 isLogin=True，下次登录 returnCode=100）
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
@@ -140,6 +209,7 @@ def main() -> int:
             login_date_time=login.loginDateTime,
             auth_date_time=login.dateTime,
             token=token,
+            extra_data=extra,
             dry_run=not opts["send"],
             confirm=opts["send"],
             cooldown_sec=opts["cooldown"],

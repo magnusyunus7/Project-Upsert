@@ -1,8 +1,11 @@
-# WaHappy
+<h1 align="center">WaHappy</h1>
 
-> **舞萌DX 的游戏助手**
->
-> 宗旨：让舞萌DX的玩家能够更好地游玩游戏，获得快乐。
+<p align="center">
+  <b>舞萌DX 的游戏助手</b><br>
+  宗旨：让舞萌DX的玩家能够更好地游玩游戏，获得快乐。
+</p>
+
+<p align="center">AI真的很好用你知道吗</p>
 
 ---
 
@@ -13,7 +16,7 @@ WaHappy 是一个用 **Python 纯网络方式**与舞萌DX（SDGB 国服）游�
 它不修改游戏、不注入进程，只是把游戏客户端做的事用脚本重做一遍：
 扫码登录 → 取数据 → 上传成绩 → 登出。
 
-> 协议实现全部来自反编译源码 `source/Assembly-CSharp/` 与真机网络日志的双向验证，
+> 协议实现全部来自反编译源码与真机网络日志的双向验证，
 > 每个关键常量在代码注释里都标了**源码行号**。
 
 ---
@@ -77,7 +80,7 @@ WaHappy/
 │   └── ...                     40+ 个接口脚本
 │
 ├── logs/                日志输出（latest.log + 日期.log）★ 不入库
-└── source/              反编译源码 + 真机日志 ★ 不入库（版权 + 隐私）
+└── source/              反编译源码 ★ 不入库，需自备
 ```
 
 **设计约定**：`api/` 里每个脚本 = 一个接口，对外暴露一个**能传参的函数**。
@@ -85,9 +88,7 @@ WaHappy/
 
 > **`docs/` 在 [`docs` 分支](https://git.fragrance.moe/Txiaochen/wahappy/src/branch/docs)，`source/` 与 `logs/` 不入库。**
 >
-> `source/` 是本地查证用的反编译源码（含 SEGA 二进制与真机日志），
-> 代码注释里写的 `source/Assembly-CSharp/xxx.cs:123` 都是**引用出处**，
-> 需要自己准备一份才能逐行核对。
+> `source/` 是反编译源码，**需要自备**。
 
 ### 分支说明
 
@@ -127,6 +128,48 @@ python upsert.py "<二维码>" --send --no-verify    # 跳过上传后的落库�
 **换歌 / 换成绩只改 `config.py` 的 `PLAY_*`，不用动任何代码。**
 
 > 二维码从机台的「扫码登录」界面获取，**有效期 10 分钟**。
+
+### 额外塞节点：`--extra-data`
+
+真机报文的 36 个节点绝大多数能由快照 + 本局演算自动推出来，
+但偶尔想手工覆盖某几个（比如本局拿到的新 KaleidxScope 门），就用 `--extra-data`：
+
+```bash
+# ① 从文件读（★ 推荐 —— 不用跟 shell 引号搏斗）
+python upsert.py "<二维码>" --send --extra-data extra.json
+
+# ② 直接写 JSON 字符串
+python upsert.py "<二维码>" --send --extra-data '{"isNewMapList":"1"}'
+
+# ③ 多个来源，后给的覆盖先给的
+python upsert.py "<二维码>" --send --extra-data base.json --extra-data patch.json
+```
+
+`extra.json` 长这样：
+
+```json
+{
+  "userKaleidxScopeList": [
+    {"gateId": 1, "isGateFound": true, "isKeyFound": true, "isClear": false,
+     "totalRestLife": 0, "totalAchievement": 0, "totalDeluxscore": 0,
+     "bestAchievement": 0, "bestDeluxscore": 0,
+     "bestAchievementDate": "", "bestDeluxscoreDate": "",
+     "playCount": 0, "clearDate": "", "lastPlayDate": "", "isInfoWatched": false}
+  ],
+  "isNewKaleidxScopeList": "1"
+}
+```
+
+| 规则 | 说明 |
+|---|---|
+| 键 | 必须是 `upsertUserAll` 的 **36 个节点**之一（含 11 条 `isNew*` 位串），写错会报错并列出可用节点名 |
+| 值形态 | 按节点形态强制转换，传错立刻报错 |
+| 位串 | 给了数组没给位串 → 按长度补 `"0"` 并提示。**新增条目请显式传 `"1"`**（`"0"` = 存量更新） |
+| 优先级 | 最高，覆盖快照演算结果 |
+| 校验时机 | ★ **扫码之前**就校验 —— JSON 写错直接退出，不浪费二维码 |
+
+> ⚠ 在 PowerShell / CMD 里写内联 JSON 很容易被吞掉双引号，
+> **建议一律用文件**（`--extra-data extra.json`）。
 
 ---
 
