@@ -1,0 +1,448 @@
+# -*- coding: utf-8 -*-
+"""
+config.py —— 舞萌DX 纯网络脚本工程 · 运行时可配置项
+================================================================================
+
+★★ 这是**模板文件**。第一次使用请先复制一份：
+
+        cp config.py.example config.py          # Linux / macOS
+        copy config.py.example config.py        # Windows
+
+   然后**必须**填好第二节「机台与店铺标识」的 6 个值，否则脚本发出去的请求
+   带的是别人的机台身份，服务端会拒绝。
+
+   ★ config.py 已在 .gitignore 里 —— 它属于你的私有配置，不要提交。
+================================================================================
+
+本文件集中存放**用户可能需要修改**的内容，其余协议常量写死在各自脚本内。
+
+分六块：
+  1. 网络与加密常量（AES 密钥、协议版本、服务器地址）
+  2. 机台与店铺标识（Keychip、区域、店铺）
+  3. 扫码登录常量（aimedb）
+  4. ★ UpsertUserAll 即将上传的歌曲数据（默认取 source/2026-10-05.log 真机样本）
+  5. UpsertUserAll 安全闸门
+  6. 日志级别
+
+权威来源全部标注在注释里，改之前请先看依据。
+"""
+
+# =============================================================================
+# 一、网络与加密常量
+# =============================================================================
+
+# --- 游戏服务器（Maimai2Servlet）---
+# 依据：source/Assembly-CSharp/Manager/OperationManager.cs:225,338
+#       _operationData.ServerUri = Auth.GameServerUri  +  MovieServerUri("mE2s3Jhd/")
+# 实测：source/2026-10-05.log:1
+BASE_URL = "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/"
+
+# --- AES 参数 ---
+# 依据：source/Assembly-CSharp/Net/CipherAES.cs:11-12
+#   AesKey = "FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W"   (32 字节 -> AES-256)
+#   AesIV  = "F>;24DjU9W6ZsRH["                   (16 字节)
+AES_KEY = b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W"
+AES_IV = b"F>;24DjU9W6ZsRH["
+
+# --- API 名混淆盐 ---
+# 依据：source/Assembly-CSharp/Net.Packet/Packet.cs:44  ObfuscateParam = "8bF76dE9"
+# 用法：URL 尾段 = md5(逻辑接口名 + "MaimaiChn" + OBFUSCATE_PARAM) 小写 hex
+#       "MaimaiChn" 后缀来自 source/Assembly-CSharp/Net.VO/NetQuery.cs:14  Api = api + "MaimaiChn"
+OBFUSCATE_PARAM = "8bF76dE9"
+
+# --- 报文版本标识 ---
+# 依据：source/Assembly-CSharp/Net/NetHttpClient.cs:69  DefaultHttpHeaderEncryption = "1.55"
+#       （请求头 Mai-Encoding 的值；1.56 ROM 实测仍发 1.55）
+MAI_ENCODING = "1.55"
+
+# --- 超时（毫秒）---
+# 依据：source/Assembly-CSharp/Net/NetConfig.cs:7-11
+TIMEOUT_MS = 10000          # 普通接口
+TIMEOUT_LONG_MS = 60000     # 登录 / 结算上传
+
+
+# =============================================================================
+# 二、机台与店铺标识
+# =============================================================================
+
+# Keychip ID（机台唯一标识，完整格式带连字符）
+# ★★ 这是你自己的机台身份，不要外传；填错服务端会拒。
+# 依据：source/Assembly-CSharp/Manager/ChimeReaderManager.cs:250
+#       KeychipID = AMDaemon.System.KeychipId.Value
+KEYCHIP_ID = ""                 # ★★ 必填：形如 "XXXX-XXXXXXXXXXX"（带连字符）
+
+# 客户端 ID（Keychip 短值，去掉连字符取前 11 位）
+# 依据：source/Assembly-CSharp/Net.Packet.Mai2/PacketGetGameSetting.cs:23
+#       clientId = AMDaemon.System.KeychipId.ShortValue
+# 实测：真机日志里 clientId 恒等于 Keychip 短值
+CLIENT_ID = ""                  # ★★ 必填：Keychip 短值，去掉连字符取前 11 位
+
+# 区域 ID / 店铺 ID
+# 依据：source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogin.cs:24-25
+#       regionId = Auth.RegionCode ; placeId = Auth.LocationId
+# 实测：真机日志里的 regionId / placeId 与机台所在地一致
+REGION_ID = 0                   # ★★ 必填：你所在区域 ID
+PLACE_ID = 0                    # ★★ 必填：你所在店铺 ID
+
+# 店铺名 / 区域名
+#
+# ★ 为什么必须手工填：**游戏服务器没有任何接口返回店铺名**。
+#   逐行扫过 source/2026-10-05.log 全部响应：
+#     - GetGameSettingApi 只回 gameSetting，无店名
+#     - GetUserDataApi 的 lastPlaceName 回的是 null
+#     - GetUserRegionApi 只回 regionId/playCount/created
+#   店铺名来自机台本地 AMDaemon：
+#     source/AMDaemon.NET/AMDaemon/Allnet/Auth.cs:33  LocationName <- allnet_Auth_getLocationName()
+#   是开机时 ALL.Net 认证下发的，客户端本地就有，不会向游戏服务器索取。
+#
+# 取值示例（真机 UpsertUserAll 报文）：
+#   userPlaylogList[0].placeName = "<你的店铺名>"
+#   userData[0].lastRegionName   = "<你的区域名>"
+PLACE_NAME = ""                 # ★★ 必填：店铺名（游戏服务器不返回，只能手填）
+REGION_NAME = ""                # ★★ 必填：区域名
+
+
+# =============================================================================
+# 三、扫码登录常量（aimedb）
+# =============================================================================
+#
+# 依据：source/ChimeLib.NET/ChimeLib/NET/COMM/CCommGetUserData.cs
+#       + docs/舞萌DX_扫码登录协议技术规范.md
+
+# aimedb 服务器
+AIMEDB_HOST = "ai.sys-allnet.cn"
+AIMEDB_PORT = 443
+AIMEDB_PATH = "/wc_aime/api/get_data"
+
+# 签名密钥（含前导 X，32 字符）
+# 来源：chimelib_dll.dll .rdata UTF-16 @0x00B040，抓包验证一致
+QR_SIGN_KEY = "XcW5FW4cPArBXEk4vzKz3CIrMuA5EVVW"
+
+# 固定字段
+QR_OPEN_GAME_ID = "MAID"
+QR_TITLE_KEY = "SDGB"
+QR_USER_AGENT = "WC_AIME_LIB"
+
+
+# =============================================================================
+# 三之二、★ 功能票（Ticket）主数据
+# =============================================================================
+#
+# 依据：游戏本地主数据
+#         D:\SDGB2026\Package\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket.xml
+#       源码侧 Manager.MaiStudio.TicketData.creditNum
+#
+# ★ 为什么脚本需要它：
+#     UpsertUserChargelogApi（购买功能票）的 userChargelog.price 取的是
+#     **ticket.creditNum（票的信用点倍数）**，不是 GetGameChargeApi 里的 money price：
+#         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:410
+#             result.price = ticket.creditNum;
+#
+# ticketKind 含义（Ticket.xml 里的枚举）：
+#     1=Paid(付费，可在机台买)  2=Event  3=Free  4=Link  5=ShopWeekly  6=ShopChara
+TICKET_CREDIT_NUM = {
+    0: 0,
+    2: 1, 3: 2, 4: 3, 5: 4, 6: 5,          # 付费票：N 倍券的 creditNum = N-1
+    10005: 0, 10105: 0, 10205: 0,           # 活动票
+    11001: 0,                               # 免费 1.5 倍券
+    30001: 0, 30002: 0, 30003: 0,           # 连动 / 商店票
+}
+
+#: 票名（只用于日志好看，不影响协议）
+TICKET_NAMES = {
+    0: "使用しない",
+    2: "2倍チケット", 3: "3倍チケット", 4: "4倍チケット", 5: "5倍チケット", 6: "6倍チケット",
+    10005: "イベント5倍チケット_1", 10105: "イベント5倍チケット_2",
+    10205: "イベント5倍チケット_3", 11001: "無料1.5倍チケット",
+    30001: "連動チケット", 30002: "每周区域前进2倍票", 30003: "旅行伙伴等级提升5倍票",
+}
+
+#: 付费票（ticketKind=1）—— 只有这些能在机台购买
+PAID_TICKET_IDS = (2, 3, 4, 5, 6)
+
+#: 买票闸门（和 UpsertUserAll 一样，默认不放行）
+UPSERT_CHARGELOG_CONFIRM = False
+
+#: 票有效期算法参数
+#:   依据 source/Assembly-CSharp/Manager/TicketManager.cs:564
+#:        DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
+#:   真机验证：chargeId=5 的 purchaseDate=2026-10-04 18:22:10
+#:             -> 减 4 小时 = 10-04 14:22，加 90 天 = 2027-01-02 -> "2027-01-02 04:00:00" ✅
+TICKET_VALID_HOUR_OFFSET = -4
+TICKET_VALID_DAYS = 90
+
+
+# =============================================================================
+# 四、★ UpsertUserAll 即将上传的歌曲数据
+# =============================================================================
+#
+# ★ 为什么放在 config：
+#   一局游玩的成绩是**唯一无法由脚本自行产生**的输入 ——
+#   纯网络脚本复刻不出游玩过程，服务端要的就是这份原始成绩。
+#   换歌 / 换成绩只改这里，不用动任何 api 脚本。
+#
+# ★ 默认值 = source/2026-10-05.log:123 的**真机跑通报文**（UpsertUserAllApi 请求）
+#   即 userPlaylogList[0] 逐字段照抄。
+#
+# ★ 两个"歌曲数据"的区别（别混）：
+#   userPlaylogList     本局**原始判定输入** —— 服务端据此算分、写战绩表
+#   userMusicDetailList 按 (musicId, level) 的**历史归档** —— 本局那条 playCount +1
+#   下面 PLAY_* 同时喂给这两处，保证一致。
+
+# --- 曲目与难度 ---
+PLAY_MUSIC_ID = 143             # 曲目 ID
+PLAY_MUSIC_LEVEL = 4            # 0=Basic 1=Advanced 2=Expert 3=Master 4=Re:Master
+PLAY_TRACK_NO = 1               # 本局第几首
+
+# --- 版本号（同一版本两种写法，两处都要）---
+PLAY_VERSION_INT = 1056000      # 整数形式，用于 userPlaylogList[].version（1.56.00）
+PLAY_VERSION_STR = "1.56.00"    # 字符串形式，用于 userGamePlaylogList[].version
+
+# --- 成绩 ---
+PLAY_ACHIEVEMENT = 0            # 达成率 ×10000（0 = 本局失败）
+PLAY_DELUXSCORE = 0             # DX 分数
+PLAY_SCORE_RANK = 0             # 评级档（0 = 无）
+PLAY_IS_CLEAR = False           # 是否 Clear
+
+PLAY_MAX_COMBO = 0
+PLAY_TOTAL_COMBO = 655          # 该谱面 note 总数（= 各类型判定数之和）
+PLAY_MAX_SYNC = 0
+PLAY_TOTAL_SYNC = 0
+PLAY_COMBO_STATUS = 0           # 0=无 1=全连
+PLAY_SYNC_STATUS = 0
+
+PLAY_FAST_COUNT = 0
+PLAY_LATE_COUNT = 0
+
+# --- 判定明细 {类型: {判定位: 次数}} ---
+# 真机样本是一局**失败**的成绩（全 Miss）
+PLAY_JUDGE_COUNTS = {
+    "tap":   {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 441},
+    "hold":  {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 19},
+    "slide": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 192},
+    "touch": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 0},
+    "break": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 3},
+}
+
+# --- 评级（本局前后）---
+PLAY_BEFORE_RATING = 15000
+PLAY_AFTER_RATING = 15000
+PLAY_BEFORE_GRADE = 0
+PLAY_AFTER_GRADE = 0
+PLAY_AFTER_GRADE_RANK = 1
+PLAY_BEFORE_DELUX_RATING = 15000
+PLAY_AFTER_DELUX_RATING = 15000
+
+# --- 曲种索引 ---
+# ★ 必须与 userExtend.categoryIndex 一致（真机两处都是 2022）
+PLAY_CATEGORY_INDEX = 2022
+PLAY_MUSIC_INDEX = 10           # userExtend.musicIndex
+PLAY_EXTRA_FLAG = 1721          # userExtend.extraFlag
+
+# --- 本局使用的角色快照（characterId1..5 / Level / Awakening）---
+#
+# ★ 语义：**进入游玩时**的快照值，不要加经验 —— 这一点极易搞错。
+#   （结算后的等级在 upsertUserAll.userCharacterList 里，那处才 +经验）
+#   真机实证（source/2026-10-05.log:123 同一份报文）：
+#       userPlaylogList[0].characterLevel1..5 = 3800/4455/134/134/134  ← 快照（游玩前）
+#       upsertUserAll.userCharacterList       = 3801/4456/135/135/135  ← 结算后
+#
+# ★★ 通常**不用改这里**：main.py 会调用 derive_play_characters(snapshot)，
+#    直接从服务器刚下发的 userData.charaSlot + userCharacterList 推出游玩前等级，
+#    并覆盖本配置。只有拿不到快照（离线组包）时才回退到这里。
+#
+# 默认值 = 真机 charaSlot [395, 101, 400402, 400401, 200401] 的游玩前等级
+PLAY_CHARACTERS = [
+    {"characterId": 395,    "level": 3800, "awakening": 5},
+    {"characterId": 101,    "level": 4455, "awakening": 5},
+    {"characterId": 400402, "level": 134,  "awakening": 3},
+    {"characterId": 400401, "level": 134,  "awakening": 3},
+    {"characterId": 200401, "level": 134,  "awakening": 3},
+]
+
+# --- 本局消耗 ---
+# ★ playCredit 语义（VOExtensions.cs:838-845）：
+#     playCredit = Credit.GameCostEnoughPlay()（投币成本） + TicketManager.GetTicketCredit(useTicketId)
+#   即"这一局总共折合多少 credit"，不是余额、不是曲目数。真机样本 = 1。
+PLAY_CREDIT = 1
+# ★ -1 = 不使用票。依据 TicketManager.cs:47 初始化 _useTicketId[i] = -1；
+#   GetTicketCredit(-1) 里 GetTicket(-1) 返回 null -> 返回 0，即不用票不折算 credit。
+PLAY_USE_TICKET_ID = -1
+PLAY_MODE = 0                   # 0=通常
+PLAY_IS_TUTORIAL = False
+PLAY_IS_EVENT_MODE = False
+PLAY_IS_NEW_FREE = False
+PLAY_IS_FREEDOM_MODE = False
+
+# --- 机台本地计数器（★ 无法从服务器推导，只能手填）---
+#
+# 依据：source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:881
+#       result.playCount = Backup.localParameter.playCount
+#     这是机台**本地**的游玩计数器，任何 Get 接口都不会返回它，
+#     所以既推不出来也不会被服务端纠正 —— 填错只是个统计数字不对。
+# 取值 = 该机台当天/本轮的累计游玩局数（每打一局 +1）。
+# 真机实测：19:21 那一局 = 9，22:31 那一局 = 10。
+PLAY_LOCAL_PLAY_COUNT = 8
+
+# --- ★ playSpecial 里的 "CalcSpecialNum"（机台硬件标志位）---
+#
+# 依据：source/Assembly-CSharp/Manager/GameManager.cs:332-378
+#       source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:846-855
+#
+#   playSpecial = 位反转32( Random.Range(1,1037933) * 2069 + CalcSpecialNum() )
+#
+#   CalcSpecialNum() 是**按位或**出来的机台特征掩码，逐位含义（源码原文）：
+#       0x001  SpecialAP                    （测试/特殊 AP）
+#       0x002  IsAutoPlay()
+#       0x004  Win32.getRawInputDeviceCount 的 keyboard > 0
+#       0x008  同上 mouse > 0
+#       0x010  config.IsAutoPlay / IsDebugDisp / IsAllOpen
+#       0x020  AMDaemon.System.IsDevelop
+#       0x040  !SystemInfo.deviceName.Contains("ACA")        ← 真机是 ACA，故该位为 0
+#       0x080  !graphicsDeviceName.Contains("GeForce GTX")   ← 真机是 GTX，故该位为 0
+#       0x100  !processorType.Contains("Core(TM) i3-8100")   ← 真机是 i3-8100，故该位为 0
+#       0x400  无条件置位（源码 GameManager.cs:375）           ← ★ 恒为 1
+#
+#   ★ 真机实测（gamehook 抓到 CalcSpecialNum 调用）：
+#         [CalcSpecialNum] = 1024   (SpecialAP=False  IsFreedomMode=False)
+#       1024 = 0x400，即除"无条件置位"那一位外全部为 0 —— 正好是一台标准 ACA 机台。
+#
+#   ★ 反推验证：真机 playSpecial = 892014272
+#         位反转32(892014272) = 57726124 = 27900 * 2069 + 1024
+#         余数恰好 1024，与抓到的 CalcSpecialNum 完全吻合。
+#
+#   改成 0 不会报错，但 playSpecial 的位模式就不是真机那种了。
+PLAY_SPECIAL_NUM = 1024
+
+# --- 曲目历史游玩次数增量 ---
+#
+# ★ 默认 0 = 本局**不改动**该曲目的历史游玩次数。
+#   ★★ 注意语义：是「条目照传、次数不变」，**不是**「不回传这个节点」。
+#      实测（同一份代码、同一账号，唯一差别就是这个节点）：
+#          userMusicDetailList 回传 1 条 -> returnCode=1 且 playCount 真的 +1（落库）
+#          userMusicDetailList 留空     -> returnCode=1 但 playCount 纹丝不动（**没落库**）
+#      所以「不想让乐曲 playCount 增加」必须靠把**增量**设成 0，
+#      而不是把整个节点清空 —— 后者会让整包被服务端静默丢弃。
+#
+#   想复刻真机的「该谱面 playCount +1」就改成 1。
+PLAY_MUSIC_PLAY_COUNT_GAIN = 0
+
+# --- 地图进度增量 ---
+#
+# ★ 默认 0 = **本局不推进地图**，userMapList 回传空数组。
+#   想复刻真机的"地图 +11000"就改成 11000（真机样本：mapId=550003 的
+#   distance 1424000 -> 1435000）。
+#
+# 依据：source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs 的地图导出逻辑
+#       —— 没变化的条目不会进差分结果。
+PLAY_MAP_DISTANCE_GAIN = 0
+
+# --- 组队角色等级增量 ---
+#
+# ★ 默认 0 = **本局不给角色加经验**，userCharacterList 回传空数组。
+#   想复刻真机的"组队 5 只各 +1 级"就改成 1（真机样本 4455->4456 等）。
+#
+# ★ 注意：设成 0 时 userCharacterList 差集为空 -> 该节点不回传，
+#   这是**预期的**，不是错误；validate_before_send 也只在你把增量设成非 0
+#   却又没产出条目时才告警。
+PLAY_CHARACTER_EXP_GAIN = 0
+
+# --- ★ 关于 userGetPointList / userLoginBonusList（留空即可）---
+#
+# 这两个节点是**登录奖励发放**才产生的，普通游玩结算不需要回传：
+#
+#   userGetPointList（里程/点数明细）
+#     真机 39 次 UpsertUserAll 样本里，**25 次为空（64%）**；
+#     只有发生登录奖励/任务奖励时才非空（如 getKind=1 point=200）。
+#     留空 => 服务端不累加 point，账户点数保持不变。
+#
+#   userLoginBonusList（签到奖励）
+#     同理，只有本次登录触发新签到才回传那一条（isCurrent=true）。
+#     留空 => isNewLoginBonusList 也是空串。
+#
+# ★ 连带影响（正常现象）：留空后 userData.point 保持基线值不变。
+#
+# 源码参考（如需还原发放行为）：
+#   Manager/UserData.cs:57-62   enum MaiMileGetKind { Mission=1, FriendBonus=2, Present=3 }
+#   Manager/UserData.cs:352-367 AddMissionPointLog / AddFriendBonusPointLog
+
+# --- 店铺库存查询清单（不填则跳过该节点）---
+PLAY_SHOP_ITEM_IDS = []
+
+
+# =============================================================================
+# 五、UpsertUserAll 安全闸门
+# =============================================================================
+#
+# ★ 这是**唯一有副作用**的接口：会把本局成绩真实写进服务器，不可撤销。
+#   保持 False（默认），调用时必须显式传 confirm=True 才真正发包。
+#   改成 True 会永久放行（不建议）。
+UPSERT_CONFIRM = False
+
+# 真实发包前的冷却等待（秒）
+#
+# ★ 语义：**每次**真实发送 UpsertUserAll 之前，都固定等待这么多秒（含首次）。
+#   目的：让上报节奏贴近真机 —— 真机从登录到结算上报约 80 秒，
+#         不会登录后立刻上报（source/2026-10-05.log:25 登录 → :123 上报，间隔 81 秒）。
+#
+# ★ 只作用于**真实发送**（confirm=True）；dry_run 不等待。
+# ★ 冷却发生在「发包前自检」之后，所以自检有问题时会先看到告警，不必白等。
+# ★ 调试时想跳过等待：把这里改成 0，或调用时传 cooldown_sec=0。
+UPSERT_SEND_COOLDOWN_SEC = 60
+
+
+# =============================================================================
+# 六、日志级别
+# =============================================================================
+#
+#   "info"  只输出 api 脚本的运行情况与结果：
+#              === XxxApi 开始运行 ===
+#              === XxxApi 运行结束 ===
+#
+#   "debug" 在上面基础上，额外输出向 api 发送的数据与 api 返回的数据：
+#              → 请求 XxxApi  URL / 请求头 / 请求体 JSON 全文
+#              ← 响应 XxxApi  状态码 / 耗时 / 响应头 / 响应体 JSON 全文
+#
+LOG_LEVEL = "info"
+
+# 单条日志里内嵌长文本的截断长度（0 = 不截断）
+LOG_VALUE_MAX = 0
+
+
+# =============================================================================
+# 导出
+# =============================================================================
+
+__all__ = [
+    # 网络与加密
+    "BASE_URL", "AES_KEY", "AES_IV", "OBFUSCATE_PARAM", "MAI_ENCODING",
+    "TIMEOUT_MS", "TIMEOUT_LONG_MS",
+    # 机台与店铺
+    "KEYCHIP_ID", "CLIENT_ID", "REGION_ID", "PLACE_ID", "PLACE_NAME", "REGION_NAME",
+    # 功能票
+    "TICKET_CREDIT_NUM", "TICKET_NAMES", "PAID_TICKET_IDS",
+    "UPSERT_CHARGELOG_CONFIRM", "TICKET_VALID_HOUR_OFFSET", "TICKET_VALID_DAYS",
+    # 扫码登录
+    "AIMEDB_HOST", "AIMEDB_PORT", "AIMEDB_PATH", "QR_SIGN_KEY",
+    "QR_OPEN_GAME_ID", "QR_TITLE_KEY", "QR_USER_AGENT",
+    # 歌曲数据
+    "PLAY_MUSIC_ID", "PLAY_MUSIC_LEVEL", "PLAY_TRACK_NO",
+    "PLAY_VERSION_INT", "PLAY_VERSION_STR",
+    "PLAY_ACHIEVEMENT", "PLAY_DELUXSCORE", "PLAY_SCORE_RANK", "PLAY_IS_CLEAR",
+    "PLAY_MAX_COMBO", "PLAY_TOTAL_COMBO", "PLAY_MAX_SYNC", "PLAY_TOTAL_SYNC",
+    "PLAY_COMBO_STATUS", "PLAY_SYNC_STATUS", "PLAY_FAST_COUNT", "PLAY_LATE_COUNT",
+    "PLAY_JUDGE_COUNTS",
+    "PLAY_BEFORE_RATING", "PLAY_AFTER_RATING",
+    "PLAY_BEFORE_GRADE", "PLAY_AFTER_GRADE", "PLAY_AFTER_GRADE_RANK",
+    "PLAY_BEFORE_DELUX_RATING", "PLAY_AFTER_DELUX_RATING",
+    "PLAY_CATEGORY_INDEX", "PLAY_MUSIC_INDEX", "PLAY_EXTRA_FLAG",
+    "PLAY_CHARACTERS", "PLAY_CREDIT", "PLAY_USE_TICKET_ID", "PLAY_MODE",
+    "PLAY_IS_TUTORIAL", "PLAY_IS_EVENT_MODE", "PLAY_IS_NEW_FREE", "PLAY_IS_FREEDOM_MODE",
+    "PLAY_LOCAL_PLAY_COUNT", "PLAY_SPECIAL_NUM",
+    "PLAY_MUSIC_PLAY_COUNT_GAIN", "PLAY_MAP_DISTANCE_GAIN", "PLAY_CHARACTER_EXP_GAIN",
+    "PLAY_SHOP_ITEM_IDS",
+    # 闸门
+    "UPSERT_CONFIRM", "UPSERT_SEND_COOLDOWN_SEC",
+    # 日志
+    "LOG_LEVEL", "LOG_VALUE_MAX",
+]

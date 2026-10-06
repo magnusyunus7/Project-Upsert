@@ -103,11 +103,40 @@ WaHappy/
 
 ## 快速开始
 
-### 环境
+### 1. 装依赖
 
 ```bash
 pip install requests pycryptodome
-python selftest.py        # 零网络自检，应该 236 项全绿
+```
+
+### 2. ★ 先填 `config.py`
+
+仓库里只有模板 `config.py.example`，先复制一份：
+
+```bash
+cp   config.py.example config.py      # Linux / macOS
+copy config.py.example config.py      # Windows
+```
+
+然后**必须**填好 **`config.py` 第二节「机台与店铺标识」的 6 个值**：
+
+| 变量 | 填什么 |
+|---|---|
+| `KEYCHIP_ID` | 你的机台 Keychip（**完整形式**，带连字符，形如 `XXXX-XXXXXXXXXXX`） |
+| `CLIENT_ID` | Keychip **短值**（去掉连字符取前 11 位） |
+| `REGION_ID` | 你所在区域 ID |
+| `PLACE_ID` | 你所在店铺 ID |
+| `PLACE_NAME` | 店铺名（游戏服务器不返回，只能手填） |
+| `REGION_NAME` | 区域名 |
+
+> ⚠️ **这 6 个值留空或填错，发出去的请求带的就是别人的机台身份，服务端会直接拒绝。**
+>
+> `config.py` 已在 `.gitignore` 里 —— 它是你的私有配置，**不要提交**。
+
+### 3. 跑自检
+
+```bash
+python selftest.py        # 零网络自检，应该 236 项全绿（不依赖你的 config）
 ```
 
 ### upsert.py 用法

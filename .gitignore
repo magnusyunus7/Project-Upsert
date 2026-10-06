@@ -7,6 +7,9 @@ __pycache__/
 # ---- 本地查证用（含 SEGA 二进制 / 反编译代码 / 真机日志，不入库）----
 source/
 
+# ---- 私有配置：只提交 config.py.example，不提交 config.py ----
+config.py
+
 # ---- 文档单独放 docs 分支，主分支不含 ----
 docs/
 

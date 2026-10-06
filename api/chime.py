@@ -89,8 +89,7 @@ QR_TOTAL_LEN = QR_PREFIX_LEN + QR_PAYLOAD_LEN   # 84
 #:         clientId = AMDaemon.System.KeychipId.ShortValue;      // 短值
 #:
 #:     即：aimedb 扫码用完整 KeychipId，游戏服务器用 ShortValue。
-#:     docs/舞萌DX_扫码登录协议技术规范.md §3.4 的抓包验证向量也是
-#:     chipID = "XXXX-XXXXXXXXXXX"。
+#:     docs 分支的《扫码登录协议技术规范》§3.4 里也有对应的抓包验证向量。
 #:     token 与 chipID 绑定，用错会导致后续接口「returnCode=1 但不落库」。
 DEFAULT_CHIP_ID = KEYCHIP_ID
 

@@ -348,7 +348,10 @@ section("8. userPlaylog 字段完整性（110 字段）")
 
 check("PLAYLOG_FIELDS 共 110 个", len(PLAYLOG_FIELDS) == 110, str(len(PLAYLOG_FIELDS)))
 
-pl = build_user_playlog(7692848101484135861, 1791159576)
+# ★ 显式传中性值，**不依赖 config.py** —— 否则用户改了 config 这里就红
+pl = build_user_playlog(7692848101484135861, 1791159576,
+                        PlayData(before_rating=15000, after_rating=15000),
+                        place_id=1000, client_id="TESTCLIENT1")
 check("构造出的 playlog 有 110 个键", len(pl) == 110, str(len(pl)))
 check("无缺失字段", all(f in pl for f in PLAYLOG_FIELDS))
 check("无多余字段", all(k in PLAYLOG_FIELDS for k in pl))
@@ -429,7 +432,8 @@ check("宴谱（musicId>=100000）level 强制为 10",
 
 section("9. userGamePlaylogList（13 字段）")
 
-gp = build_user_game_playlog(7692848101484135861, 1791159576)
+gp = build_user_game_playlog(7692848101484135861, 1791159576,
+                             client_id="TESTCLIENT1")
 REAL_GP = {
     "playlogId": 7692848101484135861, "version": "1.56.00",
     "playMode": 0, "useTicketId": -1, "playCredit": 1, "playTrack": 1,
@@ -968,6 +972,7 @@ _creq = UpsertUserChargelog(
     charge_list=[{"chargeId": 2, "stock": 3, "purchaseDate": "x", "validDate": "y"}],
     game_charge_list=[{"chargeId": 2, "price": 1}],
     user_data={"playCount": 1260, "playerRating": 15000},
+    place_id=1000, region_id=1, client_id="TESTCLIENT1",
     purchase_date="2026-10-06 13:00:00", guard_no_stock=False, dry_run=True)
 check("请求体 4 个顶层字段且顺序照声明",
       list(_creq.__dataclass_fields__) == ["userId", "userChargelog", "userCharge", "loginDateTime"],
