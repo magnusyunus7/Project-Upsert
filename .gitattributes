@@ -1,0 +1,7 @@
+# 统一换行符，避免 Windows/Linux 来回转换把每个文件都标成 modified
+* text=auto
+*.py   text eol=lf
+*.md   text eol=lf
+*.cs   text eol=crlf
+*.csproj text eol=crlf
+*.json text eol=lf

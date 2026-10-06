@@ -1,0 +1,23 @@
+# ---- 运行产物 ----
+logs/
+__pycache__/
+*.pyc
+*.pyo
+
+# ---- 本地查证用（含 SEGA 二进制 / 反编译代码 / 真机日志，不入库）----
+source/
+
+# ---- 文档单独放 docs 分支，主分支不含 ----
+docs/
+
+# ---- .NET 构建产物 ----
+gamehook/bin/
+gamehook/obj/
+
+# ---- 编辑器 / 系统 ----
+.vs/
+.vscode/
+.idea/
+*.user
+Thumbs.db
+Desktop.ini
