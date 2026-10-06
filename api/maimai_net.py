@@ -65,13 +65,27 @@ maimai_net.py —— 舞萌DX 网络核心层（纯 HTTP 复刻）
        但前提是**全程复用同一个 MaimaiNetClient**（用 get_default_client()）。
 
 --------------------------------------------------------------------------------
-二、★ 一个必须注意的坑：Accept-Encoding 必须为空
+二、★ 请求头集合：必须与真机一致（2026-10-06 真机抓包实证）
 --------------------------------------------------------------------------------
-     requests 默认会发 Accept-Encoding: gzip, deflate。
-     本协议响应体是 AES 密文（二进制），服务端若据此做内容编码，会返回空 body。
-     实测：不发该头 -> HTTP 200 / 0 字节；显式置空 -> 正常返回。
-     C# 端不需要是因为 HttpWebRequest 默认 AutomaticDecompression = None。
-     所以这里固定 Accept-Encoding: ""。
+     真机（Unity Mono 的 HttpWebRequest）实际发出的头**只有这几个**：
+
+         number / Content-Type / User-Agent / charset / Mai-Encoding /
+         Content-Encoding / (+ 登录后的 Cookie)
+
+     **没有 Accept，也没有 Connection。**
+
+     requests 默认会补 Accept: * / Connection: keep-alive，
+     已在 MaimaiNetClient.__init__ 里从 session.headers 删掉。
+
+     ★ Accept-Encoding 是唯一的例外，必须**存在且为空**：
+
+         实测（GetGameSettingApi，2026-10-06）：
+             Accept-Encoding: ""                -> 200 + application/json
+             不发 / "gzip, deflate" / "identity" -> 200 + application/octet-stream（0 字节）
+
+       反推：真机能拿到 JSON 响应体，说明 Mono 发的也是**空值**的 Accept-Encoding
+       （Headers.AllKeys 里看不到它，是框架层加的）。
+       所以这里固定 Accept-Encoding: ""。
 
 --------------------------------------------------------------------------------
 三、对外接口
@@ -374,6 +388,30 @@ class MaimaiNetClient:
         self.timeout = timeout_ms / 1000.0
         self.verify_ssl = verify_ssl
         self.session = requests.Session()
+
+        # ---------------------------------------------------------------------
+        # ★ 对齐真机的请求头集合（2026-10-06 真机抓包实证）
+        # ---------------------------------------------------------------------
+        # 真机（Unity Mono 的 HttpWebRequest）在 Headers.AllKeys 里**只有**：
+        #     number / Content-Type / User-Agent / charset / Mai-Encoding /
+        #     Content-Encoding / (+ Cookie)
+        # 没有 Accept，也没有 Connection。
+        #
+        # 而 requests 默认会补上：
+        #     Accept: */*        <- 删掉（真机不发）
+        #     Connection: keep-alive <- 删掉（真机不发；HTTP/1.1 本来就是长连接）
+        #     Accept-Encoding    <- 删掉（真机不发），改由 _build_headers 显式置空
+        #
+        # ★ Accept-Encoding 为什么必须**存在且为空**：
+        #     实测（GetGameSettingApi，2026-10-06）：
+        #         Accept-Encoding: ""              -> 200 + application/json（384 B）
+        #         不发该头 / "gzip, deflate" / "identity"
+        #                                          -> 200 + application/octet-stream（0 B）
+        #   所以这里从 Session 默认里删掉，再由 _build_headers 显式发一个空值。
+        self.session.headers.pop("Accept", None)
+        self.session.headers.pop("Connection", None)
+        self.session.headers.pop("Accept-Encoding", None)
+
         #: ★ number 头的值（Packet.cs:189 GameManager.PingMsec）。
         #:   只由 **Ping 心跳包**更新（对应 PingChecker.cs:227 PingSuccess），
         #:   普通业务请求不会改动它 —— 真机整局 53 个请求的 number 恒为 63。
