@@ -20,13 +20,31 @@ python chart_achievement.py            # 不给参数 = 交互向导
 | `--chart <路径>` | 直接给 `.ma2` 文件，如 `.../music/music000008/000008_03.ma2` |
 | `--game <目录> --music-id <ID>` | 给游戏目录（`Sinmai_Data`、`StreamingAssets`、`A000`、`music` 都能认），按 `musicid` 自动找谱面 |
 
-`--difficulty basic|advanced|expert|master|remaster`（也接受 0~4），默认 **master**。
-`--level` 只用于显示（如 `12+`），不参与计算。
+### 难度（--level）
+
+难度用**游戏里规定的数字**表示，也就是谱面文件名后缀 `_00` ~ `_04` 的那个数字
+（对应游戏主数据 `musicDifficulty/MusicDifficulty00000X` 的 `<id>`）：
+
+| 数字 | 难度 | 谱面文件名 |
+| --- | --- | --- |
+| 0 | BASIC | `<id>_00.ma2` |
+| 1 | ADVANCED | `<id>_01.ma2` |
+| 2 | EXPERT | `<id>_02.ma2` |
+| 3 | MASTER | `<id>_03.ma2` |
+| 4 | RE:MASTER | `<id>_04.ma2` |
+
+`--level 0` ~ `--level 4` 或 `--level BASIC` / `ADVANCED` / `EXPERT` / `MASTER` / `RE:MASTER`
+（大小写随意；`--difficulty` 是同一个参数的别名）都行，**默认 3（MASTER）**；
+不给时会在 stderr 提示用了默认值。
+
+注意：这里的「等级」指**谱面难度**。谱面的数值等级（如 `12+`）是另一回事，
+由 `Music.xml` 自动读出，只用于显示。
 
 ## 正向：已知判定数 → 达成率 + DX 分
 
 ```powershell
-python chart_achievement.py --chart "<...>\000008_03.ma2" --level 12+ --cp 290 --perfect 8 --great 3 --good 1
+python chart_achievement.py --chart "<...>\000008_03.ma2" --cp 290 --perfect 8 --great 3 --good 1
+python chart_achievement.py --game "<...>\Sinmai_Data" --music-id 8 --level 3 --cp 290 --perfect 8 --great 3 --good 1   # 3 = MASTER
 ```
 
 - `--cp` / `--perfect` / `--great` / `--good` 都给个数，`--miss` 留空时自动补足
@@ -40,8 +58,8 @@ python chart_achievement.py --chart "<...>\000008_03.ma2" --level 12+ --cp 290 -
 ## 反向：已知达成率 → 判定组合 + DX 分
 
 ```powershell
-python chart_achievement.py --game "D:\SDGB2026\Package\Sinmai_Data" --music-id 8 --achievement 100.75
-python chart_achievement.py --game "D:\SDGB2026\Package\Sinmai_Data" --music-id 8 --achievement 99 --mode range
+python chart_achievement.py --game "D:\SDGB2026\Package\Sinmai_Data" --music-id 8 --level 3 --achievement 100.75            # 3 = MASTER
+python chart_achievement.py --game "D:\SDGB2026\Package\Sinmai_Data" --music-id 8 --level 2 --achievement 99 --mode range    # 2 = EXPERT
 ```
 
 两种模式（`--mode`）：

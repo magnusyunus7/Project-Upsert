@@ -274,7 +274,8 @@ def parse_difficulty(text) -> int:
     key = str(text).strip().lower()
     if key in _DIFFICULTY_ALIASES:
         return _DIFFICULTY_ALIASES[key]
-    raise ValueError("无法识别的难度：%s（可用 basic/advanced/expert/master/remaster 或 0~4）" % text)
+    raise ValueError("无法识别的难度：%s（可用 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER，"
+                     "或直接写名字）" % text)
 
 
 def find_music_dir(game_path: str) -> str:

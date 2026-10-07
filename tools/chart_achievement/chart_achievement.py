@@ -101,7 +101,7 @@ def load_from_game(game_path: str, music_id: int, difficulty: int) -> Chart:
 
 
 # ------------------------------------------------------------------ 展示
-def print_chart(chart: Chart, th: Theory, level: Optional[str]) -> None:
+def print_chart(chart: Chart, th: Theory) -> None:
     print(LINE)
     print("谱面")
     print("  文件      %s" % chart.path)
@@ -110,10 +110,10 @@ def print_chart(chart: Chart, th: Theory, level: Optional[str]) -> None:
     if chart.music_id is not None:
         print("  编号      %d" % chart.music_id)
     if chart.difficulty_name:
-        print("  难度      %s (%02d)" % (chart.difficulty_name, chart.difficulty_index or 0))
-    shown_level = level or chart.level_text
-    if shown_level:
-        print("  等级      %s" % shown_level)
+        print("  难度      %s (%d)" % (chart.difficulty_name.upper(),
+                                       chart.difficulty_index if chart.difficulty_index is not None else 0))
+    if chart.level_text:
+        print("  等级      %s" % chart.level_text)
     parts = []
     for g in GROUP_ORDER:
         n = th.counts.get(g, 0)
@@ -210,7 +210,7 @@ def print_reverse(chart: Chart, outcome) -> None:
 
 
 # ------------------------------------------------------------------ JSON
-def to_json(chart: Chart, th: Theory, level: Optional[str], payload: Dict) -> str:
+def to_json(chart: Chart, th: Theory, payload: Dict) -> str:
     data = {
         "chart": {
             "path": chart.path,
@@ -218,7 +218,7 @@ def to_json(chart: Chart, th: Theory, level: Optional[str], payload: Dict) -> st
             "song_name": chart.song_name,
             "difficulty": chart.difficulty_name,
             "difficulty_index": chart.difficulty_index,
-            "level": level or chart.level_text,
+            "level_text": chart.level_text,
             "notes": th.counts,
             "total_notes": th.total_notes,
             "connect_slide": chart.connect_count,
@@ -267,7 +267,7 @@ def interactive(args) -> None:
             mid = ask_int("musicid: ")
             if mid is None:
                 continue
-            diff = ask("难度 basic/advanced/expert/master/remaster  [master]: ", "master")
+            diff = ask("难度 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER  [3]: ", "3")
             try:
                 chart = load_from_game(game, mid, parse_difficulty(diff))
             except SystemExit:
@@ -281,8 +281,7 @@ def interactive(args) -> None:
             except SystemExit:
                 chart = None
     th = theory_from_chart(chart)
-    level = ask("等级（仅用于显示，可留空）: ") or None
-    print_chart(chart, th, level)
+    print_chart(chart, th)
 
     mode = ask("计算模式：1) 已知判定数算达成率  2) 已知达成率倒算判定数  [1]: ", "1")
     if mode.startswith("2"):
@@ -297,7 +296,7 @@ def interactive(args) -> None:
                 print("  请输入数字")
         mode = ask("反算方式：1) 精确（只列真能打出该达成率的组合）  2) 区间（判定数只是估算时用）  [1]: ", "1")
         args.mode = "range" if mode.startswith("2") else "exact"
-        run_reverse(chart, th, level, target, args)
+        run_reverse(chart, th, target, args)
     else:
         values = {}
         for j in JUDGMENTS:
@@ -305,7 +304,7 @@ def interactive(args) -> None:
                 continue
             values[j] = ask_int("  %s 数 [0]: " % JUDGE_LABEL[j], 0) or 0
         values["miss"] = ask_int("  Miss 数（留空 = 总数减去以上判定）: ")
-        run_forward(chart, th, level, values, args)
+        run_forward(chart, th, values, args)
 
 
 # ------------------------------------------------------------------ 执行
@@ -322,12 +321,12 @@ def normalize_judges(th: Theory, raw: Dict[str, Optional[int]]) -> Dict[str, int
     return given
 
 
-def run_forward(chart: Chart, th: Theory, level: Optional[str],
+def run_forward(chart: Chart, th: Theory,
                 raw: Dict[str, Optional[int]], args) -> None:
     judges = normalize_judges(th, raw)
     result = solve_forward(th, judges)
     if args.json:
-        print(to_json(chart, th, level, {
+        print(to_json(chart, th, {
             "mode": "forward",
             "judges": judges,
             "achievement_min": float(result.achievement_min),
@@ -336,15 +335,15 @@ def run_forward(chart: Chart, th: Theory, level: Optional[str],
             "dx_score": result.dx,
         }))
         return
-    print_chart(chart, th, level)
+    print_chart(chart, th)
     print_forward(chart, result)
 
 
-def run_reverse(chart: Chart, th: Theory, level: Optional[str],
+def run_reverse(chart: Chart, th: Theory,
                 target: Fraction, args) -> None:
     outcome = solve_reverse(th, target, limit=args.limit, mode=args.mode)
     if args.json:
-        print(to_json(chart, th, level, {
+        print(to_json(chart, th, {
             "mode": "reverse",
             "search_mode": outcome["mode"],
             "target": float(target),
@@ -363,7 +362,7 @@ def run_reverse(chart: Chart, th: Theory, level: Optional[str],
             } for r in outcome["rows"]],
         }))
         return
-    print_chart(chart, th, level)
+    print_chart(chart, th)
     print_reverse(chart, outcome)
 
 
@@ -374,24 +373,24 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""示例:
   # 直接给谱面文件，正向计算
-  python chart_achievement.py --chart "D:\\SDGB2026\\Package\\Sinmai_Data\\StreamingAssets\\A000\\music\\music000008\\000008_03.ma2" --level 12+ --cp 290 --perfect 10 --great 2
+  python chart_achievement.py --chart "D:\\SDGB2026\\Package\\Sinmai_Data\\StreamingAssets\\A000\\music\\music000008\\000008_03.ma2" --cp 290 --perfect 10 --great 2
 
-  # 给游戏路径 + musicid（默认 Master 难度）
-  python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --difficulty master --cp 300 --perfect 2
+  # 给游戏路径 + musicid + 难度（难度用游戏里的数字：0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）
+  python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --cp 300 --perfect 2
 
   # 由达成率倒算判定组合（精确模式：只列真能打出该值的组合）
-  python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --achievement 99.5
+  python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --achievement 99.5
 
   # 判定数只是估算时，用区间模式
-  python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --achievement 99.5 --mode range
+  python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --achievement 99.5 --mode range
 """)
     src = p.add_argument_group("谱面来源（二选一）")
     src.add_argument("--chart", metavar="PATH", help=".ma2 谱面文件路径")
     src.add_argument("--game", metavar="PATH", help="游戏目录（Sinmai_Data / StreamingAssets / A000 / music 均可）")
     src.add_argument("--music-id", type=int, metavar="ID", help="曲目编号（配合 --game 使用）")
-    src.add_argument("--difficulty", default="master", metavar="D",
-                     help="难度 basic/advanced/expert/master/remaster 或 0~4（默认 master）")
-    src.add_argument("--level", metavar="TEXT", help="等级，仅用于显示（如 12+ / 13.4）")
+    src.add_argument("--level", "--difficulty", dest="level", default=None, metavar="D",
+                     help="谱面难度，用游戏里的数字：0=BASIC 1=ADVANCED 2=EXPERT "
+                          "3=MASTER 4=RE:MASTER（也可直接写名字；默认 3=MASTER）")
 
     fw = p.add_argument_group("正向计算：已知判定数")
     fw.add_argument("--cp", type=int, metavar="N", help="Critical Perfect 个数")
@@ -422,10 +421,26 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
     if args.chart:
         chart = load_from_file(args.chart)
+        if args.level is not None:
+            try:
+                want = parse_difficulty(args.level)
+            except ValueError as exc:
+                die(str(exc))
+            if chart.difficulty_index is not None and want != chart.difficulty_index:
+                print("[注意] --level 给的是 %s，但谱面文件名里是 %s，按文件名算"
+                      % (DIFFICULTY_NAMES[want], DIFFICULTY_NAMES[chart.difficulty_index]),
+                      file=sys.stderr)
     else:
         if args.music_id is None:
             die("使用 --game 时必须同时给 --music-id")
-        chart = load_from_game(args.game, args.music_id, parse_difficulty(args.difficulty))
+        if args.level is None:
+            print("[提示] 没有给 --level，按默认难度 3（MASTER）计算"
+                  "（0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）", file=sys.stderr)
+        try:
+            difficulty = parse_difficulty(args.level if args.level is not None else "master")
+        except ValueError as exc:
+            die(str(exc))
+        chart = load_from_game(args.game, args.music_id, difficulty)
 
     th = theory_from_chart(chart)
     if th.total_notes == 0:
@@ -440,7 +455,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             die("目标达成率 %s 超过该谱面上限 %s" % (pct(target), pct(th.max_achievement)))
         if target < 0:
             die("目标达成率不能为负")
-        run_reverse(chart, th, args.level, target, args)
+        run_reverse(chart, th, target, args)
         return 0
 
     raw = {"cp": args.cp, "perfect": args.perfect, "great": args.great,
@@ -448,7 +463,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     if all(v is None for v in raw.values()):
         die("请给判定数（--cp/--perfect/--great/--good），或用 --achievement 做反向计算；"
             "两个都不给则进入交互模式（需去掉其它参数）")
-    run_forward(chart, th, args.level, raw, args)
+    run_forward(chart, th, raw, args)
     return 0
 
 
