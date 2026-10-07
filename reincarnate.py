@@ -11,19 +11,27 @@ reincarnate.py —— 账号数据迁移（转生）：把账号 A 的数据克�
                             ↓  节点数据
     ┌─ 目标账号 B ───────────────────────────────────────────┐
     │  二维码 -> ParseQRCode -> UserPreview -> UserLogin      │
-    │  循环：UpsertUserAll（每包最多 4 首曲目）                │
-    │        然后 UserLogin(isContinue=true) 续关，拿新 loginId│
-    │  收尾：UserLogout                                       │
+    │  循环：                                                  │
+    │      等待 -> UpsertUserAll（一包曲目）                  │
+    │      -> UserLogout(type=1)                              │
+    │      -> UserLogin(isContinue=true) 续关，拿新 loginId   │
+    │  收尾：最后一包登出后结束（不再续关）                    │
     └────────────────────────────────────────────────────────┘
 
 --------------------------------------------------------------------------------
-★ 为什么一次最多传 4 首
+★ 每包几首：1 / 3 / 4 可以，**恰好 2 首会被服务端拒绝**
 --------------------------------------------------------------------------------
     真机一局（一个 credit）最多打 4 首，所以一条 UpsertUserAll 报文里的
     userPlaylogList / userGamePlaylogList **最多 4 条**。
 
-    本脚本把源账号的 userMusicDetailList 按 4 条一组切分，一组 = 一局。
-    ★ 每局都必须带**非空**的 userPlaylogList —— 踩坑清单第 2 条实测：
+    ★ 但实测：**每包恰好 2 首会被服务端拒绝**（1 / 3 / 4 首都正常）。
+      所以本脚本的分批器会**主动避开 2 首包**：
+
+          10 首 -> [4, 4, 2] -> [4, 3, 3]
+           6 首 -> [4, 2]    -> [3, 3]
+           2 首 -> [2]       -> [1, 1]
+
+    ★ 每包都必须带**非空**的 userPlaylogList —— 踩坑清单第 2 条实测：
       留空会被服务端当成无效包**静默丢弃**（returnCode=1 但不落库）。
 
 --------------------------------------------------------------------------------
@@ -40,6 +48,11 @@ reincarnate.py —— 账号数据迁移（转生）：把账号 A 的数据克�
     对应本工程：UserLogin(user_id, token, is_continue=True)
     它和普通登录的唯一区别就是 UserLoginRequestVO.isContinue = true，
     会返回**新的 loginId / loginDateTime**，供下一局 UpsertUserAll 使用。
+
+    ★ 登出必须用 **type=1（LogoutType.Logout）**。
+      真机抓包实证 UserLogoutApi 就是 type=1（带 delayLog）：
+          {"userId":...,"type":1,"delayLog":{...}}
+      续关场景下用 4（TestIn）会出问题 —— 那是「测试登入 / 顶号」的语义。
 
 --------------------------------------------------------------------------------
 ★ playlog 从哪来
@@ -75,7 +88,8 @@ reincarnate.py —— 账号数据迁移（转生）：把账号 A 的数据克�
 
     # 常用开关
     --limit N          只迁前 N 首（试跑用）
-    --per-packet N     每包曲目数（默认 4，★ 不要超过 4）
+    --per-packet N     每包曲目数，只能是 1/3/4（默认 4；★ 2 首会被服务端拒绝）
+    --wait N           每次上传前的等待秒数（默认 5.0，0 = 不等）
     --clone-identity   连 userName / accessCode 一起克隆（默认**保留 B 自己的**）
     --no-continue      不续关（只发一包，调试用）
 
@@ -87,6 +101,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 
 from api import (
     setup_logging,
@@ -120,6 +135,60 @@ from config import PLACE_ID, REGION_ID
 #: 真机一局最多 4 首
 MAX_TRACKS_PER_CREDIT = 4
 
+#: ★ 被服务端禁止的每包曲目数（实测：**恰好 2 首会被拒**）
+#:   1 / 3 / 4 首都正常，只有 2 首不行 —— 所以分批时要避开它。
+FORBIDDEN_TRACK_COUNTS = (2,)
+
+#: 允许的 --per-packet 取值
+ALLOWED_PER_PACKET = (1, 3, 4)
+
+
+def split_batches(total, per):
+    """
+    把 total 首切成「每包 <= per」的批次，**并且不产生被禁止的 2 首包**。
+
+    做法：先贪心按 per 切，再修正大小为 2 的批次：
+
+        ① 前一批 >= 4 -> 从它借 1 首过来（前一批变 >=3，本批变 3）
+        ② 借不到（前一批只有 3，或自己就是第一批）-> 把这个 2 拆成 1 + 1
+
+    ★ 只借位是不够的 —— 前一批是 3 时借完自己变 2，等于把 2 挪了个位置。
+
+    例：
+        10 首 per=4 -> [4, 4, 2]    -> [4, 3, 3]
+         6 首 per=4 -> [4, 2]       -> [3, 3]
+         2 首 per=4 -> [2]          -> [1, 1]
+         5 首 per=3 -> [3, 2]       -> [3, 1, 1]
+         8 首 per=3 -> [3, 3, 2]    -> [3, 3, 1, 1]
+         5 首 per=4 -> [4, 1]       （本来就合法，不动）
+    """
+    if total <= 0:
+        return []
+    per = max(1, int(per))
+    out = []
+    left = total
+    while left > 0:
+        n = min(per, left)
+        out.append(n)
+        left -= n
+
+    i = 0
+    while i < len(out):
+        if out[i] not in FORBIDDEN_TRACK_COUNTS:
+            i += 1
+            continue
+        # ① 前一批 >= 4 才能借（借完前一批 >= 3，本批 = 3）
+        if i > 0 and out[i - 1] >= 4:
+            out[i - 1] -= 1
+            out[i] += 1
+            i += 1
+            continue
+        # ② 借不到 -> 把这个 2 拆成 1 + 1
+        out[i] = 1
+        out.insert(i + 1, 1)
+        i += 2
+    return out
+
 #: 默认保留目标账号自己的身份字段（不克隆过去，避免把 B 改名）
 IDENTITY_KEYS = ("userName", "accessCode")
 
@@ -138,7 +207,8 @@ def parse_args(argv):
     opts = {"dst_qr": "", "src_qr": "", "src_json": "", "send": False,
             "plan": False, "debug": False, "limit": 0,
             "per_packet": MAX_TRACKS_PER_CREDIT,
-            "clone_identity": False, "no_continue": False}
+            "clone_identity": False, "no_continue": False,
+            "wait": 5.0}
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -152,9 +222,12 @@ def parse_args(argv):
             opts["clone_identity"] = True
         elif a == "--no-continue":
             opts["no_continue"] = True
-        elif a in ("--dst-qr", "--src-qr", "--src-json", "--limit", "--per-packet") and i + 1 < len(argv):
+        elif a in ("--dst-qr", "--src-qr", "--src-json", "--limit",
+                    "--per-packet", "--wait") and i + 1 < len(argv):
             key = a[2:].replace("-", "_")
-            opts[key] = int(argv[i + 1]) if key in ("limit", "per_packet") else argv[i + 1]
+            opts[key] = (float(argv[i + 1]) if key == "wait"
+                         else int(argv[i + 1]) if key in ("limit", "per_packet")
+                         else argv[i + 1])
             i += 1
         i += 1
     return opts
@@ -267,8 +340,9 @@ def main() -> int:
         import config as _cfg
         _cfg.LOG_LEVEL = "debug"
 
-    if opts["per_packet"] > MAX_TRACKS_PER_CREDIT:
-        print("--per-packet 不能超过 " + str(MAX_TRACKS_PER_CREDIT) + "（真机一局最多 4 首）")
+    if opts["per_packet"] not in ALLOWED_PER_PACKET:
+        print("--per-packet 只能是 " + str(list(ALLOWED_PER_PACKET))
+              + " 之一（真机一局最多 4 首；★ 实测恰好 2 首会被服务端拒绝）")
         return 1
 
     setup_logging("reincarnate")
@@ -308,13 +382,20 @@ def main() -> int:
 
         # ---------------- 3. 分批 ----------------
         per = int(opts["per_packet"])
-        batches = [musics[i:i + per] for i in range(0, len(musics), per)]
+        sizes = split_batches(len(musics), per)
+        batches = []
+        _pos = 0
+        for _n in sizes:
+            batches.append(musics[_pos:_pos + _n])
+            _pos += _n
         log_info("计划：共 " + str(len(musics)) + " 首 -> " + str(len(batches))
-                 + " 包（每包 " + str(per) + " 首）")
+                 + " 包，每包 " + "/".join(str(n) for n in sizes[:12])
+                 + ("..." if len(sizes) > 12 else "") + " 首")
+        log_info("  ★ 已避开 2 首包（实测恰好 2 首会被服务端拒绝；1/3/4 首都正常）")
 
         if opts["plan"]:
             for i, b in enumerate(batches):
-                log_info("    第 " + str(i + 1) + " 包：" + ", ".join(
+                log_info("    第 " + str(i + 1) + " 包（" + str(len(b)) + " 首）：" + ", ".join(
                     str(x.get("musicId")) + "/L" + str(x.get("level")) for x in b))
             log_info("--plan：只列计划，不发包")
             return 0
@@ -325,11 +406,22 @@ def main() -> int:
                  + " 个将在第 1 包上传")
 
         # ---------------- 4. 逐包上传 ----------------
+        # ★ 流程（按使用方口径）：
+        #     登录 -> 等待 -> 上传 -> 登出(type=1) -> 续关登录 -> 等待 -> 上传 -> 登出 -> ...
+        #
+        # ★ 登出必须用 type=1（LogoutType.Logout）。
+        #   真机抓包实证 UserLogoutApi 就是 type=1（带 delayLog）；
+        #   续关场景下用 4（TestIn）会出问题 —— 那是「测试登入/顶号」的语义。
         sent = 0
         for idx, batch in enumerate(batches):
             log_info("")
             log_info("========== 第 " + str(idx + 1) + "/" + str(len(batches))
                      + " 包（" + str(len(batch)) + " 首）==========")
+
+            # ---- 等待 ----
+            if opts["wait"] > 0:
+                log_info("上传前等待 " + str(opts["wait"]) + " 秒 ...")
+                time.sleep(opts["wait"])
 
             nodes = {}
             if idx == 0:
@@ -370,7 +462,17 @@ def main() -> int:
             )
             sent += 1
 
-            # ---- ★ 续关登录：拿下一局的 loginId ----
+            # ---- ★ 登出（type=1 Logout）----
+            log_info("--- 登出（type=1 Logout）---")
+            try:
+                UserLogout(uid, token, login.loginDateTime,
+                           logout_type=LogoutType.Logout,
+                           region_id=REGION_ID, place_id=PLACE_ID)
+            except Exception as exc:
+                log_warning("登出失败（继续下一包）：" + str(exc))
+            session["logged_in"] = False
+
+            # ---- ★ 续关登录：拿下一包的 loginId ----
             if idx < len(batches) - 1:
                 if opts["no_continue"]:
                     log_warning("--no-continue：不再续关，提前结束（只发了 1 包）")
@@ -378,7 +480,7 @@ def main() -> int:
                 log_info("--- 续关登录（isContinue=true）---")
                 login = UserLogin(uid, token, region_id=REGION_ID, place_id=PLACE_ID,
                                   is_continue=True)
-                session.update(login_dt=login.loginDateTime)
+                session.update(login_dt=login.loginDateTime, logged_in=True)
 
         if not opts["send"]:
             log_info("")
