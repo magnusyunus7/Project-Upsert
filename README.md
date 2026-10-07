@@ -187,6 +187,27 @@ python upsert.py "<二维码>" --send --extra-data extra.json
 
 > ⚠️ 在 PowerShell / CMD 里写内联 JSON 很容易被吞掉双引号，**建议一律用文件**。
 
+### ★ `isNew*` 位串：0 / 1 / 2 的含义
+
+每个数组节点都配一条 `isNew*` 位串，**一位对应数组里的一条**（顺序必须一致）。
+
+依据 `source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:309-364` 的 `BuildListData()`：
+
+| 位 | 含义 | 服务端行为 |
+|---|---|---|
+| `0` | **存量更新** —— 旧数据里**已有**同主键的条目 | UPDATE |
+| `1` | **新增** —— 旧数据里**没有**同主键的条目 | INSERT |
+| `2` | **无变化** —— 只有 `userFavoriteList` 用，其他节点不会出现 | 跳过 |
+
+主键见 `api/upsert_user_all.py` 的 `DIFF_PRIMARY_KEYS`
+（如 `userKaleidxScopeList` 用 `gateId`、`userMusicDetailList` 用 `musicId`+`level`）。
+
+> ⚠️ **对已存在的条目填 `1` 会 HTTP 500** —— 服务端会去 INSERT 一条重复记录。
+> 真机抓包样本里 `isNewFavoriteList = "22212"`，可以直观看到 0/1/2 混用的样子。
+
+> **不确定填什么？** 先看 `data/<你的userId>.json` 里对应的节点：
+> 主键已存在 → `0`，不存在 → `1`。
+
 ---
 
 ## buy_ticket.py —— 购买功能票
