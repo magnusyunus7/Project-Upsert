@@ -391,9 +391,9 @@ if __name__ == "__main__":
 - **志成🍥** —— 提供脱壳 DLL
 - **WorkBuddyAI**（[workbuddy.ai](https://www.workbuddy.ai/)）—— 提供 AI 模型
 - **DeepSeek V4.1 Flash** —— 主要代码编写
-- **NVIDIA NIM**（[build.nvidia.com/models](https://build.nvidia.com/models)）、
-  **AMD**（[developer.amd.com.cn/radeon/tokenfactory](https://developer.amd.com.cn/radeon/tokenfactory)）、
-  **Kilo**（[kilo.ai](https://kilo.ai/)）—— 提供 AI 模型
+- [**NVIDIA NIM**](https://build.nvidia.com/models)、
+  [**AMD**](https://developer.amd.com.cn/radeon/tokenfactory)、
+  [**Kilo**](https://kilo.ai/)—— 提供 AI 模型
 - **eaquira**（[git.fragrance.moe/Fragrance/eaquira](https://git.fragrance.moe/Fragrance/eaquira)）—— 思路启发
 - **神秘群U** —— 私有科技的 Web 启发（暂无）
 - **香水所有群友** —— 和谐帮助
