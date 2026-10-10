@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    MaimaiNetSpy —— MelonLoader Mod：hook textDX textnetworktexttimetext
+    MaimaiNetSpy —— MelonLoader Mod：hook DX networktime
     ==========================================================================
-    textMust be associated withtext/MelonLoader Match：net472（MonoBleedingEdge + MelonLoader 0.6.4）
+    Must be associated with/MelonLoader Match：net472（MonoBleedingEdge + MelonLoader 0.6.4）
     text：dotnet build -c Release
-    text：bin/Release/net472/MaimaiNetSpy.dll  -> textto D:\SDGB2026\Package\Mods\
+    text：bin/Release/net472/MaimaiNetSpy.dll  -> to D:\SDGB2026\Package\Mods\
   -->
 
   <PropertyGroup>
@@ -17,14 +17,14 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Version>1.0.0</Version>
-    <!-- Notext apphost / Not requiredtexttimetext -->
+    <!-- No apphost / Not requiredtime -->
     <UseAppHost>false</UseAppHost>
     <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
-    <!-- textuse net472 text -->
+    <!-- use net472 text -->
     <AutomaticallyUseReferenceAssemblyPackages>true</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
 
-  <!-- textAnd MelonLoader oftextuse（All Private=false，Notexttotextout） -->
+  <!-- And MelonLoader ofuse（All Private=false，Notoout） -->
   <ItemGroup>
     <Reference Include="MelonLoader">
       <HintPath>D:\SDGB2026\Package\MelonLoader\net35\MelonLoader.dll</HintPath>

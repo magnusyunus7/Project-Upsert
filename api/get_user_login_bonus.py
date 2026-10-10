@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_user_login_bonus.py —— Take User Login Reward（GetUserLoginBonusApi）
+get_user_login_bonus.py —— Take User Login Reward(GetUserLoginBonusApi)
 ================================================================================
 
-Collect Player Login Rewards Progress（real machine 38 item，Two pages）。
+Collect Player Login Rewards Progress(real machine 38 item,Two pages).
 
-Corresponding interface：GetUserLoginBonusApi
-request body  ：UserLoginBonusRequestVO（userId + nextIndex + maxCount=20）
-Response    ：{userId, length, nextIndex, userLoginBonusList:[{bonusId,point,isCurrent,isComplete}]}
-Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserLoginBonusRequestVO.cs
+Corresponding interface:GetUserLoginBonusApi
+request body  :UserLoginBonusRequestVO(userId + nextIndex + maxCount=20)
+Response:{userId, length, nextIndex, userLoginBonusList:[{bonusId,point,isCurrent,isComplete}]}
+Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserLoginBonusRequestVO.cs
 
-★ Callback Upsert timeOnly send back isCurrent=true ofthatOneitem（texttoofthatitem）。
+★ Callback Upsert timeOnly send back isCurrent=true ofthatOneitem(toofthatitem).
 
-call exampleExample：
+Example:
     from api import GetUserLoginBonus, GetUserLoginBonusAll
 """
 
@@ -36,15 +36,15 @@ def GetUserLoginBonus(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Take User Login Reward（Single Page，Corresponding GetUserLoginBonusApi）。
+    Take User Login Reward(Single Page,Corresponding GetUserLoginBonusApi).
 
-    Parameter：
-        next_index: Pagination Start Index（0 = firsttext）
+    Parameter:
+        next_index: Pagination Start Index(0 = first)
 
-    returntimes：
-        Raw Response dict，Contains userLoginBonusList
+    Returns:
+        Raw Response dict,Contains userLoginBonusList
     """
-    log_info("Take User Login Reward：user_id=" + str(user_id) + " next_index=" + str(next_index))
+    log_info("Take User Login Reward:user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
         "GetUserLoginBonusApi",
         UserLoginBonusRequestVO(userId=user_id, nextIndex=next_index, maxCount=20),
@@ -60,17 +60,17 @@ def GetUserLoginBonusAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Take User Login Reward（auto-pagingTakeFull）。
+    Take User Login Reward(auto-pagingTakeFull).
 
-    returntimes：
+    Returns:
         {"userLoginBonusList": [...]}
     """
-    log_info("Take User Login Reward（Full Amount）：user_id=" + str(user_id))
+    log_info("Take User Login Reward(Full Amount):user_id=" + str(user_id))
     items = get_all_pages(
         "GetUserLoginBonusApi", user_id, "userLoginBonusList",
         body_factory=lambda ni: UserLoginBonusRequestVO(
             userId=user_id, nextIndex=ni or 0, maxCount=20),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("loginRewardsgetTakeDone：" + str(len(items)) + " item")
+    log_info("loginRewardsgetTakeDone:" + str(len(items)) + " item")
     return {"userLoginBonusList": items}

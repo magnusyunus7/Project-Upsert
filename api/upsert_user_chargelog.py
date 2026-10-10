@@ -3,10 +3,10 @@ r"""
 upsert_user_chargelog.py —— purchaseBuyFeature Tickets / Upload purchase history（UpsertUserChargelogApi）
 ================================================================================
 
-Features：put「Bought a feature ticket」thistextEscalate toserver，and the number of holdings of the ticket +1。
+Features：put「Bought a feature ticket」thisEscalate toserver，and the number of holdings of the ticket +1。
 
 Corresponding interface：UpsertUserChargelogApi
-request body  ：UserChargelogRequestVO（4 Field，ordertext C# Declaration）
+request body  ：UserChargelogRequestVO（4 Field，order C# Declaration）
           source/Assembly-CSharp/Net.VO.Mai2/UserChargelogRequestVO.cs
               public ulong userId;
               public UserChargelog userChargelog;
@@ -15,7 +15,7 @@ request body  ：UserChargelogRequestVO（4 Field，ordertext C# Declaration）
 Response    ：{returnCode, apiName}
 
 --------------------------------------------------------------------------------
-One、real machineofpurchaseBuytext（source codetextcheck）
+One、real machineofpurchaseBuy（source codecheck）
 --------------------------------------------------------------------------------
     Manager/TicketManager.cs:130  UseTicketPrepare(playerId, ticketId)
         ├─ ticket.ticketKind.id == 1（Paid tickets）
@@ -31,22 +31,22 @@ One、real machineofpurchaseBuytext（source codetextcheck）
               │     -> chargeId = ticketId
               │        price    = DataManager.GetTicket(ticketId).creditNum   ★ No money price
               │        purchaseDate = TimeManager.GetNowDateString()
-              │        playCount    = textTotal Play Count
+              │        playCount    = Total Play Count
               │        playerRating = text Rating
               │        placeId / regionId / clientId = Current machine
               └─ hair UpsertUserChargelogApi
 
     ★ After successful TicketManager.cs:255 RequestSuccess will take the local stock Again --，
-      Because that ticket was used up by this bureau right away.。textOnlytext「Buy」，
+      Because that ticket was used up by this bureau right away.。Only「Buy」，
       So the default passing is**purchaseBuyAfter**ofInventory（currenthas + 1）。
 
 --------------------------------------------------------------------------------
-Two、textofhastextcalculatetext
+Two、ofhascalculate
 --------------------------------------------------------------------------------
     Manager/TicketManager.cs:564
         DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
 
-    real machinetext（source/2026-10-05.log:123 of userChargeList）：
+    real machine（source/2026-10-05.log:123 of userChargeList）：
         chargeId=5  purchaseDate="2026-10-04 18:22:10"
                     -> Subtract 4 Hours = 10-04 14:22，Plus 90 days = 2027-01-02
                     -> validDate="2027-01-02 04:00:00"  ✅ Exact match
@@ -54,14 +54,14 @@ Two、textofhastextcalculatetext
 --------------------------------------------------------------------------------
 Three、ticket.creditNum Where did you come from?
 --------------------------------------------------------------------------------
-    textMaster Data：
+    Master Data：
         <text>\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket.xml
     copied TICKET_CREDIT_NUM（Paid tickets 2/3/4/5/6 -> creditNum 1/2/3/4/5）。
 
 --------------------------------------------------------------------------------
 Four、Safety gate
 --------------------------------------------------------------------------------
-    textinterfaceMeetings**realWriteA purchase history**，So no packing by default.：
+    interfaceMeetings**realWriteA purchase history**，So no packing by default.：
         UpsertUserChargelog(...)                   -> raise ChargelogConfirmError
         UpsertUserChargelog(..., dry_run=True)     -> Construct only packets
         UpsertUserChargelog(..., confirm=True)     -> realSend
@@ -99,13 +99,13 @@ from config import (
 # Feature Tickets（Ticket）Master Data（Originally at config.py，2026-10-06 sink to this module）
 # =============================================================================
 #
-# Basis：textMaster Data
+# Basis：Master Data
 #         Sinmai_Data/StreamingAssets/A000/ticket/ticketXXXXXX/Ticket.xml
 #       source codeSide Manager.MaiStudio.TicketData.creditNum
 #
 # ★ Why you need it：
 #     UpsertUserChargelogApi（purchaseBuyFeature Tickets）of userChargelog.price Take is
-#     **ticket.creditNum（textoftextusetexttimesnumber）**，No GetGameChargeApi inof money price：
+#     **ticket.creditNum（ofusetimesnumber）**，No GetGameChargeApi inof money price：
 #         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:410
 #             result.price = ticket.creditNum;
 #
@@ -120,22 +120,22 @@ TICKET_CREDIT_NUM = {
     30001: 0, 30002: 0, 30003: 0,           # text / Store Tickets
 }
 
-#: textFirst name（For good-looking logs only，Does Not Affect Agreement）
+#: First name（For good-looking logs only，Does Not Affect Agreement）
 TICKET_NAMES = {
     0: "Useしない",
     2: "2timesチケット", 3: "3timesチケット", 4: "4timesチケット", 5: "5timesチケット", 6: "6timesチケット",
     10005: "イベント5timesチケット_1", 10105: "イベント5timesチケット_2",
     10205: "イベント5timesチケット_3", 11001: "text1.5timesチケット",
-    30001: "textチケット", 30002: "eachtextAreaagotext2Multiplier Tickets", 30003: "textleveltext5Multiplier Tickets",
+    30001: "textチケット", 30002: "eachAreaago2Multiplier Tickets", 30003: "level5Multiplier Tickets",
 }
 
 #: Paid tickets（ticketKind=1）—— Only these can be purchased at the machine
 PAID_TICKET_IDS = (2, 3, 4, 5, 6)
 
-#: texthastextcalculatetextParameter
+#: hascalculateParameter
 #:   Basis source/Assembly-CSharp/Manager/TicketManager.cs:564
 #:        DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
-#:   real machinetext：chargeId=5 of purchaseDate=2026-10-04 18:22:10
+#:   real machine：chargeId=5 of purchaseDate=2026-10-04 18:22:10
 #:             -> Subtract 4 Hours = 10-04 14:22，Plus 90 days = 2027-01-02 -> "2027-01-02 04:00:00"
 TICKET_VALID_HOUR_OFFSET = -4
 TICKET_VALID_DAYS = 90
@@ -146,21 +146,21 @@ from .upsert_user_all import UpsertResponseVO, resolve_api_func
 
 
 class ChargelogConfirmError(RuntimeError):
-    """hasSide effectsofinterfacetextSafety gatetextDown（texttime**notPackaging**）。"""
+    """hasSide effectsofinterfaceSafety gateDown（time**notPackaging**）。"""
 
 
 class ChargelogGuardError(RuntimeError):
     """
-    Security check failed（texttime**notPackaging**）。
+    Security check failed（time**notPackaging**）。
 
-    ★ textagoUniqueoftexthairitemtext：**textCurrentAlready heldFeature Tickets**。
+    ★ agoUniqueofhairitem：**CurrentAlready heldFeature Tickets**。
 
-      real machinetextfor：`UseTicketPrepare` Only in「this gamemustusethistickets」timeonlytextpurchaseBuyBranch，
-      andOneticketsBuytotextAfterMeetingstextthis gameusetext（`RequestSuccess` in stock--）。
+      real machinefor：`UseTicketPrepare` Only in「this gamemustusethistickets」timeonlypurchaseBuyBranch，
+      andOneticketsBuytoAfterMeetingsthis gameuse（`RequestSuccess` in stock--）。
       So under normal conditions, `userChargeList` inof stock Yes to all 0。
 
       If the account**Already held**A feature ticket also sends a purchase request，
-      servertexttoofis「textpurchaseBuy / text」，has**Title Risk**。
+      servertoofis「purchaseBuy / text」，has**Title Risk**。
       So this module is hard blocked by default。
     """
 
@@ -193,7 +193,7 @@ class UserChargelogVO:
 
 @dataclass
 class UserChargelogRequestVO:
-    """request VO（UserChargelogRequestVO.cs，4 Field，ordertextDeclaration）。"""
+    """request VO（UserChargelogRequestVO.cs，4 Field，orderDeclaration）。"""
     userId: int
     userChargelog: UserChargelogVO
     userCharge: UserChargeVO
@@ -206,7 +206,7 @@ class UserChargelogRequestVO:
 
 def ticket_name(charge_id: int) -> str:
     """Ticket Taking Name（For logs only）。"""
-    return TICKET_NAMES.get(int(charge_id), "nottext(" + str(charge_id) + ")")
+    return TICKET_NAMES.get(int(charge_id), "not(" + str(charge_id) + ")")
 
 
 def ticket_price(charge_id: int, override: Optional[int] = None) -> int:
@@ -214,7 +214,7 @@ def ticket_price(charge_id: int, override: Optional[int] = None) -> int:
     Take userChargelog.price —— i.e. ticket.creditNum。
 
     Basis VOExtensions.cs:410  result.price = ticket.creditNum;
-    datatext TICKET_CREDIT_NUM（text Ticket.xml）。
+    data TICKET_CREDIT_NUM（text Ticket.xml）。
     """
     if override is not None:
         return int(override)
@@ -232,12 +232,12 @@ CST = timezone(timedelta(hours=8))
 
 def now_cst(now: Optional[datetime] = None) -> datetime:
     """
-    Take「Beijing time now」；Passed on. now Just use it.（textAlreadyisBeijing Time）。
+    Take「Beijing time now」；Passed on. now Just use it.（AlreadyisBeijing Time）。
 
     ★ Why explicitly +8 andNo datetime.now()：
         TimeManager.GetNowTime() returntimes **DateTime.UtcNow**，
         GetDateString() Again Add(CSToffset) —— i.e the date string in the game**Heng is Beijing time**，
-        Irrelevant for native time zone。scripttextatnon-Dongba DistrictmachinetextUptime datetime.now() will be wrong。
+        Irrelevant for native time zone。scriptatnon-Dongba DistrictmachineUptime datetime.now() will be wrong。
     """
     if now is not None:
         return now
@@ -246,16 +246,16 @@ def now_cst(now: Optional[datetime] = None) -> datetime:
 
 def _now_string(now: Optional[datetime] = None) -> str:
     """
-    TimeManager.GetNowDateString() ofetctext。
+    TimeManager.GetNowDateString() ofetc。
 
     Basis Manager/TimeManager.cs:7,62-70：
         DateTimeFormat = "yyyy-MM-dd HH:mm:ss.f"
         GetDateString(unix) = GetDateTime(unix).ToString("yyyy-MM-dd HH:mm:ss.f")
 
-    ★★ notetextTailthatPiece **.f**（One decimal place）—— real machinepacketlongthistext：
+    ★★ noteTailthatPiece **.f**（One decimal place）—— real machinepacketlongthis：
            "purchaseDate":"2026-10-06 13:20:10.0"
        Write less about this ".0" serverMeetingsdirectly returnCode=0（Measured stepped on）。
-       ★ and validDate useofistextOnetext（text calc_valid_date），**Without**Decimal。
+       ★ and validDate useofisOne（text calc_valid_date），**Without**Decimal。
     """
     d = now_cst(now)
     return d.strftime("%Y-%m-%d %H:%M:%S") + "." + str(d.microsecond // 100000)
@@ -268,12 +268,12 @@ def calc_valid_date(
     days: int = TICKET_VALID_DAYS,
 ) -> str:
     """
-    calculatetextofhastextString。
+    calculateofhasString。
 
     Basis TicketManager.cs:562-565：
         DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
 
-    ★ notethisinuseofis**explicittext**（none .f），So the result is
+    ★ notethisinuseofis**explicit**（none .f），So the result is
       "2027-01-04 04:00:00" —— And purchaseDate of "…10.0" Different。
     """
     base = now_cst(now)
@@ -283,12 +283,12 @@ def calc_valid_date(
 
 def parse_wall_time(text: Any) -> Optional[datetime]:
     """
-    parseWall Timetext，Compatible with both formats：
+    parseWall Time，Compatible with both formats：
 
         "2026-10-06 13:20:10.0"   ← TimeManager.DateTimeFormat（One decimal place，real machinepacketusethisPiece）
-        "2026-10-06 13:20:10"     ← noDecimal（servertimestext GetUserChargeApi ofisthisPiece）
+        "2026-10-06 13:20:10"     ← noDecimal（servertimes GetUserChargeApi ofisthisPiece）
 
-    parseNoouttextreturntimes None。
+    parseNooutreturntimes None。
     """
     s = str(text or "").strip()
     if not s:
@@ -344,32 +344,32 @@ def UpsertUserChargelog(
 
     Parameter：
         user_id:         user ID（Required）
-        charge_id:       mustBuyoftext ID（Required，= GetGameChargeApi inof chargeId）
+        charge_id:       mustBuyof ID（Required，= GetGameChargeApi inof chargeId）
                          ★ Paid tickets are 2/3/4/5/6（PAID_TICKET_IDS）
         login_date_time: logintime（Required，★ Required == UserLoginApi of loginDateTime）
         charge_list:     Current Ticket List（Optional）。Auto-adjust without passing GetUserChargeApi。
-                         usetextcalculate「purchaseBuyAfterInventory」and if the ticket already exists。
+                         usecalculate「purchaseBuyAfterInventory」and if the ticket already exists。
         user_data:       Current userData（Optional）。Auto-adjust without passing GetUserDataApi。
-                         usetextFill in playCount / playerRating。
-        stock:           ★ purchaseBuyAfterthetextofInventory；Do not pass = currenthas + 1
+                         useFill in playCount / playerRating。
+        stock:           ★ purchaseBuyAftertheofInventory；Do not pass = currenthas + 1
         price:           ★ userChargelog.price；Do not pass = TICKET_CREDIT_NUM[charge_id]
         purchase_date:   purchaseBuytimeString；Do not pass = currentat
-        valid_date:      hastextString；Do not pass = currentat-4h+90d（text calc_valid_date）
+        valid_date:      hasString；Do not pass = currentat-4h+90d（text calc_valid_date）
         play_count:      overwrite playCount（Take without passing userData.playCount）
         player_rating:   overwrite playerRating（Take without passing userData.playerRating）
         guard_purchasable: ★ default True = **Only allow to buy GetGameChargeApi Tickets listed**
                          （Throw it away if it's not in the list ChargelogGuardError，notPackaging）。
                          Basis TicketManager.cs:137-150 —— real machineAlsoFirstat
                          GetGameChargeDataList() infindtothe chargeId Just issued a purchase request，
-                         findNotodirectly return false。serverYes.notUptextoftextMeetings returnCode=0。
-                         Measured：textmachineStageOnlyUptext chargeId=2/3，Buy 5 will fail。
+                         findNotodirectly return false。serverpresent.notUpofMeetings returnCode=0。
+                         Measured：machineStageOnlyUp chargeId=2/3，Buy 5 will fail。
         game_charge_list: Purchasable list（Optional）。Auto-adjust without passing GetGameChargeApi。
-        guard_no_stock:  ★ default True = **textCurrenttextHeldAnyFeature TicketstextdirectlytextpurchaseBuy**
+        guard_no_stock:  ★ default True = **CurrentHeldAnyFeature TicketsdirectlypurchaseBuy**
                          （raise ChargelogGuardError，notPackaging）。
-                         textbytext ChargelogGuardError of docstring —— hasTitle Risk。
-                         textmusttextpurchaseBuyonlyPassing on False。
+                         by ChargelogGuardError of docstring —— hasTitle Risk。
+                         mustpurchaseBuyonlyPassing on False。
         confirm:         Side Effects Gate；None timeTake config.UPSERT_CHARGELOG_CONFIRM
-        dry_run:         True = Construct and return packets only，textNo Package Issued
+        dry_run:         True = Construct and return packets only，No Package Issued
 
     returntimes：
         dry_run=True  -> UserChargelogRequestVO
@@ -389,13 +389,13 @@ def UpsertUserChargelog(
 
     # ---------- 1. Take current state ----------
     if charge_list is None:
-        log_info("notPassing on charge_list，textPick up current ticket ...")
+        log_info("notPassing on charge_list，Pick up current ticket ...")
         raw = resolve_api_func("GetUserCharge")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         charge_list = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
 
     if user_data is None:
-        log_info("notPassing on user_data，textTakeCurrentfiletext ...")
+        log_info("notPassing on user_data，TakeCurrentfile ...")
         raw_ud = resolve_api_func("GetUserData")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         user_data = (raw_ud.get("userData") if isinstance(raw_ud, dict) else None) or {}
@@ -403,10 +403,10 @@ def UpsertUserChargelog(
     # ---------- 1.4 ★ Security check：thisticketsCurrent**Is it on the shelf?** ----------
     #   Basis TicketManager.cs:137-150：real machineFirstat GetGameChargeDataList() infindthe
     #   chargeId，findtoonly RequestUserCharge，findNotodirectly return false（Don't buy）。
-    #   serverYes.notUptextoftextMeetings returnCode=0 —— Measured Buy chargeId=5 That's the situation.。
+    #   serverpresent.notUpofMeetings returnCode=0 —— Measured Buy chargeId=5 That's the situation.。
     if guard_purchasable:
         if game_charge_list is None:
-            log_info("notPassing on game_charge_list，textTakePurchasable list ...")
+            log_info("notPassing on game_charge_list，TakePurchasable list ...")
             _gc = resolve_api_func("GetGameCharge")(
                 client_id=client_id, timeout_ms=timeout_ms, client=client)
             game_charge_list = (_gc.get("gameChargeList")
@@ -419,14 +419,14 @@ def UpsertUserChargelog(
                    + "）**Not in current purchasable list**。\n"
                    "  Available for purchase：" + (str(avail) if avail else "（empty）") + "\n"
                    "  Basis TicketManager.cs:137-150 —— real machineAlsoOnlyBuy GetGameChargeApi\n"
-                   "  Tickets listed，findNototextDo not sendpurchaseBuyrequest。\n"
-                   "  serverYes.notUptextoftextMeetings returnCode=0（Measured）。\n"
-                   "  textpurchaseBuypleasePassing on guard_purchasable=False。")
+                   "  Tickets listed，findNotoDo not sendpurchaseBuyrequest。\n"
+                   "  serverpresent.notUpofMeetings returnCode=0（Measured）。\n"
+                   "  purchaseBuypleasePassing on guard_purchasable=False。")
             log_error(msg)
             raise ChargelogGuardError(msg)
         log_info("Security check passed：chargeId=" + str(charge_id) + " In the purchasable list")
 
-    # ---------- 1.5 ★ Security check：textIs it currentlyFeature tickets held ----------
+    # ---------- 1.5 ★ Security check：Is it currentlyFeature tickets held ----------
     held = [c for c in (charge_list or [])
             if isinstance(c, dict) and int(c.get("stock", 0) or 0) > 0]
     if held:
@@ -434,18 +434,18 @@ def UpsertUserChargelog(
             "chargeId=" + str(c.get("chargeId")) + "(" + ticket_name(c.get("chargeId"))
             + ") stock=" + str(c.get("stock")) + " validDate=" + str(c.get("validDate"))
             for c in held)
-        log_warning("★ textCurrentHeld " + str(len(held)) + " feature tickets：" + desc)
+        log_warning("★ CurrentHeld " + str(len(held)) + " feature tickets：" + desc)
         if guard_no_stock:
-            msg = ("Security check failed：textCurrent**Feature tickets held**（" + desc + "），textAgaintextpurchaseBuy。\n"
+            msg = ("Security check failed：Current**Feature tickets held**（" + desc + "），AgainpurchaseBuy。\n"
                    "  Reason：real machineOnly in「this gamemustusethistickets」timeonlypurchaseBuy，And if you buy it, it will be used immediately."
-                   "（stock--），currenttext stock Constantly 0。\n"
-                   "  Purchase request has been issued with a ticket，servertexttoofistextpurchaseBuy，has**Title Risk**。\n"
-                   "  textpurchaseBuypleasePassing on guard_no_stock=False。")
+                   "（stock--），current stock Constantly 0。\n"
+                   "  Purchase request has been issued with a ticket，servertoofispurchaseBuy，has**Title Risk**。\n"
+                   "  purchaseBuypleasePassing on guard_no_stock=False。")
             log_error(msg)
             raise ChargelogGuardError(msg)
-        log_warning("guard_no_stock=False —— This check has been skipped，textcontinuepurchaseBuy")
+        log_warning("guard_no_stock=False —— This check has been skipped，continuepurchaseBuy")
     else:
-        log_info("Security check passed：textCurrentnonetexthasAnyFeature Tickets")
+        log_info("Security check passed：CurrentnonehasAnyFeature Tickets")
 
     existing = _find_charge(charge_list, charge_id)
     old_stock = int(existing.get("stock", 0) or 0) if existing else 0
@@ -466,17 +466,17 @@ def UpsertUserChargelog(
     if not purchase_date:
         purchase_date = _now_string(now)
     if not valid_date:
-        # ★ real machinein purchaseDate And validDate alltextSame DateTime.Now
+        # ★ real machinein purchaseDate And validDate allSame DateTime.Now
         #   （TicketManager.cs:216-219 And :564），So if the caller explicitly gives purchaseDate，
-        #   hastexttheFrom**thatPiecetime**text，andNoFromcurrentattext。
+        #   hastheFrom**thatPiecetime**，andNoFromcurrentat。
         base = parse_wall_time(purchase_date)
         if base is None:
-            log_warning("purchase_date parseNotext（should be 'YYYY-MM-DD HH:MM:SS[.f]'），"
+            log_warning("purchase_date parseNo（should be 'YYYY-MM-DD HH:MM:SS[.f]'），"
                         "validDate changepress「currentat」countcalculate：" + str(purchase_date))
             base = now
         valid_date = calc_valid_date(base)
 
-    log_info("  textFirst name        : " + name)
+    log_info("  First name        : " + name)
     log_info("  Inventory        : " + str(old_stock) + " -> " + str(stock))
     log_info("  price       : " + str(price) + "（= ticket.creditNum）")
     log_info("  purchaseDate: " + purchase_date)
@@ -515,14 +515,14 @@ def UpsertUserChargelog(
     effective = UPSERT_CHARGELOG_CONFIRM if confirm is None else bool(confirm)
     if not effective:
         msg = ("UpsertUserChargelogApi Meetings**realWriteA purchase history**（Irrevocable）。"
-               "textscriptdefaultNotext。textmusthairpleasePassing on confirm=True，"
+               "scriptdefaultNo。musthairpleasePassing on confirm=True，"
                "or change config.UPSERT_CHARGELOG_CONFIRM = True。"
                "I just want to see the message, please send it dry_run=True。")
         log_error(msg)
         raise ChargelogConfirmError(msg)
 
     # ---------- 5. Packaging ----------
-    log_info("textAlreadytext，Start uploading purchase history ...")
+    log_info("Already，Start uploading purchase history ...")
     raw = request_dict(
         "UpsertUserChargelogApi", req,
         user_id=user_id, client_id=client_id,
@@ -539,7 +539,7 @@ def UpsertUserChargelog(
         raise RuntimeError(msg)
 
     log_info("purchaseBuySuccess：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
-    log_info("  textFirst name " + name + " Inventory " + str(old_stock) + " -> " + str(stock))
+    log_info("  First name " + name + " Inventory " + str(old_stock) + " -> " + str(stock))
     return resp
 
 
@@ -561,7 +561,7 @@ if __name__ == "__main__":
             )
             log_info("userChargelog = " + str(req.userChargelog))
             log_info("userCharge    = " + str(req.userCharge))
-            log_info("validDate calculatetext：")
+            log_info("validDate calculate：")
             log_info("  2026-10-04 18:22:10 Buy 5 Ticket multiplier -> "
                      + calc_valid_date(datetime(2026, 10, 4, 18, 22, 10))
                      + "（real machine is 2027-01-02 04:00:00）")

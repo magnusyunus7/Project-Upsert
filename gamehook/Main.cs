@@ -7,8 +7,8 @@ using System.Text;
 using HarmonyLib;
 using MelonLoader;
 
-// ★ MelonLoader textthisPiecetext mod and call OnInitializeMelon。
-//   textOnlyMeetings "Melon Assembly loaded" but will not be instantiated（textcurrentfor "N Mods loaded" Do not count）。
+// ★ MelonLoader thisPiece mod and call OnInitializeMelon。
+//   OnlyMeetings "Melon Assembly loaded" but will not be instantiated（currentfor "N Mods loaded" Do not count）。
 [assembly: MelonInfo(typeof(MaimaiNetSpy.Main), "MaimaiNetSpy", "1.0.0", "wahappy")]
 [assembly: MelonGame(null, null)]
 [assembly: MelonColor(255, 120, 200, 255)]
@@ -16,17 +16,17 @@ using MelonLoader;
 namespace MaimaiNetSpy
 {
     /// <summary>
-    /// MaimaiNetSpy —— hook textDX textnetworktext，Do real-time interception and dishwashing。
+    /// MaimaiNetSpy —— hook DX network，Do real-time interception and dishwashing。
     ///
-    /// text（All by Assembly-CSharp ofActualtextFirst name）：
+    /// text（All by Assembly-CSharp ofActualFirst name）：
     ///   Net.NetHttpClient.AddHeader(name, value)          All Request Headers
     ///   Net.NetHttpClient.AddCookie(userId)               Cookie
     ///   Net.NetHttpClient.Request(bytes, ua, method)      ★ Pre-encrypted clear text JSON
     ///   Net.NetHttpClient.GetResponse()                   decryptAfterofResponse
     ///   Net.NetPacketUtil.GetUserAgent(query)             text API First name
-    ///   Manager.GameManager.CalcSpecialNum()              playSpecial oftextBit
+    ///   Manager.GameManager.CalcSpecialNum()              playSpecial ofBit
     ///
-    /// textout：
+    /// out：
     ///   &lt;text&gt;/MaimaiNetSpy/YYYY-MM-DD_HHmmss.log     Human Readable Timeline
     ///   &lt;text&gt;/MaimaiNetSpy/raw/*.json                eachPieceinterfaceofrequest/Response original text
     /// </summary>
@@ -34,13 +34,13 @@ namespace MaimaiNetSpy
     {
         internal static MelonLogger.Instance Log;
 
-        //: Context of the current request（presstext，textistexttimescalltext）
+        //: Con of the current request（press，istimescall）
         private static readonly object _lock = new object();
 
         private static string _outDir;
         private static StreamWriter _writer;
 
-        //: textrequesttextofHeadtext（AddHeader textitemcalluse，Request timeonlytextcurrenthairout）
+        //: requestofHead（AddHeader itemcalluse，Request timeonlycurrenthairout）
         [ThreadStatic] private static List<KeyValuePair<string, string>> _headers;
         [ThreadStatic] private static string _cookie;
         [ThreadStatic] private static string _currentApi;
@@ -64,7 +64,7 @@ namespace MaimaiNetSpy
             _writer = new StreamWriter(file, false, new UTF8Encoding(false)) { AutoFlush = true };
 
             Line("=".PadRight(78, '='));
-            Line("  MaimaiNetSpy Loaded  —— textDX networktexttimetext");
+            Line("  MaimaiNetSpy Loaded  —— DX networktime");
             Line("  log: " + file);
             Line("=".PadRight(78, '='));
 
@@ -73,7 +73,7 @@ namespace MaimaiNetSpy
                 var h = new HarmonyLib.Harmony("MaimaiNetSpy");
                 int n = 0;
 
-                // ★ Request hasTwotext：Request() And Request(byte[], string, string)
+                // ★ Request hasTwo：Request() And Request(byte[], string, string)
                 //   Must match exactly by parameter type，Otherwise, it will hit the unparametric version.
                 //   "Parameter bytes not found in method Request()"
                 n += PatchBySig(h, "Net.NetHttpClient", "Create",
@@ -106,7 +106,7 @@ namespace MaimaiNetSpy
             }
             catch (Exception e)
             {
-                Line("  !! hook textFailed: " + e);
+                Line("  !! hook Failed: " + e);
             }
             Line("");
         }
@@ -117,14 +117,14 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // hook textTools
+        // hook Tools
         // ------------------------------------------------------------------
 
         /// <summary>
         /// press**Parameter Type**text hook。
         ///
-        /// ★ Why it's important to match exactly：NetHttpClient.Request hasTwotext
-        ///     Boolean Request()                              —— Request only（notext）
+        /// ★ Why it's important to match exactly：NetHttpClient.Request hasTwo
+        ///     Boolean Request()                              —— Request only（no）
         ///     Boolean Request(Byte[] bytes, String ua, String m) —— With request body
         ///   use AccessTools.Method(t, "Request") will hit the former，
         ///   lead to prefix inof bytes Parameters are thrown at the top
@@ -134,14 +134,14 @@ namespace MaimaiNetSpy
                                       Type[] paramTypes, string pre, string post)
         {
             var t = AccessTools.TypeByName(typeName);
-            if (t == null) { Line("  [skip] textnotfindto: " + typeName); return 0; }
+            if (t == null) { Line("  [skip] notfindto: " + typeName); return 0; }
             if (paramTypes == null || paramTypes.Any(x => x == null))
             { Line("  [skip] Parameter type parsing failed: " + typeName + "." + methodName); return 0; }
 
             var m = AccessTools.Method(t, methodName, paramTypes);
             if (m == null)
             {
-                Line("  [skip] textnotfindto: " + typeName + "." + methodName
+                Line("  [skip] notfindto: " + typeName + "." + methodName
                      + "(" + string.Join(", ", Array.ConvertAll(paramTypes, x => x.Name)) + ")");
                 return 0;
             }
@@ -166,7 +166,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // Create —— textgetFull URL（NetHttpClient.Create(url)）
+        // Create —— getFull URL（NetHttpClient.Create(url)）
         // ------------------------------------------------------------------
 
         private static void PreCreate(string url)
@@ -175,7 +175,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // AddHeader —— receivetextrequestHead
+        // AddHeader —— receiverequestHead
         // ------------------------------------------------------------------
 
         private static void PreAddHeader(string name, string value)
@@ -186,7 +186,7 @@ namespace MaimaiNetSpy
 
         private static void PostAddHeader()
         {
-            // Don't output here：AddHeader will be called multiple times，etc Request timesystemOnetext
+            // Don't output here：AddHeader will be called multiple times，etc Request timesystemOne
         }
 
         // ------------------------------------------------------------------
@@ -225,11 +225,11 @@ namespace MaimaiNetSpy
             sb.AppendLine("| User-Agent   : " + userAgent);
             sb.AppendLine("| Method       : " + method);
             sb.AppendLine("| Cookie       : " + (_cookie ?? "(none)"));
-            sb.AppendLine("| textlength     : " + (bytes == null ? 0 : bytes.Length) + " Bytes");
+            sb.AppendLine("| length     : " + (bytes == null ? 0 : bytes.Length) + " Bytes");
 
             if (_headers != null && _headers.Count > 0)
             {
-                sb.AppendLine("| ---- requestHead（AddHeader receivetext）----");
+                sb.AppendLine("| ---- requestHead（AddHeader receive）----");
                 foreach (var kv in _headers)
                     sb.AppendLine("|   " + kv.Key + ": " + kv.Value);
             }
@@ -246,23 +246,23 @@ namespace MaimaiNetSpy
             }
             Line(sb.ToString());
 
-            // falltextOriginaltext
+            // fallOriginal
             try
             {
                 string safe = Sanitize(_currentApi ?? ("req" + _reqCount));
-                File.WriteAllText(
+                File.WriteAll(
                     Path.Combine(_outDir, "raw", _reqCount.ToString("D3") + "_" + safe + "_request.json"),
                     plain ?? "", new UTF8Encoding(false));
             }
             catch { }
 
-            // textemptytext（textrequestAlreadytext）
+            // empty（requestAlready）
             _headers = null;
         }
 
         private static void PostRequest()
         {
-            // textHand overDownOnce PreRequest
+            // Hand overDownOnce PreRequest
         }
 
         // ------------------------------------------------------------------
@@ -270,12 +270,12 @@ namespace MaimaiNetSpy
         // ------------------------------------------------------------------
         //
         // Why do I have to use postfix：
-        //   PreRequest textat Request() text**Before**，thattime
-        //   Method / ContentType / UserAgent / Content-Encoding alltext。
-        //   Only postfix onlycantexttoFinaltextcurrentmustSend outofHead（Includes frame-built）。
+        //   PreRequest at Request() text**Before**，thattime
+        //   Method / ContentType / UserAgent / Content-Encoding all。
+        //   Only postfix onlycantoFinalcurrentmustSend outofHead（Includes frame-built）。
         //
-        // textof：putreal machineof**Full request headers**textDowntext，and pure Python scripthairoftextBytesYes.text。
-        //       （textcheck「packetMatchButserver returnCode=0」thistext）
+        // of：putreal machineof**Full request headers**Down，and pure Python scripthairofBytesYes.text。
+        //       （check「packetMatchButserver returnCode=0」this）
         private static void PostRequestDumpHeaders(Net.NetHttpClient __instance)
         {
             try
@@ -299,7 +299,7 @@ namespace MaimaiNetSpy
                     foreach (string k in wr.Headers.AllKeys)
                         sb.AppendLine("|   " + k + ": " + wr.Headers[k]);
                 }
-                catch (Exception e2) { sb.AppendLine("|   [Headers textFailed] " + e2.Message); }
+                catch (Exception e2) { sb.AppendLine("|   [Headers Failed] " + e2.Message); }
                 try
                 {
                     sb.AppendLine("|   [Cookie Head] : "
@@ -364,7 +364,7 @@ namespace MaimaiNetSpy
                 Line(sb.ToString());
 
                 string safe = Sanitize(_currentApi ?? ("resp" + _respCount));
-                File.WriteAllText(
+                File.WriteAll(
                     Path.Combine(_outDir, "raw", _respCount.ToString("D3") + "_" + safe + "_response.json"),
                     txt, new UTF8Encoding(false));
             }
@@ -390,7 +390,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // CalcSpecialNum —— playSpecial oftextBit
+        // CalcSpecialNum —— playSpecial ofBit
         // ------------------------------------------------------------------
 
         private static void PostCalcSpecialNum(ref int __result)
@@ -407,7 +407,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // SetError —— recordnetworktexterror（Contains HTTP text）
+        // SetError —— recordnetworkerror（Contains HTTP text）
         // ------------------------------------------------------------------
 
         private static void PreSetError(System.Net.WebExceptionStatus status, string error,

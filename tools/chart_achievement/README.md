@@ -1,9 +1,9 @@
-# chart_achievement —— textDX chartachievement rate / DX Minutes Calculator
+# chart_achievement —— DX chartachievement rate / DX Minutes Calculator
 
-textchart（`.ma2`）and number of judgments，calculateout**achievement rate**And **DX Minutes**；Conversely，textachievement rate，
+chart（`.ma2`）and number of judgments，calculateout**achievement rate**And **DX Minutes**；Conversely，achievement rate，
 Reverse calculate all the decision combinations that can output this achievement rate。
 
-text、textstandardLibrary（No internet required、Don't write any game files）。
+text、standardLibrary（No internet required、Don't write any game files）。
 
 ## How to run
 
@@ -17,15 +17,15 @@ python chart_achievement.py            # Do not give parameters = Interaction Wi
 
 | Parameter | description |
 | --- | --- |
-| `--chart <text>` | directlytext `.ma2` file，As `.../music/music000008/000008_03.ma2` |
-| `--game <text> --music-id <ID>` | text（`Sinmai_Data`、`StreamingAssets`、`A000`、`music` allcantext），press `musicid` textfindchart |
+| `--chart <text>` | directly `.ma2` file，As `.../music/music000008/000008_03.ma2` |
+| `--game <text> --music-id <ID>` | text（`Sinmai_Data`、`StreamingAssets`、`A000`、`music` allcan），press `musicid` findchart |
 
 ### difficulty（--level）
 
-difficultyuse**textintextofnumbertext**text，That is, the surface file name suffix `_00` ~ `_04` ofthatNumbertext
+difficultyuse**inofnumber**text，That is, the surface file name suffix `_00` ~ `_04` ofthatNumber
 （Corresponding game master data `musicDifficulty/MusicDifficulty00000X` of `<id>`）：
 
-| numbertext | difficulty | chartfileFirst name |
+| number | difficulty | chartfileFirst name |
 | --- | --- | --- |
 | 0 | BASIC | `<id>_00.ma2` |
 | 1 | ADVANCED | `<id>_01.ma2` |
@@ -34,11 +34,11 @@ difficultyuse**textintextofnumbertext**text，That is, the surface file name suf
 | 4 | RE:MASTER | `<id>_04.ma2` |
 
 `--level 0` ~ `--level 4` or `--level BASIC` / `ADVANCED` / `EXPERT` / `MASTER` / `RE:MASTER`
-（Arbitrary case；`--difficulty` isSameParameteroftextFirst name）alltext，**default 3（MASTER）**；
-When you don't give, you will be stderr textusetextdefaultValue。
+（Arbitrary case；`--difficulty` isSameParameterofFirst name）all，**default 3（MASTER）**；
+When you don't give, you will be stderr usedefaultValue。
 
-note：thisinof「level」text**chartdifficulty**。chartofnumberValuelevel（As `12+`）istextOnetimestext，
-by `Music.xml` textreadout，For display only。
+note：thisinof「level」text**chartdifficulty**。chartofnumberValuelevel（As `12+`）isOnetimes，
+by `Music.xml` readout，For display only。
 
 ## currentTowards：Number of known decisions → achievement rate + DX Minutes
 
@@ -47,12 +47,12 @@ python chart_achievement.py --chart "<...>\000008_03.ma2" --cp 290 --perfect 8 -
 python chart_achievement.py --game "<...>\Sinmai_Data" --music-id 8 --level 3 --cp 290 --perfect 8 --great 3 --good 1   # 3 = MASTER
 ```
 
-- `--cp` / `--perfect` / `--great` / `--good` alltextNumber，`--miss` leave blanktimetext
+- `--cp` / `--perfect` / `--great` / `--good` allNumber，`--miss` leave blanktime
   （`miss = Total notes - CP - Perfect - Great - Good`）。
-- textoutachievement rateof**Interval**（Lower Boundary ~ Upper Realm）and「presstextExampleMinutestext」oftextValue：
-  When only aggregation decisions are given，achievement rateTaketextinthistext Great/Good/Miss **fallatWhich notesUp**
-  （fallatcritical perfectUptext、fallat Tap Fewer buckles on），So it's an interval, not a number.。
-  Lower Boundary = textMinutestextfallattextweightnoteUp，Upper Realm = Try to land on the low-weight accent。
+- outachievement rateof**Interval**（Lower Boundary ~ Upper Realm）and「pressExampleMinutes」ofValue：
+  When only aggregation decisions are given，achievement rateTakeinthis Great/Good/Miss **fallatWhich notesUp**
+  （fallatcritical perfectUp、fallat Tap Fewer buckles on），So it's an interval, not a number.。
+  Lower Boundary = MinutesfallatweightnoteUp，Upper Realm = Try to land on the low-weight accent。
 - DX Points are determined：`3×CP + 2×Perfect + 1×Great`。
 
 ## Reverse：Known attainment rate → Determine Combination + DX Minutes
@@ -66,25 +66,25 @@ Two modes（`--mode`）：
 
 | mode | Meaning | When to use |
 | --- | --- | --- |
-| `exact`（default） | Columns only**textofcantextout**theachievement rateof (Miss, Good, Great) grouptext，eachgroupalltext | datatext、Want to know the exact answer |
-| `range` | Row Completion Rate**Interval Coverage**theValueofgrouptext（text、text） | The number of judgments is only an estimate / Want to take a quick look at the approximate |
+| `exact`（default） | Columns only**ofcanout**theachievement rateof (Miss, Good, Great) group，eachgroupall | data、Want to know the exact answer |
+| `range` | Row Completion Rate**Interval Coverage**theValueofgroup（text、text） | The number of judgments is only an estimate / Want to take a quick look at the approximate |
 
-`--limit N` textMax.textouttextgroup（default 200）。`--json` textout JSON。
+`--limit N` Max.outgroup（default 200）。`--json` out JSON。
 
-textoutinof `CP+P` is「Critical Perfect + Perfect ofTotal」；`CP text` iswhere
-CP oftextcantext（Perfect can only fall on the overwhelming praise note，So CP Can't be less than
+outinof `CP+P` is「Critical Perfect + Perfect ofTotal」；`CP text` iswhere
+CP ofcan（Perfect can only fall on the overwhelming praise note，So CP Can't be less than
 `CP+P - critical perfectnotenumber`）。CP text DX The higher the score,，So DX Points are also in this range。
 
-### textmodeoftext
+### modeof
 
-textuseOne「Bad Note Backpack DP」，Cost increases with number of bad notes，So：
+useOne「Bad Note Backpack DP」，Cost increases with number of bad notes，So：
 
-- Strictly verified only `Miss+Good+Great ≤ 12` ofgrouptext；
-- More combinations of bad notes are not verified（textoutinMeetingstext「Bad notes over 12 candidate combinations without validation」）；
-- textgrouptextFullalltext 12 bad notes（Example 1000+ critical perfectofExceptionschart），automatically returns to the range mode and explains why；
-- DP has 8 secondstimetextcalculate，texttimeAlsotexttimesInterval Mode。
+- Strictly verified only `Miss+Good+Great ≤ 12` ofgroup；
+- More combinations of bad notes are not verified（outinMeetings「Bad notes over 12 candidate combinations without validation」）；
+- groupFullall 12 bad notes（Example 1000+ critical perfectofExceptionschart），automatically returns to the range mode and explains why；
+- DP has 8 secondstimecalculate，timeAlsotimesInterval Mode。
 
-## countMinutestext（Match the game）
+## countMinutes（Match the game）
 
 achievement ratepress**noteweight**Weighted，Not average by number：
 
@@ -94,8 +94,8 @@ achievement rate = 100 × Σ(Single note score) / theoreticalMinutesW  +  Σ(cri
 
 - theoreticalMinutes W = Σ eachscore notesofweight（Tap/Star/Touch 500、Hold text 1000、Slide text 1500、Break text 2500）
 - critical perfecttheoreticalReward Points B = 100 × critical perfectnoteNumber（Break / Break(holdDetermine) / BreakSlide / EXBreak）
-- textMinutes = **101.0000%**（charthascritical perfect）/ **100.0000%**（nocritical perfect）
-- textcontinuetextitemnodes（`CNSI_` etc ConnectSlide）**No score、Do not count towards total**
+- Minutes = **101.0000%**（charthascritical perfect）/ **100.0000%**（nocritical perfect）
+- continueitemnodes（`CNSI_` etc ConnectSlide）**No score、Do not count towards total**
 - DX Minutes = `3×CP + 2×Perfect + 1×Great`（Not related to note type）
 
 ### Loss of points for all types of notes / Reward Points
@@ -111,10 +111,10 @@ achievement rate = 100 × Σ(Single note score) / theoreticalMinutesW  +  Σ(cri
 | EX（500） | 0 | — | — | — | 500 |
 | EXBreak（2500） | 0 | — | — | — | 2500 |
 
-（textinis「Lost points」，i.e. `weight - Score`；CP/Perfect ofLost pointsallis 0，So
-**textcritical perfecttext，Critical Perfect And Perfect The achievement rate of the addition is exactly the same**。）
+（inis「Lost points」，i.e. `weight - Score`；CP/Perfect ofLost pointsallis 0，So
+**critical perfect，Critical Perfect And Perfect The achievement rate of the addition is exactly the same**。）
 
-critical perfectnotetexthasReward Points：
+critical perfectnotehasReward Points：
 
 | Determine | Reward Points |
 | --- | --- |
@@ -124,30 +124,30 @@ critical perfectnotetexthasReward Points：
 | Good | 30 |
 | Miss | 0 |
 
-thisiscritical perfectRequiredDistinguish CP / Perfect ofReason：textMinutesSame，But the reward points are different
+thisiscritical perfectRequiredDistinguish CP / Perfect ofReason：MinutesSame，But the reward points are different
 （CP 100、Perfect 75 or 50）。
 
 ### notegroupofClassification by（Decompile source code）
 
-- textholdsettlementof Break（`BRHLD`）Determine fewer gears（Great Only one tier、Perfect Only 75 file），So individually in groups。
-- textitemtext（`BRSI_`/`BRSCL`…）text SlideOut Determination table，Only Great Third Grade、none Perfect file。
+- holdsettlementof Break（`BRHLD`）Determine fewer gears（Great Only one tier、Perfect Only 75 file），So individually in groups。
+- item（`BRSI_`/`BRSCL`…）text SlideOut Determination table，Only Great Third Grade、none Perfect file。
 - EX note（`XTP`/`XST`/`BXTAP`/`BXSTR`，i.e. ExTap/ExStar/ExBreakTap/ExBreakStar）
-  text ExTap Determination table，non- Critical oftextfor 0，So**Can only be judged Critical or Miss**。
-- `XHO`/`BXHLD`（ExHold/ExBreakHold）For head ExTap textBut the results will have to go throughholdsettlement，
-  etctextintext Hold / Break(holdDetermine)。
+  text ExTap Determination table，non- Critical offor 0，So**Can only be judged Critical or Miss**。
+- `XHO`/`BXHLD`（ExHold/ExBreakHold）For head ExTap But the results will have to go throughholdsettlement，
+  etcin Hold / Break(holdDetermine)。
 
 ## file
 
 | file | Content |
 | --- | --- |
-| `ma2.py` | `.ma2` parse、text→notegrouptext、`Music.xml` readTake、text |
-| `score.py` | countMinutestext、currentTowardstext、Reverse Solve（Interval / text） |
+| `ma2.py` | `.ma2` parse、text→notegroup、`Music.xml` readTake、text |
+| `score.py` | countMinutes、currentTowards、Reverse Solve（Interval / text） |
 | `chart_achievement.py` | Command Line Interface / Interaction Wizard |
 
 ## Known limitations
 
-- Calculated by spectral text only，Actual decision timing distribution at game runtime is not involved（E.g. Top Praise Perfect is 75 textis 50 file，
-  currentTowardscountcalculateinOnlytextInterval）。
-- textReverseOnlytextBad notesnumber ≤ 12 ofgrouptext（textUptext）。
+- Calculated by spectral text only，Actual decision timing distribution at game runtime is not involved（E.g. Top Praise Perfect is 75 is 50 file，
+  currentTowardscountcalculateinOnlyInterval）。
+- ReverseOnlyBad notesnumber ≤ 12 ofgroup（Up）。
 - text `.ma2` inof `T_NUM_ALL` Inconsistent with parsed score notes，will give a warning in the output
   （All 5419 The actual measurement of the game spectrum is consistent）。

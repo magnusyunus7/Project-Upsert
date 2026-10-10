@@ -1,40 +1,40 @@
 # -*- coding: utf-8 -*-
 """
-userlogin.py —— usercurrenttextlogin（UserLoginApi）
+userlogin.py —— usercurrentlogin(UserLoginApi)
 ================================================================================
 
-Features：Create Login Session，returntimes loginId / loginDateTime / logindaysnumbersystemcount。
-      loginId And loginDateTime isFollow-upsettlementEscalationsAndlogoutof**Required**。
+Features:Create Login Session,returns loginId / loginDateTime / logindaysnumbersystemcount.
+      loginId And loginDateTime isFollow-upsettlementEscalationsAndlogoutof**Required**.
 
-Corresponding interface：UserLoginApi
-request body  ：10 fields，text source/Assembly-CSharp/Net.VO.Mai2/UserLoginRequestVO.cs
+Corresponding interface:UserLoginApi
+request body  :10 fields,text source/Assembly-CSharp/Net.VO.Mai2/UserLoginRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogin.cs:21-31
-Response    ：UserLoginResponseVO（returnCode=1 textSuccess）
+Response:UserLoginResponseVO(returnCode=1 Success)
 
 --------------------------------------------------------------------------------
-★ About loginDateTime（Strong correlation with subsequent interfaces，It's important to understand）
+★ About loginDateTime(Strong correlation with subsequent interfaces,It's important to understand)
 --------------------------------------------------------------------------------
-    real machineTake is「textWall TimetextWhentext UTC time」ofsecondsnumber，i.e.
+    real machineTake is"Wall TimeWhen UTC time"ofsecondsnumber,i.e.
 
-        loginDateTime = standard Unix timetext + texttimetextOffset
+        loginDateTime = standard Unix time + timeOffset
 
-    Eastern Eight Wards now + 28800。
+    Eastern Eight Wards now + 28800.
 
-    Causes：MAI2.DateTime.cs in DateTime.UtcNow + LocalOffset Get Kind=Unspecified
-          ofValue，PacketUserLogin.cs:29 Reuse new DateTimeOffset(theValue) Add another local offset。
+    Causes:MAI2.DateTime.cs in DateTime.UtcNow + LocalOffset Get Kind=Unspecified
+          ofValue,PacketUserLogin.cs:29 Reuse new DateTimeOffset(theValue) Add another local offset.
 
-    Impact：PacketUserLogin.cs:43 will backfill the response with the requested value；
-          PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 allMultiplexingtheValue，
-          Inconsistent with login will be rejected by the server。
+    Impact:PacketUserLogin.cs:43 will backfill the response with the requested value;
+          PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 allMultiplexingtheValue,
+          Inconsistent with login will be rejected by the server.
 
-    textdefaultpressreal machinecalculatetext；needtextspecifiedtimePassing on login_date_time。
+    defaultpressreal machinecalculate;needspecifiedtimePassing on login_date_time.
 
-★ About dateTime And loginDateTime oftext
-    dateTime     = ALL.Net texttime（Auth.AuthTime，standard Unix seconds）
-    loginDateTime= textlogintime（Special algorithm above）
-    Both appear in the UserLoginRequestVO in，But only loginDateTime Will be multiplexed by subsequent interfaces。
+★ About dateTime And loginDateTime of
+    dateTime     = ALL.Net time(Auth.AuthTime,standard Unix seconds)
+    loginDateTime= logintime(Special algorithm above)
+    Both appear in the UserLoginRequestVO in,But only loginDateTime Will be multiplexed by subsequent interfaces.
 
-call exampleExample：
+Example:
     from api import UserLogin
     login = UserLogin(12345678, "TESTTOKEN0000000000", region_id=1, place_id=1000)
     print(login.loginId, login.loginDateTime)
@@ -59,7 +59,7 @@ from .maimai_net import (
 
 @dataclass
 class UserLoginRequestVO:
-    """request VO（Corresponding UserLoginRequestVO，Field order photo C# Declaration）。"""
+    """request VO(Corresponding UserLoginRequestVO,Field order photo C# Declaration)."""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -75,14 +75,14 @@ class UserLoginRequestVO:
 @dataclass
 class UserLoginResponseVO:
     """
-    Response VO（Corresponding UserLoginResponseVO）。
+    Response VO(Corresponding UserLoginResponseVO).
 
-    ★ The last two fields are**Client Backfill**of，serverNoreturntimes：
-        loginDateTime —— PacketUserLogin.cs:43 userequestValueBackfill，
-                         UpsertUserAll / UserLogout allMultiplexingtext
-        dateTime      —— textrequesthairoutof ALL.Net texttime，
-                         UpsertUserAll of userData.dateTime mustusetext
-                         （real machine source/2026-10-05.log:123 Both 1791134329）
+    ★ The last two fields are**Client Backfill**of,serverNoReturns:
+        loginDateTime —— PacketUserLogin.cs:43 userequestValueBackfill,
+                         UpsertUserAll / UserLogout allMultiplexing
+        dateTime      —— requesthairoutof ALL.Net time,
+                         UpsertUserAll of userData.dateTime mustuse
+                         (real machine source/2026-10-05.log:123 Both 1791134329)
     """
     returnCode: int = 0
     lastLoginDate: str = ""
@@ -110,30 +110,30 @@ def UserLogin(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserLoginResponseVO:
     """
-    usercurrenttextlogin（Create Login Session）。
+    usercurrentlogin(Create Login Session).
 
-    Parameter：
-        user_id:         user ID（Required）
-        token:           Session Token（Required，text ParseQRCode）
-        access_code:     text（Optional，textIs Empty）
-        region_id:       Area ID（Optional，default config.REGION_ID）
-        place_id:        Store ID（Optional，default config.PLACE_ID）
-        client_id:       machineStageshortValue（Optional）
-        is_continue:     isNocontinuetext（Optional）
-        generic_flag:    textusetextBit（Optional）
-        date_time:       ALL.Net texttime（Optional，defaultCurrent Unix seconds）
-        login_date_time: textlogintime（Optional，defaultpressreal machinecalculatetext）
-        timeout_ms:      timeout milliseconds（Optional，default 60 seconds）
-        client:          Reusable MaimaiNetClient（Optional）
+    Parameter:
+        user_id:         user ID(Required)
+        token:           Session Token(Required,text ParseQRCode)
+        access_code:     text(Optional,Is Empty)
+        region_id:       Area ID(Optional,default config.REGION_ID)
+        place_id:        Store ID(Optional,default config.PLACE_ID)
+        client_id:       machine stateshortValue(Optional)
+        is_continue:     isNocontinue(Optional)
+        generic_flag:    useBit(Optional)
+        date_time:       ALL.Net time(Optional,defaultCurrent Unix seconds)
+        login_date_time: logintime(Optional,defaultpressreal machinecalculate)
+        timeout_ms:      timeout milliseconds(Optional,default 60 seconds)
+        client:          Reusable MaimaiNetClient(Optional)
 
-    returntimes：
-        UserLoginResponseVO（loginDateTime Backfilled according to real machine behavior）
+    Returns:
+        UserLoginResponseVO(loginDateTime Backfilled according to real machine behavior)
 
-    Exceptions：
+    Exceptions:
         RuntimeError: returnCode != 1
     """
     log_info(
-        "usercurrenttextlogin：user_id=" + str(user_id)
+        "usercurrentlogin:user_id=" + str(user_id)
         + " region_id=" + str(region_id) + " place_id=" + str(place_id)
     )
 
@@ -144,8 +144,8 @@ def UserLogin(
         login_date_time = login_date_time_now()
 
     log_debug(
-        "timetext：dateTime=" + str(date_time) + " loginDateTime=" + str(login_date_time)
-        + "（texttimetextOffset " + str(local_utc_offset_seconds()) + " seconds）"
+        "timedateTime=" + str(date_time) + " loginDateTime=" + str(login_date_time)
+        + "(timeOffset " + str(local_utc_offset_seconds()) + " seconds)"
     )
 
     raw = request_dict(
@@ -170,22 +170,22 @@ def UserLogin(
     resp = UserLoginResponseVO(**{k: v for k, v in raw.items() if k in known})
 
     if resp.returnCode != 1:
-        msg = "loginFailed：returnCode=" + str(resp.returnCode)
+        msg = "loginFailed:returnCode=" + str(resp.returnCode)
         log_error(msg)
         raise RuntimeError(msg)
 
-    # ★ Backfill loginDateTime（Corresponding PacketUserLogin.cs:43）
-    #   serverNoreturntimestheField，Client backfill with request value；Follow-up UpsertUserAll / UserLogout Multiplexing。
+    # ★ Backfill loginDateTime(Corresponding PacketUserLogin.cs:43)
+    #   serverNoreturnstheField,Client backfill with request value;Follow-up UpsertUserAll / UserLogout Multiplexing.
     if not resp.loginDateTime:
         resp.loginDateTime = login_date_time
-        log_debug("servernotreturntimes loginDateTime，pressreal machinetextforBackfillfor " + str(login_date_time))
+        log_debug("servernotreturns loginDateTime,pressreal machineforBackfillfor " + str(login_date_time))
 
-    # ★ Backfill dateTime：textrequestActualhairoutof ALL.Net texttime。
-    #   UpsertUserAll of userData.dateTime mustusetext（real machinetextplaceMatch）。
+    # ★ Backfill dateTime:requestActualhairoutof ALL.Net time.
+    #   UpsertUserAll of userData.dateTime mustuse(real machineplaceMatch).
     resp.dateTime = date_time
 
     log_info(
-        "userloginSuccess：loginId=" + str(resp.loginId)
+        "userloginSuccess:loginId=" + str(resp.loginId)
         + " loginDateTime=" + str(resp.loginDateTime)
         + " dateTime=" + str(resp.dateTime)
         + " lastLoginDate=" + resp.lastLoginDate
@@ -214,7 +214,7 @@ if __name__ == "__main__":
                 print("   " + name.ljust(24) + "= " + str(getattr(lg, name)))
             return 0
         except Exception as exc:
-            log_error("userloginFailed：" + str(exc))
+            log_error("userloginFailed:" + str(exc))
             return 1
         finally:
             teardown_logging()

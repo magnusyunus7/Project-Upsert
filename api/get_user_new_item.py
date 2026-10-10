@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-get_user_new_item.py —— Fetch Added Items（GetUserNewItemListApi）
+get_user_new_item.py —— Fetch Added Items(GetUserNewItemListApi)
 ================================================================================
 
-Upload post-checkout inquiry「textaddedtextWhichtext」（real machineResponse userItemList Is Empty）。
+Upload post-checkout inquiry"addedWhich"(real machineResponse userItemList Is Empty).
 
-Corresponding interface：GetUserNewItemListApi
-request body  ：UserNewItemListRequestVO（userId + version + userData[] + userPlaylogList[]）
-Response    ：{userId, userItemList:[...]}
-Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserNewItemListRequestVO.cs
+Corresponding interface:GetUserNewItemListApi
+request body  :UserNewItemListRequestVO(userId + version + userData[] + userPlaylogList[])
+Response:{userId, userItemList:[...]}
+Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserNewItemListRequestVO.cs
           source/2026-10-05.log:121  real machinerequestBelt userData And userPlaylogList
 
-★ this is**settlementAfter**onlycallofinterface，used fortimescheckthis gamegettextoftext。
-★ request bodyinof userData / userPlaylogList needPassing on，Content vs. UpsertUserAll Match。
+★ this is**settlementAfter**onlycallofinterface,used fortimescheckthis gamegetof
+★ request bodyinof userData / userPlaylogList needPassing on,Content vs. UpsertUserAll Match.
 
-call exampleExample：
+Example:
     from api import GetUserNewItemList
 """
 
@@ -31,7 +31,7 @@ from .maimai_net import MaimaiNetClient, request_dict
 
 @dataclass
 class UserNewItemListRequestVO:
-    """request VO（Corresponding UserNewItemListRequestVO）。"""
+    """request VO(Corresponding UserNewItemListRequestVO)."""
     userId: int
     version: int = PLAY_VERSION_INT
     userData: List[Any] = field(default_factory=list)
@@ -49,29 +49,29 @@ def GetUserNewItemList(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Take the new items added this time（Corresponding GetUserNewItemListApi）。
+    Take the new items added this time(Corresponding GetUserNewItemListApi).
 
-    ★ this is**settlementtextofFront connector**，real machineat UpsertUserAll Before about 8 secondscalluse
-      （source/2026-10-05-new.log: 19:22:53 -> 19:23:02）。
+    ★ this is**settlementofFront connector**,real machineat UpsertUserAll Before about 8 secondscalluse
+      (source/2026-10-05-new.log: 19:22:53 -> 19:23:02).
 
-    ★★ Incoming user_data Must be**playAfter**offiletext，Not the old value at login。
-       real machineEmpirical（source/2026-10-05-new.log oftherequest）：
-           userData[0].playCount = 1258   （logintimeis 1258，this gameAfter 1259）
-           userData[0].point     = 4460   （logintimeis 4110，this gameAfter 4460）
+    ★★ Incoming user_data Must be**playAfter**offileNot the old value at login.
+       real machineEmpirical(source/2026-10-05-new.log oftherequest):
+           userData[0].playCount = 1258   (logintimeis 1258,this gameAfter 1259)
+           userData[0].point     = 4460   (logintimeis 4110,this gameAfter 4460)
            userData[0].lastPlayDate = "2026-10-05 19:22:53.0"
-       i.e.：**And UpsertUserAll inof userData Exact match**。
-       So the correct usage is to run the local calculus first.，Then take the arithmetic after userData Incoming。
+       i.e.:**And UpsertUserAll inof userData Exact match**.
+       So the correct usage is to run the local calculus first.,Then take the arithmetic after userData Incoming.
 
-    Parameter：
-        user_id:          user ID（Required）
-        version:          ROM textnumber（defaultTake config.PLAY_VERSION_INT）
-        user_data:        textfiletextnumbergroup（textPassing on [playAfterof userData]）
-        user_playlog_list: this gameResultsnumbergroup（textPassing on [playlog]）
+    Parameter:
+        user_id:          user ID(Required)
+        version:          ROM number(defaultTake config.PLAY_VERSION_INT)
+        user_data:        filenumbergroup(Passing on [playAfterof userData])
+        user_playlog_list: this gameResultsnumbergroup(Passing on [playlog])
 
-    returntimes：
-        Raw Response dict，Contains userItemList
+    Returns:
+        Raw Response dict,Contains userItemList
     """
-    log_info("Fetch Added Items：user_id=" + str(user_id) + " version=" + str(version))
+    log_info("Fetch Added Items:user_id=" + str(user_id) + " version=" + str(version))
     return request_dict(
         "GetUserNewItemListApi",
         UserNewItemListRequestVO(

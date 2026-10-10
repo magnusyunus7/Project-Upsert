@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-get_user_map.py —— Take user map progress（GetUserMapApi）
+get_user_map.py —— Take user map progress(GetUserMapApi)
 ================================================================================
 
-Take the propulsion distance of the player's various maps（real machine 104 item）。
+Take the propulsion distance of the player's various maps(real machine 104 item).
 
-Corresponding interface：GetUserMapApi
-request body  ：UserMapRequestVO（userId + nextIndex + maxCount=1000）
-Response    ：{userId, length, nextIndex, userMapList:[...]}
-Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserMapRequestVO.cs
+Corresponding interface:GetUserMapApi
+request body  :UserMapRequestVO(userId + nextIndex + maxCount=1000)
+Response:{userId, length, nextIndex, userMapList:[...]}
+Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserMapRequestVO.cs
 
-    ★ Get Side issuance 100+ item；Upsert Only send back「textVariation」ofthat 1 item
-      （real machine：mapId=550003 of distance 1424000 -> 1435000）。
+    ★ Get Side issuance 100+ item;Upsert Only send back"Variation"ofthat 1 item
+      (real machine:mapId=550003 of distance 1424000 -> 1435000).
 
-call exampleExample：
+Example:
     from api import GetUserMap / GetUserMapAll
 """
 
@@ -37,15 +37,15 @@ def GetUserMap(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Take user map progress（Single Page，Corresponding GetUserMapApi）。
+    Take user map progress(Single Page,Corresponding GetUserMapApi).
 
-    Parameter：
-        next_index: Pagination Start Index（0 = firsttext）
+    Parameter:
+        next_index: Pagination Start Index(0 = first)
 
-    returntimes：
-        Raw Response dict，Contains userMapList
+    Returns:
+        Raw Response dict,Contains userMapList
     """
-    log_info("Take user map progress：user_id=" + str(user_id) + " next_index=" + str(next_index))
+    log_info("Take user map progress:user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
         "GetUserMapApi",
         UserIdPageRequestVO(userId=user_id, nextIndex=next_index, maxCount=1000),
@@ -61,17 +61,17 @@ def GetUserMapAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Take user map progress（auto-pagingTakeFull）。
+    Take user map progress(auto-pagingTakeFull).
 
-    returntimes：
+    Returns:
         {"userMapList": [...]}
     """
-    log_info("Take user map progress（Full Amount）：user_id=" + str(user_id))
+    log_info("Take user map progress(Full Amount):user_id=" + str(user_id))
     items = get_all_pages(
         "GetUserMapApi", user_id, "userMapList",
         body_factory=lambda ni: UserIdPageRequestVO(
             userId=user_id, nextIndex=ni or 0, maxCount=1000),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("Map Progress Acquisition Complete：" + str(len(items)) + " item")
+    log_info("Map Progress Acquisition Complete:" + str(len(items)) + " item")
     return {"userMapList": items}

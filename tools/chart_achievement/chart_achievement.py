@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""textDX chartachievement rate / DX Minutes Calculator。
+"""DX chartachievement rate / DX Minutes Calculator。
 
 currentTowards：text chart + Number of each decision -> calculateachievement rateAnd DX Minutes
-Reverse：text chart + textachievement rate   -> Reverse all feasible decision combinations vs. DX Minutes
+Reverse：text chart + achievement rate   -> Reverse all feasible decision combinations vs. DX Minutes
 
 Depends only Python standardLibrary。
 """
@@ -44,9 +44,9 @@ def die(msg: str, code: int = 2) -> "None":
     raise SystemExit(code)
 
 
-# --------------------------------------------------------------- textchart
+# --------------------------------------------------------------- chart
 def _enrich(chart: Chart, path: str) -> Chart:
-    """From the same directory as Music.xml textFulltextFirst name / difficulty / level（textNototextskip）。"""
+    """From the same directory as Music.xml FullFirst name / difficulty / level（Notoskip）。"""
     base = os.path.basename(path)
     stem = os.path.splitext(base)[0]
     if "_" in stem:
@@ -126,12 +126,12 @@ def print_chart(chart: Chart, th: Theory) -> None:
     bonus = "  +  critical perfectRewards %d" % th.break_bonus_score if th.break_bonus_score else ""
     print("  theoreticalMinutes    %d%s" % (th.all_perfect_score, bonus))
     print("  theoreticalDX    %d" % th.max_dx)
-    print("  textMinutes      %s" % pct(th.max_achievement))
+    print("  Minutes      %s" % pct(th.max_achievement))
     for w in chart.warnings:
         print("  [text]    %s" % w)
     declared = chart.totals.get("TTM_SCR_SS")
     if declared is not None and declared != th.all_perfect_score:
-        print("  [text]    charttextBelt TTM_SCR_SS=%d and the calculated theoretical score %d Inconsistent"
+        print("  [text]    chartBelt TTM_SCR_SS=%d and the calculated theoretical score %d Inconsistent"
               % (declared, th.all_perfect_score))
 
 
@@ -145,13 +145,13 @@ def print_forward(chart: Chart, result) -> None:
     print(LINE)
     print("result")
     print("  achievement rate      %s ~ %s" % (pct(result.achievement_min), pct(result.achievement_max)))
-    print("  presstextExampletext  %s" % pct(result.achievement_ref))
+    print("  pressExample  %s" % pct(result.achievement_ref))
     print("  DX Minutes       %d / %d  (%.2f%%)"
           % (result.dx, th.max_dx, 100.0 * result.dx / th.max_dx if th.max_dx else 0.0))
     if result.achievement_min != result.achievement_max:
         print()
-        print("  description：When only aggregation decisions are given，achievement rateTaketextin「Which notes」text Great/Good/Miss——")
-        print("        Lower bound of interval = textMinutesallfallatweighttextofnoteUp，Upper Realm = allfallatweighttextofnoteUp。")
+        print("  description：When only aggregation decisions are given，achievement rateTakein「Which notes」text Great/Good/Miss——")
+        print("        Lower bound of interval = MinutesallfallatweightofnoteUp，Upper Realm = allfallatweightofnoteUp。")
     print(LINE)
 
 
@@ -160,25 +160,25 @@ def print_reverse(chart: Chart, outcome) -> None:
     rows = outcome["rows"]
     mode = outcome.get("mode", "exact")
     print(LINE)
-    print("textachievement rate %s   [%s]" % (pct(outcome["target"]),
-                                   "textmode" if mode == "exact" else "Interval Mode"))
+    print("achievement rate %s   [%s]" % (pct(outcome["target"]),
+                                   "mode" if mode == "exact" else "Interval Mode"))
     note = outcome.get("note")
     if note:
         print("  [description] %s" % note)
     if not rows:
         if mode == "exact":
             cap = outcome.get("exact_cap") or 0
-            print("  （No solution found in strict validation scope：Bad notes ≤ %d ofgrouptextinnonecantextouttheValueof）" % cap)
+            print("  （No solution found in strict validation scope：Bad notes ≤ %d ofgroupinnonecanouttheValueof）" % cap)
             if outcome.get("more_unverified"):
                 print("  [note] Bad notes over %d candidate combinations without validation（There's no guarantee there's no solution.）" % cap)
         else:
-            print("  （notext：theachievement rateatthisPiecechartUptextNoouttext）")
+            print("  （no：theachievement rateatthisPiecechartUpNoout）")
         print(LINE)
         return
     if mode == "exact":
         print("  Miss  Good  Great  CP+P   CP text      DX Minute Range")
     else:
-        print("  Miss  Good  Great  CP+P   CP text      achievement ratetext                 DX Minute Range")
+        print("  Miss  Good  Great  CP+P   CP text      achievement rate                 DX Minute Range")
     for r in rows:
         cp_range = "%d~%d" % (r.cp_min, r.cp_max) if r.cp_min != r.cp_max else str(r.cp_min)
         dx_range = "%d~%d" % (r.dx_min, r.dx_max) if r.dx_min != r.dx_max else str(r.dx_min)
@@ -191,21 +191,21 @@ def print_reverse(chart: Chart, outcome) -> None:
                   % (r.miss, r.good, r.great, r.cp_plus_perfect, cp_range, ach, dx_range))
     print()
     if mode == "exact":
-        print("  of %d groupcantextout %s ofDetermine Combination（CP+P = Critical Perfect And Perfect Sum）"
+        print("  of %d groupcanout %s ofDetermine Combination（CP+P = Critical Perfect And Perfect Sum）"
               % (len(rows), pct(outcome["target"])))
         cap = outcome.get("exact_cap") or 0
-        print("  Strictly verified on a case-by-c Miss+Good+Great ≤ %d ofgrouptext；eachPiecegrouptextalltextofcantextouttheachievement rate" % cap)
+        print("  Strictly verified on a case-by-c Miss+Good+Great ≤ %d ofgroup；eachPiecegroupallofcanouttheachievement rate" % cap)
         if outcome.get("unverified"):
-            print("  [note] There is another %d grouptext（Bad notes over %d Piece）nottext，notColumnstextresult"
+            print("  [note] There is another %d group（Bad notes over %d Piece）not，notColumnsresult"
                   % (outcome["unverified"], cap))
         if outcome.get("more_unverified"):
             print("  [note] Bad notes over %d candidate combinations without validation（There's no guarantee there's no solution.）" % cap)
     else:
-        print("  of %d grouptextgrouptext（CP+P = Critical Perfect And Perfect Sum）" % len(rows))
+        print("  of %d groupgroup（CP+P = Critical Perfect And Perfect Sum）" % len(rows))
         print("  Interval Mode：Only guarantee that the achievement rate falls within this range，It is not guaranteed that the target value will be hit exactly")
     if outcome["truncated"]:
-        print("  [note] resulttext --limit / textUptextTruncation，There may be more combinations")
-    print("  DX Minutes = 3*CP + 2*Perfect + 1*Great；CP textUptext，DX The higher the score,")
+        print("  [note] result --limit / UpTruncation，There may be more combinations")
+    print("  DX Minutes = 3*CP + 2*Perfect + 1*Great；CP Up，DX The higher the score,")
     print(LINE)
 
 
@@ -250,16 +250,16 @@ def ask_int(prompt: str, default: Optional[int] = None) -> Optional[int]:
         try:
             return int(raw)
         except ValueError:
-            print("  pleasetextnumber")
+            print("  pleasenumber")
 
 
 def interactive(args) -> None:
     print("=" * 60)
-    print("textDX chartachievement rate / DX Minutes countcalculatetext")
+    print("DX chartachievement rate / DX Minutes countcalculate")
     print("=" * 60)
     chart = None
     while chart is None:
-        mode = ask("charttext：1) .ma2 file path  2) text + musicid  [1]: ", "1")
+        mode = ask("chart：1) .ma2 file path  2) text + musicid  [1]: ", "1")
         if mode.startswith("2"):
             game = ask("text（Sinmai_Data text）: ")
             if not game:
@@ -286,14 +286,14 @@ def interactive(args) -> None:
     mode = ask("countcalculatemode：1) Known decision number calculation achievement rate  2) Known Achievement Rate Recalculation Judgments  [1]: ", "1")
     if mode.startswith("2"):
         while True:
-            raw = ask("textachievement rate（As 99.5 or 100.5）: ")
+            raw = ask("achievement rate（As 99.5 or 100.5）: ")
             if not raw:
                 return
             try:
                 target = Fraction(raw.rstrip("%"))
                 break
             except (ValueError, ZeroDivisionError):
-                print("  pleasetextnumbertext")
+                print("  pleasenumber")
         mode = ask("Inverse calculation method：1) text（Only the combination that can really play the completion rate can be listed）  2) Interval（The number of judgments is only used for estimation）  [1]: ", "1")
         args.mode = "range" if mode.startswith("2") else "exact"
         run_reverse(chart, th, target, args)
@@ -313,11 +313,11 @@ def normalize_judges(th: Theory, raw: Dict[str, Optional[int]]) -> Dict[str, int
     if raw.get("miss") is None:
         given["miss"] = th.total_notes - sum(given[j] for j in JUDGMENTS if j != "miss")
     if given["miss"] < 0:
-        die("CP+Perfect+Great+Good Total %d textnoteTotal %d"
+        die("CP+Perfect+Great+Good Total %d noteTotal %d"
             % (sum(given[j] for j in JUDGMENTS if j != "miss"), th.total_notes))
     total = sum(given.values())
     if total != th.total_notes:
-        die("Sum of the judgments %d and total number of notes %d Inconsistent（Miss pleaseleave blanktext）" % (total, th.total_notes))
+        die("Sum of the judgments %d and total number of notes %d Inconsistent（Miss pleaseleave blank）" % (total, th.total_notes))
     return given
 
 
@@ -369,27 +369,27 @@ def run_reverse(chart: Chart, th: Theory,
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="chart_achievement.py",
-        description="textDX chartachievement rate / DX Minutes Calculator（currentTowardscountcalculate + byachievement ratetextcalculateDeterminenumber）",
+        description="DX chartachievement rate / DX Minutes Calculator（currentTowardscountcalculate + byachievement ratecalculateDeterminenumber）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""textExample:
-  # directlytextchartfile，currentTowardscountcalculate
+        epilog="""Example:
+  # directlychartfile，currentTowardscountcalculate
   python chart_achievement.py --chart "D:\\SDGB2026\\Package\\Sinmai_Data\\StreamingAssets\\A000\\music\\music000008\\000008_03.ma2" --cp 290 --perfect 10 --great 2
 
-  # text + musicid + difficulty（difficultyusetextinofnumbertext：0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）
+  # text + musicid + difficulty（difficultyuseinofnumber：0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）
   python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --cp 300 --perfect 2
 
-  # byachievement ratetextcalculateDetermine Combination（textmode：Only columns can really print the combination of values）
+  # byachievement ratecalculateDetermine Combination（mode：Only columns can really print the combination of values）
   python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --achievement 99.5
 
   # When the number of judgments is only estimated，useInterval Mode
   python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --achievement 99.5 --mode range
 """)
-    src = p.add_argument_group("charttext（Choose one of the two）")
+    src = p.add_argument_group("chart（Choose one of the two）")
     src.add_argument("--chart", metavar="PATH", help=".ma2 chartfile path")
     src.add_argument("--game", metavar="PATH", help="text（Sinmai_Data / StreamingAssets / A000 / music Both）")
-    src.add_argument("--music-id", type=int, metavar="ID", help="tracktext（text --game Use）")
+    src.add_argument("--music-id", type=int, metavar="ID", help="track（text --game Use）")
     src.add_argument("--level", "--difficulty", dest="level", default=None, metavar="D",
-                     help="chartdifficulty，usetextinofnumbertext：0=BASIC 1=ADVANCED 2=EXPERT "
+                     help="chartdifficulty，useinofnumber：0=BASIC 1=ADVANCED 2=EXPERT "
                           "3=MASTER 4=RE:MASTER（You can also write your name directly；default 3=MASTER）")
 
     fw = p.add_argument_group("currentTowardscountcalculate：Number of known decisions")
@@ -400,14 +400,14 @@ def build_parser() -> argparse.ArgumentParser:
     fw.add_argument("--miss", type=int, metavar="N", help="Miss Number（leave blank = Total minus other judgments）")
 
     rv = p.add_argument_group("Reverse calculation：Known attainment rate")
-    rv.add_argument("--achievement", metavar="A", help="textachievement rate（As 99.5 / 100.5）")
+    rv.add_argument("--achievement", metavar="A", help="achievement rate（As 99.5 / 100.5）")
     rv.add_argument("--mode", choices=("exact", "range"), default="exact",
                     help="exact（default）：Only the combination that can really play the completion rate is listed；"
-                         "range：List the combinations of attainment intervals that cover this value（text，textNotexttimeuse）")
+                         "range：List the combinations of attainment intervals that cover this value（，Notimeuse）")
     rv.add_argument("--limit", type=int, default=200, metavar="N",
                     help="Reverse calculate how many sets of solutions to output at most（default 200）")
 
-    p.add_argument("--json", action="store_true", help="in JSON textoutresult")
+    p.add_argument("--json", action="store_true", help="in JSON outresult")
     return p
 
 
@@ -427,14 +427,14 @@ def main(argv: Optional[List[str]] = None) -> int:
             except ValueError as exc:
                 die(str(exc))
             if chart.difficulty_index is not None and want != chart.difficulty_index:
-                print("[note] --level textofis %s，But in the spectrum file name is %s，pressfileFirst namecalculate"
+                print("[note] --level ofis %s，But in the spectrum file name is %s，pressfileFirst namecalculate"
                       % (DIFFICULTY_NAMES[want], DIFFICULTY_NAMES[chart.difficulty_index]),
                       file=sys.stderr)
     else:
         if args.music_id is None:
             die("Use --game timeMust be given at the same time --music-id")
         if args.level is None:
-            print("[text] nonetext --level，pressdefaultdifficulty 3（MASTER）countcalculate"
+            print("[text] none --level，pressdefaultdifficulty 3（MASTER）countcalculate"
                   "（0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）", file=sys.stderr)
         try:
             difficulty = parse_difficulty(args.level if args.level is not None else "master")
@@ -450,19 +450,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         try:
             target = Fraction(str(args.achievement).rstrip("%"))
         except (ValueError, ZeroDivisionError):
-            die("--achievement needisnumbertext，As 99.5")
+            die("--achievement needisnumber，As 99.5")
         if target > th.max_achievement:
-            die("textachievement rate %s textthechartUptext %s" % (pct(target), pct(th.max_achievement)))
+            die("achievement rate %s thechartUp %s" % (pct(target), pct(th.max_achievement)))
         if target < 0:
-            die("textachievement rateCannot betext")
+            die("achievement rateCannot be")
         run_reverse(chart, th, target, args)
         return 0
 
     raw = {"cp": args.cp, "perfect": args.perfect, "great": args.great,
            "good": args.good, "miss": args.miss}
     if all(v is None for v in raw.values()):
-        die("pleasetextDeterminenumber（--cp/--perfect/--great/--good），or with --achievement Do the reverse calculation；"
-            "If neither is given, enter interactive mode（textRemovetextParameter）")
+        die("pleaseDeterminenumber（--cp/--perfect/--great/--good），or with --achievement Do the reverse calculation；"
+            "If neither is given, enter interactive mode（RemoveParameter）")
     run_forward(chart, th, raw, args)
     return 0
 

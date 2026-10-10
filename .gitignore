@@ -1,37 +1,37 @@
 # ---- text ----
-# eachtextOnetextuserdataSnapshot（<userId>.json）
+# eachoneuserdataSnapshot(<userId>.json)
 data/
 logs/
 __pycache__/
 *.pyc
 *.pyo
 
-# ---- textchecktextuse（Contains SEGA Binary / Decompile code / real machinelog，No warehousing）----
+# ---- checkuse(Contains SEGA Binary / Decompile code / real machinelog,not tracked)----
 source/
 
-# ---- texthastext：Submit only config.py.example，Don't Submit config.py ----
+# ---- hasSubmit only config.py.example,Don't Submit config.py ----
 config.py
 
-# ---- textfiletext docs Branch，Main branch does not contain ----
+# ---- file docs Branch,Main branch does not contain ----
 docs/
 
 # ---- .NET text ----
 gamehook/bin/
 gamehook/obj/
 
-# ---- netdelivery Download catalog（.app / .opt updatePackagetext，No warehousing）----
+# ---- netdelivery Download catalog(.app / .opt updatePackagenot tracked)----
 download/
 
-# ---- get_auth_list：clientId textscriptAndtext（defaultNo warehousing、Don't push）----
-#   Product defaults to data/ Down（data/ textAlreadytextIgnore）；
-#   authentication.* Pull another layer，textuse --csv/--state texttotextplace
+# ---- get_auth_list:clientId scriptAnd(defaultnot tracked,Don't push)----
+#   Product defaults to data/ Down(data/ alreadyIgnore);
+#   authentication.* Pull another layer,use --csv/--state toplace
 get_auth_list.py
 authentication.*
 
-# ---- extra_data useofnodes JSON（Includes account data，No warehousing）----
+# ---- extra_data useofnodes JSON(Includes account data,not tracked)----
 extra*.json
 
-# ---- text / textsystem ----
+# ---- text / system ----
 .vs/
 .vscode/
 .idea/

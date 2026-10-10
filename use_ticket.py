@@ -1,58 +1,58 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-use_ticket.py —— consumetextCurrenttexthasofFeaturestext（use UpsertUserAll text「usetextOnegame」）
+use_ticket.py —— consumecurrenthasofFeatures(use UpsertUserAll text"useone game")
 ================================================================================
 
-a complete「usetext」text：
+a complete"use"
 
     ParseQRCode -> GetUserPreview -> UserLogin -> GetUserCharge
-      -> GetNeedUserData（Baseline Snapshot）-> UpsertUserAll -> GetUserCharge（Review）-> UserLogout
+      -> GetNeedUserData(Baseline Snapshot)-> UpsertUserAll -> GetUserCharge(Review)-> UserLogout
 
 --------------------------------------------------------------------------------
-★ Why you can use UpsertUserAll consumetext
+★ Why you can use UpsertUserAll consume
 --------------------------------------------------------------------------------
-    GetUserChargeApi And UpsertUserAllApi inof userChargeList **textFullrelatedSame**
-    （UserCharge.cs：chargeId / stock / purchaseDate / validDate），
-    So just put the UpsertUserAll of userChargeList nodeschangetext「thetext stock - 1」，
-    servertextMeetingstextforthisticketstextthisOnegameusetext。
+    GetUserChargeApi And UpsertUserAllApi inof userChargeList **fullrelatedSame**
+    (UserCharge.cs:chargeId / stock / purchaseDate / validDate),
+    So just put the UpsertUserAll of userChargeList nodeschange"the stock - 1",
+    serverMeetingsforthisticketsthisOnegameuse
 
-    real machineEmpirical（gamehook textPackage 2026-10-06 22:23 thatOnegame，currenttextusetext 2 Ticket multiplier）：
+    real machineEmpirical(gamehook packet 2026-10-06 22:23 thatOnegame,currentuse 2 Ticket multiplier):
 
         userChargeList: [
-          {"chargeId":2,"stock":0,...},   <- When I bought it, it was 1，this gameusetextChangetext 0
+          {"chargeId":2,"stock":0,...},   <- When I bought it, it was 1,this gameusechange 0
           {"chargeId":3,"stock":0,...},
           {"chargeId":5,"stock":0,...}
         ]
-        userGamePlaylogList[0].useTicketId = 2      <- ★ usetexttickets
+        userGamePlaylogList[0].useTicketId = 2      <- ★ usetickets
         userGamePlaylogList[0].playCredit  = 2      <- ★ this gameconsumeof credit
         userPlaylogList[0].playCredit      = 2
         userData.lastPlayCredit            = 2
 
-    ★ playCredit ofcalculatetext（source/.../Net.VO.Mai2/VOExtensions.cs:838-845）：
+    ★ playCredit ofcalculate(source/.../Net.VO.Mai2/VOExtensions.cs:838-845):
 
-        playCredit = Credit.GameCostEnoughPlay()          // textnumber，textgame = 1
-                   + TicketManager.GetTicketCredit(ticketId)  // textof creditNum
+        playCredit = Credit.GameCostEnoughPlay()          // number,game = 1
+                   + TicketManager.GetTicketCredit(ticketId)  // of creditNum
 
-      2 Coupon multiplier's creditNum = 1 -> playCredit = 1 + 1 = 2  （Consistent with real machine grab bag）
-      creditNum text TICKET_CREDIT_NUM。
+      2 Coupon multiplier's creditNum = 1 -> playCredit = 1 + 1 = 2  (Consistent with real machine grab bag)
+      creditNum text TICKET_CREDIT_NUM.
 
-    ★ real machinepacketin**none** isNewChargeList thisnodes（It's not in 36 out of nodes），
-      So there's no need to give bit strings here either.。
+    ★ real machinepacketin**none** isNewChargeList thisnodes(It's not in 36 out of nodes),
+      So there's no need to give bit strings here either..
 
 --------------------------------------------------------------------------------
 usage
 --------------------------------------------------------------------------------
-    python use_ticket.py <QR Code>                          # text：Messages only，No Package Issued
-    python use_ticket.py <QR Code> --list                   # Only currently held tickets are listed，Does not consume
-    python use_ticket.py <QR Code> --ticket-id 2            # specifiedmustconsumetextZhang（defaultnumberOneZhangtexthasof）
+    python use_ticket.py <QR Code>                          # Messages only,no packet is sent
+    python use_ticket.py <QR Code> --list                   # Only currently held tickets are listed,Does not consume
+    python use_ticket.py <QR Code> --ticket-id 2            # specifiedmustconsumeZhang(defaultnumberOneZhanghasof)
     python use_ticket.py <QR Code> --ticket-id 2 --send     # ★ realconsume
     python use_ticket.py <QR Code> --send --music-id 143 --level 4
     python use_ticket.py <QR Code> --send --skip-entry      # skipAdmission data download
 
-★ consumewill be written to the server（Irrevocable）。Do not pass --send timeConstruct only packets。
-★ QR Code**hastext 10 Minutes**。
-★ textCurrent**none**texthasFeature Ticketstimedirectlytext（nonetextconsumeoftext）。
+★ consumewill be written to the server(Irrevocable).Do not pass --send timeConstruct only packets.
+★ QR Code**has 10 Minutes**.
+★ current**none**hasFeature Ticketstimedirectly(noneconsumeof).
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ from api import (
     ConfirmRequiredError,
     ticket_name,
     Ping,
-    # ★ Originally in config.py，Dropped to api/upsert_user_chargelog.py
+    # ★ Originally in config.py,Dropped to api/upsert_user_chargelog.py
     TICKET_CREDIT_NUM,
 )
 from config import (
@@ -91,12 +91,12 @@ from config import (
 
 
 def read_charges(user_id, label):
-    """call GetUserChargeApi，textand go back to (All, texthasof)。"""
+    """call GetUserChargeApi,and go back to (All, hasof)."""
     raw = GetUserCharge(user_id)
     lst = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
-    log_info("[" + label + "] Current Ticket " + str(len(lst)) + " item：")
+    log_info("[" + label + "] Current Ticket " + str(len(lst)) + " item:")
     if not lst:
-        log_info("    （empty）")
+        log_info("    (empty)")
     for c in lst:
         cid = c.get("chargeId")
         stock = int(c.get("stock", 0) or 0)
@@ -104,9 +104,9 @@ def read_charges(user_id, label):
                  + "  stock=" + str(stock)
                  + "  purchaseDate=" + str(c.get("purchaseDate"))
                  + "  validDate=" + str(c.get("validDate"))
-                 + ("   ← ★ texthastext" if stock > 0 else ""))
+                 + ("   ← ★ has" if stock > 0 else ""))
     held = [c for c in lst if isinstance(c, dict) and int(c.get("stock", 0) or 0) > 0]
-    log_info("[" + label + "] texthasinFeature Tickets：" + str(len(held)) + " Zhang")
+    log_info("[" + label + "] hasinFeature Tickets:" + str(len(held)) + " Zhang")
     return lst, held
 
 
@@ -153,7 +153,7 @@ def main() -> int:
     setup_logging("use_ticket")
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
     try:
-        # ---- Heartbeat：Decide on all subsequent requests number Head ----
+        # ---- Heartbeat:Decide on all subsequent requests number Head ----
         Ping()
 
         user_id, token = ParseQRCode(opts["qr"])
@@ -161,22 +161,22 @@ def main() -> int:
 
         preview = GetUserPreview(user_id, token)
         if preview.isLogin:
-            log_error("textplaceinAlreadylogintext，pleaseFirstatmachineStagelogoutorwaitSessiontexttime")
+            log_error("placeinAlreadyloginpleaseFirstatmachine statelogoutorwaitSessiontime")
             return 2
 
         login = UserLogin(user_id, token, region_id=REGION_ID, place_id=PLACE_ID)
         session.update(login_dt=login.loginDateTime, logged_in=True)
 
-        # ---- ★ readCurrenttexthasofFeaturestext ----
+        # ---- ★ readCurrenthasofFeatures ----
         all_charges, held = read_charges(user_id, "consumeago")
 
         if opts["list"]:
-            log_info("--list：Tickets only，Do nothing to write")
+            log_info("--list:Tickets only,Do nothing to write")
             return 0
 
         if not held:
-            log_error("textCurrent**nonetexthasAnyFeature Tickets**，nonetextconsumeoftext。")
-            log_error("  Please use if you want to buy tickets buy_ticket.py；Tickets already in your possession will be sent to userChargeList in stock > 0。")
+            log_error("current**nonehasAnyFeature Tickets**,noneconsumeof")
+            log_error("  Please use if you want to buy tickets buy_ticket.py;Tickets already in your possession will be sent to userChargeList in stock > 0.")
             return 4
 
         # ---- text ----
@@ -188,7 +188,7 @@ def main() -> int:
                     break
             if target is None:
                 log_error("specifiedof chargeId=" + str(opts["ticket_id"])
-                          + " Not currently in possession；texthasofhas："
+                          + " Not currently in possession;hasofhas:"
                           + ", ".join(str(c.get("chargeId")) for c in held))
                 return 4
         else:
@@ -198,13 +198,13 @@ def main() -> int:
         credit_num = int(TICKET_CREDIT_NUM.get(ticket_id, 0) or 0)
         play_credit = int(PLAY_CREDIT) + credit_num
 
-        log_info("textmustconsumeoftext：chargeId=" + str(ticket_id) + " " + ticket_name(ticket_id)
+        log_info("mustconsumeofchargeId=" + str(ticket_id) + " " + ticket_name(ticket_id)
                  + "  stock=" + str(target.get("stock"))
                  + "  creditNum=" + str(credit_num)
                  + "  -> playCredit=" + str(PLAY_CREDIT) + "+" + str(credit_num)
                  + "=" + str(play_credit))
 
-        # ---- ★ constructtextof userChargeList：text stock - 1，Rest as is ----
+        # ---- ★ constructof userChargeList:text stock - 1,Rest as is ----
         new_stock = int(target.get("stock", 0) or 0) - 1
         if new_stock < 0:
             new_stock = 0
@@ -216,23 +216,23 @@ def main() -> int:
             if int(item.get("chargeId", -1)) == ticket_id:
                 item["stock"] = new_stock
                 log_info("    userChargeList in chargeId=" + str(ticket_id)
-                         + " of stock：" + str(target.get("stock")) + " -> " + str(new_stock))
+                         + " of stock:" + str(target.get("stock")) + " -> " + str(new_stock))
             new_list.append(item)
 
-        # ---- Admission data download（textreal machinetext，At the same time, it UpsertUserAll ofBaseline Snapshot）----
+        # ---- Admission data download(real machineAt the same time, it UpsertUserAll ofBaseline Snapshot)----
         snapshot = None
         if not opts["skip_entry"]:
             snapshot = GetNeedUserData(user_id, token=token,
                                        place_id=PLACE_ID, region_id=REGION_ID)
             _sum = summarize_snapshot(snapshot)
-            log_info("Admission data download complete：" + str(len(_sum)) + " nodes，Failed "
+            log_info("Admission data download complete:" + str(len(_sum)) + " nodes,Failed "
                      + str(len(snapshot.get("_failed") or [])) + " Piece")
 
-        # ---- ★ use UpsertUserAll text「usethisticketstextOnegame」----
+        # ---- ★ use UpsertUserAll text"usethisticketsone game"----
         #   play.use_ticket_id -> userGamePlaylogList[0].useTicketId
         #   play.play_credit   -> userGamePlaylogList[0].playCredit / userPlaylogList[].playCredit
         #                         / userData.lastPlayCredit
-        #   extra_data.userChargeList -> overwritenodes，puttextof stock Subtract 1
+        #   extra_data.userChargeList -> overwritenodes,putof stock Subtract 1
         play = PlayData(
             music_id=opts["music_id"],
             music_level=opts["level"],
@@ -253,18 +253,18 @@ def main() -> int:
             place_id=PLACE_ID, region_id=REGION_ID,
         )
 
-        # ---- ★ Review：text stock Should be subtracted 1 ----
+        # ---- ★ Review:text stock Should be subtracted 1 ----
         _, held_after = read_charges(user_id, "consumeAfter")
         if not opts["send"]:
-            log_info("[dry-run] notPackaging。If you want to really consume, please add --send（★ will be written to the server）")
+            log_info("[dry-run] notPackaging.If you want to really consume, please add --send(★ will be written to the server)")
             return 0
 
         still = [c for c in held_after if int(c.get("chargeId", -1)) == ticket_id]
         if still:
-            log_warning("chargeId=" + str(ticket_id) + " Still in possession（stock="
-                        + str(still[0].get("stock")) + "）—— servertextcantextfallLibrary")
+            log_warning("chargeId=" + str(ticket_id) + " Still in possession(stock="
+                        + str(still[0].get("stock")) + ")—— servercanfallLibrary")
             return 6
-        log_info("★ textAlreadyconsume：chargeId=" + str(ticket_id) + " No longer in possession ✅")
+        log_info("★ already consumed:chargeId=" + str(ticket_id) + " No longer in possession ✅")
         return 0
 
     except ConfirmRequiredError:
@@ -279,7 +279,7 @@ def main() -> int:
                            logout_type=LogoutType.TestIn,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_error("[receiveTail] Force Logout Failed（Session may need to wait for server timeout）：" + str(exc))
+                log_error("[receiveTail] Force Logout Failed(Session may need to wait for server timeout):" + str(exc))
         teardown_logging()
 
 

@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
-"""textDX achievement rate / DX Minute Calculation Model（pressnotegrouptext）。
+"""maimai DX achievement rate / DX Minute Calculation Model(pressnotegroup).
 
-achievement rate（source/Assembly-CSharp/Manager/GameScoreList.cs:1238-1310 CalcUpdate()）::
+achievement rate(source/Assembly-CSharp/Manager/GameScoreList.cs:1238-1310 CalcUpdate())::
 
     Achivement = num / _allPerfectScore * 100 + num2 / _breakBonusScore
 
-where num  = Σ textScore NoteScore.GetJudgeScore(timing, countCategoriestext)
-     num2 = Σ critical perfectReward Points（Only the overwhelmingly acclaimed notes have）NoteScore.GetJudgeScore(timing, BreakBonus)
-     _allPerfectScore  = Σ eachPiecenoteoftextweight（NotesReader.calcTotal()）
+where num  = Σ score NoteScore.GetJudgeScore(timing, countCategories)
+     num2 = Σ critical perfectReward Points(Only the overwhelmingly acclaimed notes have)NoteScore.GetJudgeScore(timing, BreakBonus)
+     _allPerfectScore  = Σ eachPiecenoteofweight(NotesReader.calcTotal())
      _breakBonusScore  = 100 × critical perfectnotenumber
-textMinutes = 101.0000%（hascritical perfect）/ 100.0000%（nocritical perfect）。
+Minutes = 101.0000%(hascritical perfect)/ 100.0000%(nocritical perfect).
 
-DX Minutes（JudgeResultSt.UpdateScore + NoteJudge.ConvertJudge）::
+DX Minutes(JudgeResultSt.UpdateScore + NoteJudge.ConvertJudge)::
 
-    DX = 3×CriticalPerfect + 2×Perfect + 1×Great（Good/Miss No extra points）
+    DX = 3×CriticalPerfect + 2×Perfect + 1×Great(Good/Miss No extra points)
 
-Not related to note type，theoretical DX = 3 × countMinutesnotenumber。
+Not related to note type,theoretical DX = 3 × countMinutesnotenumber.
 
-textmusttext
+must
 --------
-* notepress「group」Divide，Exactly the same scoring behavior within the same group（weight、Optional Determination、Missed Gear、critical perfectRewardsfileBit）。
-* critical perfect（Break text）of Great has 3 fileLost points、Perfect Rewards include 2 file（75 / 50），textitemDetermineofcritical perfect
-  none Perfect file，holdDetermineofcritical perfectNo Gear Break；EX Determine（ExTap text）Only Critical or Miss。
-* Therefore,「textEachDetermineoftextNumber」And it's not the only thing that determines the rate of：achievement ratetextthistextDeterminefallatWhich notesUp。
-  textuseMinimum fee streamtextachievement rateoftextUpLower Boundary，and can be strictly judged「canNoJust in timetextouttextPieceachievement rate」。
+* notepress"group"Divide,Exactly the same scoring behavior within the same group(weight,Optional Determination,Missed Gear,critical perfectRewardsfileBit).
+* critical perfect(Break )of Great has 3 fileLost points,Perfect Rewards include 2 file(75 / 50),itemDetermineofcritical perfect
+  none Perfect file,holdDetermineofcritical perfectNo Gear Break;EX Determine(ExTap )Only Critical or Miss.
+* Therefore,"eachDetermineofnumber"And it's not the only thing that determines the rate of:achievement ratethisDeterminefallatWhich notesUp.
+  useMinimum fee streamachievement rateofUpLower Boundary,and can be strictly judged"canNoJust in timeoutitemachievement rate".
 """
 
 from __future__ import annotations
@@ -50,8 +50,8 @@ JUDGE_LABEL = {
 }
 DX_PER = {"cp": 3, "perfect": 2, "great": 1, "good": 0, "miss": 0}
 
-#: eachPiecenotegroupin，textDetermineActualtextcanAppearanceof (Lost points, critical perfectReward Points) grouptext。
-#: Lost points = thenotetextweight - Actual Score；Reward points are only for praise（countCategoriestext Break）notetextat。
+#: eachPiecenotegroupin,DetermineActualcanAppearanceof (Lost points, critical perfectReward Points) group
+#: Lost points = thenoteweight - Actual Score;Reward points are only for praise(countCategories Break)noteat.
 GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
     GROUP_TAP: {
         "cp": ((0, 0),),
@@ -90,7 +90,7 @@ GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
     },
     GROUP_BREAK_SLIDE: {
         "cp": ((0, 100),),
-        # textitemDeterminenonenon- Critical of Perfect
+        # itemDeterminenonenon- Critical of Perfect
         "great": ((500, 40), (1000, 40), (1250, 40)),
         "good": ((1500, 30),),
         "miss": ((2500, 0),),
@@ -107,9 +107,9 @@ GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
 
 _BAD_JUDGMENTS = ("great", "good", "miss")
 
-#: When a bad note falls on this group，Yes. (Number of accent notes that can appear bad_b, Weighted sum slo) oftext。
-#: slo = 2×bad_break + 3×bad_break_flat + 4×bad_break_slide + 4×bad_ex_break，
-#: used fortextHara「critical perfectnotein cp/perfect ofReward PointsPick a valuetext」。
+#: When a bad note falls on this group,present. (Number of accent notes that can appear bad_b, Weighted sum slo) of
+#: slo = 2×bad_break + 3×bad_break_flat + 4×bad_break_slide + 4×bad_ex_break,
+#: used forHara"critical perfectnotein cp/perfect ofReward PointsPick a value".
 _GROUP_BAD_STEP = {
     GROUP_BREAK: (1, 2),
     GROUP_BREAK_FLAT: (1, 3),
@@ -117,21 +117,21 @@ _GROUP_BAD_STEP = {
     GROUP_EX_BREAK: (1, 4),
 }
 
-#: textmodetextoftextBad notesnumber（Miss+Good+Great Sum）。textThenOnlytextIntervalDetermine。
-EXACT_MAX_BAD = 12          # texttimeMax.textbad notes（Miss+Good+Great）
-EXACT_TIME_BUDGET = 8.0     # text DP oftimetextcalculate（seconds），texttimetexttimesInterval Mode
+#: modeofBad notesnumber(Miss+Good+Great Sum).ThenOnlyIntervalDetermine.
+EXACT_MAX_BAD = 12          # timeMax.bad notes(Miss+Good+Great)
+EXACT_TIME_BUDGET = 8.0     # text DP oftimecalculate(seconds),timetimesInterval Mode
 
 
 # ------------------------------------------------------------------ theoreticalValue
 @dataclass
 class Theory:
-    """Scoring Theoretical Value of a Spectrum。"""
+    """Scoring Theoretical Value of a Spectrum."""
 
     counts: Dict[str, int]              # notegroup -> notenumber
     weights: Dict[str, int]             # notegroup -> Single note full weight
     all_perfect_score: int              # _allPerfectScore
     break_bonus_score: int              # _breakBonusScore = 100 × critical perfectnotenumber
-    total_notes: int                    # countMinutesnoteTotal N（Connection slider not included）
+    total_notes: int                    # countMinutesnoteTotal N(Connection slider not included)
     max_dx: int                         # theoretical DX = 3N
     lattice: int                        # Missed all single notes-Maximum common divisor of award combinations
 
@@ -141,12 +141,12 @@ class Theory:
 
     @property
     def break_notes(self) -> int:
-        """critical perfectnoteTotal（countCategoriestextfor Break ofnote）。"""
+        """critical perfectnoteTotal(countCategoriesfor Break ofnote)."""
         return sum(self.counts.get(g, 0) for g in _GROUP_BAD_STEP)
 
     @property
     def denominator(self) -> int:
-        """achievement ratetextofDenominator：100 - Σc/D in D。"""
+        """achievement rateofDenominator:100 - Σc/D in D."""
         if self.break_bonus_score:
             return self.all_perfect_score * self.break_bonus_score
         return self.all_perfect_score
@@ -157,7 +157,7 @@ class Theory:
 
     @property
     def perfect_capacity(self) -> int:
-        """Allow to appear Perfect ofcritical perfectnotenumber（Break And Break(holdDetermine)）。"""
+        """Allow to appear Perfect ofcritical perfectnotenumber(Break And Break(holdDetermine))."""
         return (self.counts.get(GROUP_BREAK, 0)
                 + self.counts.get(GROUP_BREAK_FLAT, 0))
 
@@ -172,14 +172,14 @@ def _lattice_of(th: "Theory") -> int:
 
 
 def theory_from_counts(counts: Dict[str, int]) -> Theory:
-    """by「notegroup -> notenumber」constructtheoreticalValue。"""
+    """by"notegroup -> notenumber"constructtheoreticalValue."""
     clean: Dict[str, int] = {}
     for key, value in (counts or {}).items():
         if key not in GROUP_OPTIONS:
-            raise ValueError("nottextofnotegroup：%r" % (key,))
+            raise ValueError("notofnotegroup:%r" % (key,))
         value = int(value or 0)
         if value < 0:
-            raise ValueError("notenumberCannot betext：%s=%d" % (key, value))
+            raise ValueError("notenumberCannot be%s=%d" % (key, value))
         if value:
             clean[key] = value
     all_perfect = 0
@@ -213,7 +213,7 @@ def theory_from_chart(chart: Chart) -> Theory:
 
 # ------------------------------------------------------------------ Single note cost
 def _cost(th: Theory, loss: int, bonus: int) -> int:
-    """put (Lost points, Reward Points) textcalculatetextOnetextnumbertext c，Enable Achievement Rate = 100 - Σc / D。"""
+    """put (Lost points, Reward Points) calculateonenumber c,Enable Achievement Rate = 100 - Σc / D."""
     if th.break_bonus_score:
         return 100 * th.break_bonus_score * loss - th.all_perfect_score * bonus
     return 100 * loss
@@ -224,19 +224,19 @@ def _edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optional[i
     if not opts:
         return None
     values = [_cost(th, loss, bonus) for loss, bonus in opts]
-    # want_max text「textachievement rate」，andachievement rate = 100 - Σc/D，So at the least cost.。
+    # want_max text"achievement rate",andachievement rate = 100 - Σc/D,So at the least cost..
     return min(values) if want_max else max(values)
 
 
 def _flex_edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optional[int]:
-    """And _edge_cost relatedSame，But「Good notes」（CP/Perfect）Available at CP And Perfect Free choice between。
+    """And _edge_cost relatedSame,But"Good notes"(CP/Perfect)Available at CP And Perfect Free choice between.
 
-    Use only in the upper and lower bounds of the reverse solution：usertext CP/Perfect textMinutestime，thisPiecetextMeetingsImpactachievement rate
-    （critical perfectof CP Rewards 100、Perfect Only 75/50）。
+    Use only in the upper and lower bounds of the reverse solution:user CP/Perfect Minutestime,thisPieceMeetingsImpactachievement rate
+    (critical perfectof CP Rewards 100,Perfect Only 75/50).
     """
     if judge == "cp":
-        # 「Remaining notes」thisGrade 1：textYesis Critical Perfect，It can also be Perfect
-        # （Perfect can only fall on the overwhelming praise note，Hand over the current to your own choice）
+        # "Remaining notes"thisGrade 1:Yesis Critical Perfect,It can also be Perfect
+        # (Perfect can only fall on the overwhelming praise note,Hand over the current to your own choice)
         opts = (tuple(GROUP_OPTIONS.get(group, {}).get("cp", ()))
                 + tuple(GROUP_OPTIONS.get(group, {}).get("perfect", ())))
     else:
@@ -249,7 +249,7 @@ def _flex_edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optio
 
 # ------------------------------------------------------------------ Minimum fee stream
 class _MinCostFlow:
-    """textcontinuetextshorttext + textitemtext（textnumbertext，Fast enough）。"""
+    """continueshort + item(numberFast enough)."""
 
     def __init__(self, n: int) -> None:
         self.n = n
@@ -308,10 +308,10 @@ class _MinCostFlow:
 
 def _extreme(th: Theory, judges: Dict[str, int], want_max: bool,
              flex_good: bool = False) -> Optional[Fraction]:
-    """Given the total number of each decision,，textachievement rateoftextValue / textValue。
+    """Given the total number of each decision,,achievement rateofvalue / value.
 
-    flex_good=True time，「good」thisOnetextinof CP/Perfect textMinutesbytext
-    （Reverse solving with：Only for Miss/Good/Great time，CP And Perfect oftextMinutesistextbyof）。
+    flex_good=True time,"good"thisOneinof CP/Perfect Minutesby
+    (Reverse solving with:Only for Miss/Good/Great time,CP And Perfect ofMinutesisbyof).
     """
     total = sum(int(judges.get(j, 0)) for j in JUDGMENTS)
     if total != th.total_notes:
@@ -338,8 +338,8 @@ def _extreme(th: Theory, judges: Dict[str, int], want_max: bool,
             cost = (_flex_edge_cost(th, group, judge, want_max) if flex_good
                     else _edge_cost(th, group, judge, want_max))
             if cost is None:
-                continue     # theDetermineNotextcanfallatthistextnoteUp：Unconnected，Leave it to the flow to determine the feasibility
-            # Minimum fee flow will only minimize the total cost：textachievement ratetimeputtextTaketext，Last flip back。
+                continue     # theDetermineNocanfallatthisnoteUp:Unconnected,Leave it to the flow to determine the feasibility
+            # Minimum fee flow will only minimize the total cost:achievement ratetimeputfetchLast flip back.
             mcf.add_edge(gbase + i, jbase + j, min(th.counts[group], count),
                          cost if want_max else -cost)
     total_cost = mcf.min_cost(src, sink, total)
@@ -351,16 +351,16 @@ def _extreme(th: Theory, judges: Dict[str, int], want_max: bool,
 
 
 def achievement_bounds(th: Theory, judges: Dict[str, int]) -> Tuple[Fraction, Fraction]:
-    """returntimes (achievement rateLower Boundary, achievement rateUpper Realm)。"""
+    """returns (achievement rateLower Boundary, achievement rateUpper Realm)."""
     lo = _extreme(th, judges, want_max=False)
     hi = _extreme(th, judges, want_max=True)
     if lo is None or hi is None:
-        raise ValueError("thistextDeterminenumbernotextfallatthechartUp（For example, putting Perfect text EX note）")
+        raise ValueError("thisDeterminenumbernofallatthechartUp(For example, putting Perfect text EX note)")
     return lo, hi
 
 
 def reference_achievement(th: Theory, judges: Dict[str, int]) -> Fraction:
-    """presstextExampleMinutestextoftextachievement rate：Each decision is apportioned to each note group in proportion to the total number，fileBitTaketextValue。"""
+    """pressexampleMinutesofachievement rate:Each decision is apportioned to each note group in proportion to the total number,fileBitTakevalue."""
     n = th.total_notes
     if n == 0:
         return Fraction(0)
@@ -427,14 +427,14 @@ def solve_forward(th: Theory, judges: Dict[str, int]) -> ForwardResult:
     )
 
 
-# ------------------------------------------------------------------ Reverse：Tool Functions
+# ------------------------------------------------------------------ Reverse:Tool Functions
 def _judges_for(th: Theory, miss: int, good: int, great: int,
                 cp: int, perfect: int) -> Dict[str, int]:
     return {"cp": cp, "perfect": perfect, "great": great, "good": good, "miss": miss}
 
 
 def _best(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
-    """text Miss/Good/Great numbertime，achievement ratecantexttooftextValue（CP/Perfect textMinutestextby）。"""
+    """text Miss/Good/Great numbertime,achievement ratecantoofvalue(CP/Perfect Minutesby)."""
     s = th.total_notes - miss - good - great
     if s < 0:
         return None
@@ -443,7 +443,7 @@ def _best(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
 
 
 def _worst(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
-    """text Miss/Good/Great numbertime，achievement ratecantexttooftextValue（CP/Perfect textMinutestextby）。"""
+    """text Miss/Good/Great numbertime,achievement ratecantoofvalue(CP/Perfect Minutesby)."""
     s = th.total_notes - miss - good - great
     if s < 0:
         return None
@@ -452,7 +452,7 @@ def _worst(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
 
 
 def _max_true(lo: int, hi: int, pred) -> int:
-    """pred at [lo, hi] When monotonous does not increase，text pred oftextValue（noThenreturntimes lo-1）。"""
+    """pred at [lo, hi] When monotonous does not increase,text pred ofvalue(noThenreturns lo-1)."""
     best = lo - 1
     while lo <= hi:
         mid = (lo + hi) // 2
@@ -465,7 +465,7 @@ def _max_true(lo: int, hi: int, pred) -> int:
 
 
 def _min_true(lo: int, hi: int, pred) -> int:
-    """pred at [lo, hi] When monotonous does not increase，text pred oftextValue（noThenreturntimes hi+1）。"""
+    """pred at [lo, hi] When monotonous does not increase,text pred ofvalue(noThenreturns hi+1)."""
     best = hi + 1
     while lo <= hi:
         mid = (lo + hi) // 2
@@ -477,13 +477,13 @@ def _min_true(lo: int, hi: int, pred) -> int:
     return best
 
 
-# ------------------------------------------------------------------ Reverse：Candidate Rows
+# ------------------------------------------------------------------ Reverse:Candidate Rows
 def _candidate_rows(th: Theory, target: Fraction, max_scan: int,
                    bad_limit: Optional[int] = None, stats: Optional[Dict] = None):
-    """text「Possible overrides target」of (miss, good, great) grouptext，orderbytexttotext。
+    """text"Possible overrides target"of (miss, good, great) grouporderbyto
 
-    bad_limit non-emptytimeOnlyOutput Miss+Good+Great <= bad_limit ofgrouptext，
-    and in the stats["clipped"] intextDown「texthastext（Bad notes more）grouptextOutput」。
+    bad_limit non-emptytimeOnlyOutput Miss+Good+Great <= bad_limit ofgroup
+    and in the stats["clipped"] inDown"has(Bad notes more)groupoutput".
     """
     n = th.total_notes
     scanned = 0
@@ -521,8 +521,8 @@ def _candidate_rows(th: Theory, target: Fraction, max_scan: int,
                 v = _worst(th, miss, good, gr)
                 return v is not None and v <= target
 
-            # Seek first「Great textDown」oftextNumber：textNotext（Example EX noteNocantext Great），
-            # Otherwise, the infeasible high-end will make worst_gr No longer monotonous，The two points will be wrong.。
+            # Seek first"Great Down"ofnumber:no(Example EX noteNocan Great),
+            # Otherwise, the infeasible high-end will make worst_gr No longer monotonous,The two points will be wrong..
             feasible_hi = _max_true(0, room, lambda gr: _worst(th, miss, good, gr) is not None)
             if feasible_hi < 0:
                 continue
@@ -555,8 +555,8 @@ class ReverseRow:
     achievement_max: Fraction
     dx_min: int = 0
     dx_max: int = 0
-    verified: bool = True       # textmodeDownisNoAlreadytext
-    exact: bool = False         # isNoJust in timeetcintextachievement rate
+    verified: bool = True       # modeDownisNoAlready
+    exact: bool = False         # isNoJust in timeetcinachievement rate
 
     def summary(self) -> str:
         return ("miss %d · good %d · great %d · cp+perfect %d"
@@ -570,12 +570,12 @@ def _row_dx_bounds(th: Theory, row: ReverseRow) -> None:
 
 
 def _cp_bounds_simple(th: Theory, s: int) -> Tuple[int, int]:
-    """cp oftextPick a valuetext：Perfect can only appear in Break / Break(holdDetermine) Up。"""
+    """cp ofPick a valuePerfect can only appear in Break / Break(holdDetermine) Up."""
     cp_min = max(0, s - th.perfect_capacity)
     return cp_min, s
 
 
-# ------------------------------------------------------------------ Reverse：Interval Mode
+# ------------------------------------------------------------------ Reverse:Interval Mode
 def solve_reverse_range(th: Theory, target: Fraction, limit: int = 300,
                         max_scan: int = 200000) -> Dict[str, object]:
     rows: List[ReverseRow] = []
@@ -611,24 +611,24 @@ def solve_reverse_range(th: Theory, target: Fraction, limit: int = 300,
     }
 
 
-# ------------------------------------------------------------------ Reverse：textmode
+# ------------------------------------------------------------------ Reverse:mode
 def _bad_options(group: str) -> Dict[str, Tuple[Tuple[int, int], ...]]:
     return {j: GROUP_OPTIONS[group][j] for j in _BAD_JUDGMENTS
             if j in GROUP_OPTIONS[group]}
 
 
 def _dx_delta(th: Theory, loss: int, bonus: int) -> int:
-    """a bad note pair「text X」oftext；X = rhs etctextinachievement rateetcintext。"""
+    """a bad note pair"text X"of;X = rhs etcinachievement rateetcin"""
     if th.break_bonus_score:
         return 100 * th.break_bonus_score * loss - th.all_perfect_score * bonus
     return 100 * loss
 
 
 def _exact_suffix(th: Theory, groups: List[str]) -> List[Tuple[int, int, int, int]]:
-    """eachPieceSuffix（Contains Own）of (dX textTowardsLower Boundary, dX Upper Realm, slo Upper Realm, bad Upper Realm)，used fortext。
+    """eachPieceSuffix(Contains Own)of (dX towardsLower Boundary, dX Upper Realm, slo Upper Realm, bad Upper Realm),used for
 
-    note dX The lower bound must be pressed「At most these are the only notes that are bad.、It can also be 0 Piece」textcalculate，
-    So only the cumulative negative contribution（min(0, ...)·Number），Otherwise, the legal solution will be cut off by mistake。
+    note dX The lower bound must be pressed"At most these are the only notes that are bad.,It can also be 0 Piece"calculate,
+    So only the cumulative negative contribution(min(0, ...)·Number),Otherwise, the legal solution will be cut off by mistake.
     """
     suf: List[Tuple[int, int, int, int]] = [(0, 0, 0, 0)] * (len(groups) + 1)
     for i in range(len(groups) - 1, -1, -1):
@@ -647,12 +647,12 @@ def _exact_suffix(th: Theory, groups: List[str]) -> List[Tuple[int, int, int, in
 def _exact_table(th: Theory, max_bad: int, rhs: Fraction,
                  set_cap: int = 20000, total_cap: int = 1500000,
                  deadline: Optional[float] = None):
-    """DP：text (miss, good, great) -> Reachable (X, bad_b, slo) text。
+    """DP:text (miss, good, great) -> Reachable (X, bad_b, slo)
 
-    X = 100*B*Loss of points and - W*Bad Note Reward Points（nocritical perfecttime X = 100*Loss of points and），One-to-one correspondence with the achievement rate；
-    Stats only「Bad notes」（Great/Good/Miss）；critical perfectnotein cp/perfect ofReward Pointsuse slo textHaratextInterval。
-    eachPiecetextTuplesalluse「Max notes remaining/Minimum Contribution」Make target pruning（Only for current rhs hastext）。
-    textouttextcalculatetimereturntimes None（callusetexttimesIntervalDetermine）。
+    X = 100*B*Loss of points and - W*Bad Note Reward Points(nocritical perfecttime X = 100*Loss of points and),One-to-one correspondence with the achievement rate;
+    Stats only"Bad notes"(Great/Good/Miss);critical perfectnotein cp/perfect ofReward Pointsuse slo HaraInterval.
+    eachPieceTuplesalluse"Max notes remaining/Minimum Contribution"Make target pruning(Only for current rhs has).
+    outcalculatetimereturns None(callusetimesIntervalDetermine).
     """
     groups = [g for g in GROUP_ORDER if th.counts.get(g, 0) and _bad_options(g)]
     suf = _exact_suffix(th, groups)
@@ -722,7 +722,7 @@ def _exact_table(th: Theory, max_bad: int, rhs: Fraction,
 
 def _exact_row_ok(th: Theory, table, miss: int, good: int, great: int,
                   rhs: Fraction) -> bool:
-    """Strict Judgment：canNoput (miss, good, great) Determine that the hit rate is just right target。"""
+    """Strict Judgment:canNoput (miss, good, great) Determine that the hit rate is just right target."""
     tset = table.get((miss, good, great))
     if not tset:
         return False
@@ -734,7 +734,7 @@ def _exact_row_ok(th: Theory, table, miss: int, good: int, great: int,
                  + 4 * th.counts.get(GROUP_EX_BREAK, 0))
     break_notes = sum(th.counts.get(g, 0) for g in _GROUP_BAD_STEP)
     if not b:
-        # nonecritical perfect：achievement rateOnly byLost pointsDecision，100 * Loss of points and == Denominator * (100 - text)
+        # nonecritical perfect:achievement rateOnly byLost pointsDecision,100 * Loss of points and == Denominator * (100 - )
         for x, _bad_b, _slo in tset:
             if x == rhs:
                 return True
@@ -760,15 +760,15 @@ def solve_reverse_exact(th: Theory, target: Fraction, limit: int = 300,
     scanned = 0
 
     if rhs.denominator != 1:
-        note = ("theachievement rateNotextchartcantextoutofValue（achievement rateOnlyTake 100 - textnumber/Denominator oftext），"
-                "Interval judgment results are given below。")
+        note = ("theachievement rateNochartcanoutofValue(achievement rateOnlyTake 100 - number/Denominator of),"
+                "Interval judgment results are given below.")
     elif th.lattice and rhs.numerator % th.lattice:
-        note = ("theachievement rateNotextchartofLost pointstext（Losing points can only be %d oftimesnumber），"
-                "Interval judgment results are given below。" % th.lattice)
+        note = ("theachievement rateNochartofLost points(Losing points can only be %d oftimesnumber),"
+                "Interval judgment results are given below." % th.lattice)
     stats: Dict[str, bool] = {}
     if note is None:
-        # Enumeration only「Bad notes no more than EXACT_MAX_BAD」ofgrouptext：textoutofgrouptext，
-        # Full enumeration. They will spend a lot of time in vain.（Large spectra may have hundreds of thousands of groups）。
+        # Enumeration only"Bad notes no more than EXACT_MAX_BAD"ofgroupoutofgroup
+        # Full enumeration. They will spend a lot of time in vain.(Large spectra may have hundreds of thousands of groups).
         for miss, good, great in _candidate_rows(th, target, max_scan,
                                                  EXACT_MAX_BAD, stats):
             scanned += 1
@@ -778,8 +778,8 @@ def solve_reverse_exact(th: Theory, target: Fraction, limit: int = 300,
             table = _exact_table(th, max_bad_used, rhs,
                                  deadline=time.monotonic() + EXACT_TIME_BUDGET)
             if table is None:
-                note = ("Large number of judgments，textouttextoftextcalculate（Max. %d Piece Miss+Good+Great），"
-                        "Interval judgment results are given below。" % EXACT_MAX_BAD)
+                note = ("Large number of judgments,outofcalculate(Max. %d Piece Miss+Good+Great),"
+                        "Interval judgment results are given below." % EXACT_MAX_BAD)
     if note is not None:
         fallback = solve_reverse_range(th, target, limit=limit, max_scan=max_scan)
         fallback["note"] = note
@@ -788,10 +788,10 @@ def solve_reverse_exact(th: Theory, target: Fraction, limit: int = 300,
         return fallback
 
     if not pending and stats.get("clipped"):
-        # Neither set of candidates can be accurately verified（All bad notes exceed the upper limit），texttimesInterval ModetextdescriptionReason
+        # Neither set of candidates can be accurately verified(All bad notes exceed the upper limit),timesInterval ModedescriptionReason
         fallback = solve_reverse_range(th, target, limit=limit, max_scan=max_scan)
-        fallback["note"] = ("thisPiecechart/achievement rateDown，Bad notes（Miss+Good+Great）text %d Too many combinations，"
-                            "text，Interval mode results are given below。" % EXACT_MAX_BAD)
+        fallback["note"] = ("thisPiecechart/achievement rateDown,Bad notes(Miss+Good+Great)text %d Too many combinations,"
+                            "Interval mode results are given below." % EXACT_MAX_BAD)
         fallback["exact_cap"] = EXACT_MAX_BAD
         fallback["more_unverified"] = True
         return fallback
@@ -837,7 +837,7 @@ def solve_reverse(th: Theory, target: Fraction, limit: int = 300,
                   max_scan: int = 200000, mode: str = "exact") -> Dict[str, object]:
     target = Fraction(target)
     if target > th.max_achievement:
-        raise ValueError("textachievement rate %s textthechartUptext %s"
+        raise ValueError("achievement rate %s thechartUp %s"
                          % (target, th.max_achievement))
     if mode == "range":
         return solve_reverse_range(th, target, limit=limit, max_scan=max_scan)

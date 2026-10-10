@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-get_user_data.py —— Fetch full user data（GetUserDataApi）
+get_user_data.py —— Fetch full user data(GetUserDataApi)
 ================================================================================
 
-Retrieve Player Profile（86 large objects for fields），is upsertUserAll.userData of**The only correct source**。
+Retrieve Player Profile(86 large objects for fields),is upsertUserAll.userData of**The only correct source**.
 
-Corresponding interface：GetUserDataApi
-request body  ：UserIdRequestVO（Only userId）
-Response    ：{userId, userData:{86 key}, banState}
-Basis    ：source/Assembly-CSharp/Net.Packet.Mai2/PacketGetUserData.cs:17
+Corresponding interface:GetUserDataApi
+request body  :UserIdRequestVO(Only userId)
+Response:{userId, userData:{86 key}, banState}
+Basis    :source/Assembly-CSharp/Net.Packet.Mai2/PacketGetUserData.cs:17
           source/Assembly-CSharp/Net.VO.Mai2/UserDetailResponseVO.cs
 
-    ★ banState at Get Side is**top-level**Field（UserDetailResponseVO.cs:15），
-      Callback Upsert timemusttext userData Internal（real machine source/2026-10-05.log:123 of userData inhas banState）。
+    ★ banState at Get Side is**top-level**Field(UserDetailResponseVO.cs:15),
+      Callback Upsert timemust userData Internal(real machine source/2026-10-05.log:123 of userData inhas banState).
 
-    ⚠ Common Misconceptions：hastextfor userData by GetGameKaleidxScopeApi Issue。
-      But GameKaleidxScopeResponseVO.cs inOnly gameKaleidxScopeList Field，textnone userData。
-      real machineloginthatOnce「GetGameKaleidxScope ofResponseBelt userData」，istextPackageToolspresstimetextrelatedtext
-      recordtextoftext（Two responses are merged）。
+    ⚠ Common Misconceptions:hasfor userData by GetGameKaleidxScopeApi Issue.
+      But GameKaleidxScopeResponseVO.cs inOnly gameKaleidxScopeList Field,none userData.
+      real machineloginthatOnce"GetGameKaleidxScope ofResponseBelt userData",ispacketToolspresstimerelated
+      recordof(Two responses are merged).
 
-call exampleExample：
+Example:
     from api import GetUserData
 """
 
@@ -42,17 +42,17 @@ def GetUserData(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Fetch full user data（Corresponding GetUserDataApi）。
+    Fetch full user data(Corresponding GetUserDataApi).
 
-    Parameter：
-        user_id:    user ID（Required）
-        client_id:  machineStageshortValue（Optional）
-        timeout_ms: timeout milliseconds（Optional）
-        client:     Reusable MaimaiNetClient（Optional）
+    Parameter:
+        user_id:    user ID(Required)
+        client_id:  machine stateshortValue(Optional)
+        timeout_ms: timeout milliseconds(Optional)
+        client:     Reusable MaimaiNetClient(Optional)
 
-    returntimes：
-        Raw Response dict：{"userId":.., "userData":{..}, "banState":..}
+    Returns:
+        Raw Response dict:{"userId":.., "userData":{..}, "banState":..}
     """
-    log_info("Fetch full user data：user_id=" + str(user_id))
+    log_info("Fetch full user data:user_id=" + str(user_id))
     return _get("GetUserDataApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

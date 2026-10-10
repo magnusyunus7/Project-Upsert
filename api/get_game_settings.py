@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_game_settings.py —— getTaketext（GetGameSettingApi）
+get_game_settings.py —— getTake(GetGameSettingApi)
 ================================================================================
 
-Features：Get the runtime configuration sent by the server（text、Heartbeat Interval、Package timeout、Various upper limits）。
+Features:Get the runtime configuration sent by the server(,Heartbeat Interval,Package timeout,Various upper limits).
 
-Corresponding interface：GetGameSettingApi
-request body  ：{"placeId": <StoreID>, "clientId": "<machineStageshortValue>"}
+Corresponding interface:GetGameSettingApi
+request body  :{"placeId": <StoreID>, "clientId": "<machine stateshortValue>"}
           source/Assembly-CSharp/Net.VO.Mai2/GameSettingRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketGetGameSetting.cs:21-24
 
-★ real machinecallusetimemachine：Session Start、Ping Before（source/2026-10-05.log:1）。
+★ real machinecallusetimemachine:Session Start,Ping Before(source/2026-10-05.log:1).
 
-call exampleExample：
+Example:
     from api import GetGameSettings
     resp = GetGameSettings()
     print(resp.gameSetting.isMaintenance, resp.gameSetting.requestInterval)
@@ -30,12 +30,12 @@ from .maimai_net import MaimaiNetClient, request_dict
 
 
 # =============================================================================
-# VO（Field Comparison source/Assembly-CSharp/Net.VO.Mai2/GameSetting.cs Response to real machine）
+# VO(Field Comparison source/Assembly-CSharp/Net.VO.Mai2/GameSetting.cs Response to real machine)
 # =============================================================================
 
 @dataclass
 class GameSetting:
-    """texttimetext（Corresponding Net.VO.Mai2.GameSetting）。"""
+    """time(Corresponding Net.VO.Mai2.GameSetting)."""
     isMaintenance: bool = False
     requestInterval: int = 0
     rebootStartTime: str = ""
@@ -72,14 +72,14 @@ class GameSetting:
 
 @dataclass
 class GameSettingRequestVO:
-    """request VO（Corresponding GameSettingRequestVO）。"""
+    """request VO(Corresponding GameSettingRequestVO)."""
     placeId: int = 0
     clientId: str = ""
 
 
 @dataclass
 class GameSettingResponseVO:
-    """Response VO（Corresponding GameSettingResponseVO）。"""
+    """Response VO(Corresponding GameSettingResponseVO)."""
     isAouAccession: bool = False
     gameSetting: GameSetting = field(default_factory=GameSetting)
 
@@ -96,18 +96,18 @@ def GetGameSettings(
     client: Optional[MaimaiNetClient] = None,
 ) -> GameSettingResponseVO:
     """
-    getTaketext（serverIssueoftexttimetext）。
+    getTake(serverIssueoftime).
 
-    Parameter：
-        place_id:  Store ID（Optional，default config.PLACE_ID）
-        client_id: machineStageshortValue（Optional，default config.CLIENT_ID）
-        timeout_ms: timeout milliseconds（Optional）
-        client:    Reusable MaimaiNetClient（Optional）
+    Parameter:
+        place_id:  Store ID(Optional,default config.PLACE_ID)
+        client_id: machine stateshortValue(Optional,default config.CLIENT_ID)
+        timeout_ms: timeout milliseconds(Optional)
+        client:    Reusable MaimaiNetClient(Optional)
 
-    returntimes：
+    Returns:
         GameSettingResponseVO
     """
-    log_info("getTaketext：place_id=" + str(place_id) + " client_id=" + client_id)
+    log_info("getTakeplace_id=" + str(place_id) + " client_id=" + client_id)
 
     raw = request_dict(
         "GetGameSettingApi",
@@ -125,12 +125,12 @@ def GetGameSettings(
     )
 
     if gs.isMaintenance:
-        log_warning("serverplaceintext（isMaintenance=True）")
+        log_warning("serverplacein(isMaintenance=True)")
     if gs.pingDisable:
-        log_info("serverAlreadytextuseHeartbeat（pingDisable=True）")
+        log_info("serverAlreadyuseHeartbeat(pingDisable=True)")
 
     log_info(
-        "textgetTakeDone：isMaintenance=" + str(gs.isMaintenance)
+        "getTakeDone:isMaintenance=" + str(gs.isMaintenance)
         + " requestInterval=" + str(gs.requestInterval)
         + " packetTimeout=" + str(gs.packetTimeout)
         + " packetTimeoutLong=" + str(gs.packetTimeoutLong)
@@ -140,17 +140,17 @@ def GetGameSettings(
 
 
 def is_maintenance(settings: GameSettingResponseVO) -> bool:
-    """Convenient Judgment：serverisNoplaceintext。"""
+    """Convenient Judgment:serverisNoplacein"""
     return bool(settings.gameSetting.isMaintenance)
 
 
 def is_ping_disabled(settings: GameSettingResponseVO) -> bool:
-    """Convenient Judgment：isNoAlreadytextuseHeartbeat。"""
+    """Convenient Judgment:isNoAlreadyuseHeartbeat."""
     return bool(settings.gameSetting.pingDisable)
 
 
 # =============================================================================
-# Run separately（debug）
+# Run separately(debug)
 # =============================================================================
 
 if __name__ == "__main__":
@@ -167,7 +167,7 @@ if __name__ == "__main__":
             return 0
         except Exception as exc:
             from .log_setup import log_error
-            log_error("getTaketextFailed：" + str(exc))
+            log_error("getTakeFailed:" + str(exc))
             return 1
         finally:
             teardown_logging()

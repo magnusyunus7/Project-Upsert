@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_user_charge.py —— Pick up user tickets（GetUserChargeApi）
+get_user_charge.py —— Pick up user tickets(GetUserChargeApi)
 ================================================================================
 
-Take the holdings of the player's tickets（real machine 3 item）。
+Take the holdings of the player's tickets(real machine 3 item).
 
-Corresponding interface：GetUserChargeApi
-request body  ：UserIdRequestVO
-Response    ：{userId, length, userChargeList:[{chargeId,stock,purchaseDate,validDate,extNum1}]}
-Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserChargeRequestVO.cs
+Corresponding interface:GetUserChargeApi
+request body  :UserIdRequestVO
+Response:{userId, length, userChargeList:[{chargeId,stock,purchaseDate,validDate,extNum1}]}
+Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserChargeRequestVO.cs
 
-★ Callback Upsert timemustDiscard extNum1（real machine Upsert packetinnonethisfields）。
+★ Callback Upsert timemustDiscard extNum1(real machine Upsert packetinnonethisfields).
 
-call exampleExample：
+Example:
     from api import GetUserCharge
 """
 
@@ -35,11 +35,11 @@ def GetUserCharge(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Pick up user tickets（Corresponding GetUserChargeApi）。
+    Pick up user tickets(Corresponding GetUserChargeApi).
 
-    returntimes：
-        Raw Response dict，Contains userChargeList
+    Returns:
+        Raw Response dict,Contains userChargeList
     """
-    log_info("Pick up user tickets：user_id=" + str(user_id))
+    log_info("Pick up user tickets:user_id=" + str(user_id))
     return _get("GetUserChargeApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

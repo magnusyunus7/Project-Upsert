@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-get_user_mission.py —— Fetching user tasks and weekly data（GetUserMissionDataApi）
+get_user_mission.py —— Fetching user tasks and weekly data(GetUserMissionDataApi)
 ================================================================================
 
-Take the player's quest progress and weekly data（real machine 6 itemTask）。
+Take the player's quest progress and weekly data(real machine 6 itemTask).
 
-Corresponding interface：GetUserMissionDataApi
-request body  ：UserIdRequestVO
-Response    ：{userId, userWeeklyData:{...}, userMissionDataList:[...]}
-Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserMissionRequestVO.cs
+Corresponding interface:GetUserMissionDataApi
+request body  :UserIdRequestVO
+Response:{userId, userWeeklyData:{...}, userMissionDataList:[...]}
+Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserMissionRequestVO.cs
 
-★ One interface sends two at the same time Upsert nodes：
+★ One interface sends two at the same time Upsert nodes:
     userMissionDataList  Task List
-    userWeeklyData       Weekly data（★ is**Object**Not an array）
-★ Both backhaul Upsert timeallmustDiscardEachtextof userId Field。
+    userWeeklyData       Weekly data(★ is**Object**Not an array)
+★ Both backhaul Upsert timeallmustDiscardEachof userId Field.
 
-call exampleExample：
+Example:
     from api import GetUserMissionData
 """
 
@@ -38,11 +38,11 @@ def GetUserMissionData(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Fetching user tasks and weekly data（Corresponding GetUserMissionDataApi）。
+    Fetching user tasks and weekly data(Corresponding GetUserMissionDataApi).
 
-    returntimes：
-        Raw Response dict：{"userId":.., "userWeeklyData":{..}, "userMissionDataList":[..]}
+    Returns:
+        Raw Response dict:{"userId":.., "userWeeklyData":{..}, "userMissionDataList":[..]}
     """
-    log_info("Fetching user tasks and weekly data：user_id=" + str(user_id))
+    log_info("Fetching user tasks and weekly data:user_id=" + str(user_id))
     return _get("GetUserMissionDataApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

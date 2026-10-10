@@ -1,89 +1,89 @@
 # -*- coding: utf-8 -*-
 """
-upsert_user_all.py —— Upload Grades（UpsertUserAllApi）
+upsert_user_all.py —— Upload Grades(UpsertUserAllApi)
 ================================================================================
 
-Features：putOnegameplayofFullsettlementdatatextserver。this is**The only one with side effects**ofinterface。
+Features:putOnegameplayofFullsettlementdataserver.this is**The only one with side effects**ofinterface.
 
-Corresponding interface：UpsertUserAllApi
-request body  ：UserAllRequestVO（7 top-level fields + upsertUserAll of 36 nodes）
+Corresponding interface:UpsertUserAllApi
+request body  :UserAllRequestVO(7 top-level fields + upsertUserAll of 36 nodes)
           source/Assembly-CSharp/Net.VO.Mai2/UserAllRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketUpsertUserAll.cs:22-35
 
 --------------------------------------------------------------------------------
-One、top-leveltext（7 Field）
+One,top-level(7 Field)
 --------------------------------------------------------------------------------
     userId          user ID
     playlogId       ★ Required == UserLoginApi of loginId
-    isEventMode     isNotextmode
+    isEventMode     isNomode
     isFreePlay      isNoFreeplay
     loginDateTime   ★ Required == UserLoginApi of loginDateTime
-    userPlaylogList this gameResultsdetails（110 Field × N item）
+    userPlaylogList this gameResultsdetails(110 Field × N item)
     upsertUserAll   36 Full amount of user data for nodes
 
-    playlogId / loginDateTime allNotextinterfaceGenerateof，They come from UserLoginApi。
-    Wrong login sent ID serverMeetingsdirectlytext；Changed login session midway Must login again。
+    playlogId / loginDateTime allNointerfaceGenerateof,They come from UserLoginApi.
+    Wrong login sent ID serverMeetingsdirectly;Changed login session midway Must login again.
 
 --------------------------------------------------------------------------------
-Two、upsertUserAll of 36 nodes（4 textMorphology）
+Two,upsertUserAll of 36 nodes(4 Morphology)
 --------------------------------------------------------------------------------
-Basis source/Assembly-CSharp/Net.VO.Mai2/UserAll.cs，and use the real machine message
-source/2026-10-05.log:123 textnodestextYes.：
+Basis source/Assembly-CSharp/Net.VO.Mai2/UserAll.cs,and use the real machine message
+source/2026-10-05.log:123 nodespresent.:
 
     Array of elements  4 Piece  userData / userExtend / userOption / userRatingList
     Object        2 Piece  userWeeklyData / user2pPlaylog      ★ Not an array
     Bitstring       11 Piece  isNew*                              length == Number of corresponding array entries
-    textnumbergroup   19 Piece  Remaining
+    numbergroup   19 Piece  Remaining
 
     4 + 2 + 11 + 19 = 36
 
 --------------------------------------------------------------------------------
-Three、★ textoftext：Snapshot Baseline + this gametextcalculate + Differential
+Three,★ ofSnapshot Baseline + this gamecalculate + Differential
 --------------------------------------------------------------------------------
-real machineNoput Get The entire table is returned as is.，andis「Only return those few changes」。
-put source/2026-10-05.log inSame accountof Get Side vs. Upsert Side control：
+real machineNoput Get The entire table is returned as is.,andis"Only return those few changes".
+put source/2026-10-05.log inSame accountof Get Side vs. Upsert Side control:
 
-    | nodes                  | Get Side（logintime）      | Upsert Side（settlementtime）      |
+    | nodes                  | Get Side(logintime)      | Upsert Side(settlementtime)      |
     |-----------------------|----------------------|--------------------------|
     | userData.playCount    | 1257                 | 1258        (+1)         |
     | userData.currentPlay  | 185                  | 186         (+1)         |
     | userMusicDetailList   | 143/level4 playCount=7 | 143/level4 playCount=8 |
     | userMapList           | 550003 distance=1424000 | distance=1435000 (+11000) |
-    | userCharacterList     | 5 Only                 | 5 Only，eachOnly level +1      |
-    | userItemList          | 1070 item              | []          （noVariation）    |
-    | userCourseList        | 16 item                | []          （noVariation）    |
+    | userCharacterList     | 5 Only                 | 5 Only,eachOnly level +1      |
+    | userItemList          | 1070 item              | []          (noVariation)    |
+    | userCourseList        | 16 item                | []          (noVariation)    |
 
-    ★ text：**serverYes. userData istextoverwritesemantic** —— put Get Send back the old value as it came down，
-      After Write「textNothing happened」，thisis「returnCode=1 But it fell into the vault」oftext。
-      Differential node if empty，serverAlsotextNooutthis gamehasAnyVariation。
+    ★ **serverpresent. userData isoverwritesemantic** —— put Get Send back the old value as it came down,
+      After Write"nothing happened",thisis"returnCode=1 But it fell into the vault"of
+      Differential node if empty,serverAlsonooutthis gamehasAnyVariation.
 
-    ⚠ textofdefaultValueAndUptext（real machine）**hastextDifferent**：
-      config.PLAY_USER_PLAY_COUNT_GAIN = 0（default）
-        -> userData.playCount / currentPlayCount **Stay the same**，Never engrave the real machine again +1。
-        If you want to reproduce the real machine, change it to 1。
-      Other incremental similarities：PLAY_MUSIC_PLAY_COUNT_GAIN / PLAY_MAP_DISTANCE_GAIN /
-      PLAY_CHARACTER_EXP_GAIN defaultallis 0。
+    ⚠ ofdefaultValueAndUp(real machine)**hasdifferent**:
+      config.PLAY_USER_PLAY_COUNT_GAIN = 0(default)
+        -> userData.playCount / currentPlayCount **Stay the same**,Never engrave the real machine again +1.
+        If you want to reproduce the real machine, change it to 1.
+      Other incremental similarities:PLAY_MUSIC_PLAY_COUNT_GAIN / PLAY_MAP_DISTANCE_GAIN /
+      PLAY_CHARACTER_EXP_GAIN defaultallis 0.
 
-So the process for this module is：
+So the process for this module is:
 
-    1. From snapshot（loginAftertextof Get Response）Create**Baseline**
-    2. pressthis game data（play）textcalculateout**text**，and count the differential nodes (text - Baseline)
+    1. From snapshot(loginAfterof Get Response)Create**Baseline**
+    2. pressthis game data(play)calculateout**text**,and count the differential nodes (text - Baseline)
     3. use patch Do a precise overlay
-    4. text 11 itemBitstring（lengthtextYes.textCorresponding array）
+    4. text 11 itemBitstring(lengthpresent.corresponding array)
 
 --------------------------------------------------------------------------------
-Four、Safety gate
+Four,Safety gate
 --------------------------------------------------------------------------------
-textinterfacehasSide effects，default**No Package Issued**：
+interfacehasSide effects,default**no packet is sent**:
 
-    UpsertUserAll(...)                 -> raise ConfirmRequiredError（notPackaging）
+    UpsertUserAll(...)                 -> raise ConfirmRequiredError(notPackaging)
     UpsertUserAll(..., dry_run=True)   -> Construct and return packets only
     UpsertUserAll(..., confirm=True)   -> realSend
 
-See global switch config.UPSERT_CONFIRM。
+See global switch config.UPSERT_CONFIRM.
 
 --------------------------------------------------------------------------------
-Five、call exampleExample
+Five,call exampleExample
 --------------------------------------------------------------------------------
     from api import (setup_logging, ParseQRCode, GetUserPreview, UserLogin,
                      GetNeedUserData, UpsertUserAll, build_play_from_config)
@@ -93,10 +93,10 @@ Five、call exampleExample
     GetUserPreview(user_id, token)
     login = UserLogin(user_id, token)
 
-    # 1) loginAftertextBaseline Snapshot（Benchmark of Difference）
+    # 1) loginAfterBaseline Snapshot(Benchmark of Difference)
     snapshot = GetNeedUserData(user_id, token=token)
 
-    # 2) grouptextthis game data（defaultread config.py of PLAY_*）
+    # 2) groupthis game data(defaultread config.py of PLAY_*)
     play = build_play_from_config()
 
     # 3) Read the message first
@@ -104,7 +104,7 @@ Five、call exampleExample
                         login_date_time=login.loginDateTime,
                         snapshot=snapshot, play=play, dry_run=True)
 
-    # 4) textnotextAfterrealUpload
+    # 4) noafterrealUpload
     UpsertUserAll(user_id, login.loginId,
                   login_date_time=login.loginDateTime,
                   snapshot=snapshot, play=play, confirm=True)
@@ -133,29 +133,29 @@ from config import (
 )
 
 # =============================================================================
-# machineStagetextBit（Hara PLAY_SPECIAL_NUM，2026-10-06 sink to this module）
+# machine stateBit(Hara PLAY_SPECIAL_NUM,2026-10-06 sink to this module)
 # =============================================================================
 #
-# Basis：source/Assembly-CSharp/Manager/GameManager.cs of CalcSpecialNum()
+# Basis:source/Assembly-CSharp/Manager/GameManager.cs of CalcSpecialNum()
 #       [CalcSpecialNum] = 1024   (SpecialAP=False  IsFreedomMode=False)
-#       1024 = 0x400，i.e. divide by「noitemtextBit」thatOneBittextAllfor 0 —— currenttextisOneStagestandard ACA machineStage。
+#       1024 = 0x400,i.e. divide by"noitemBit"thatOneBitallfor 0 —— currentisOneStagestandard ACA machine state.
 #
-#   ★ Reverse inference validation：real machine playSpecial = 892014272
+#   ★ Reverse inference validation:real machine playSpecial = 892014272
 #         Bit inversion32(892014272) = 57726124 = 27900 * 2069 + 1024
-#         The remainder is just right 1024，with caught CalcSpecialNum Exact match。
+#         The remainder is just right 1024,with caught CalcSpecialNum Exact match.
 PLAY_SPECIAL_NUM = 1024
 
-#: ★ machineStagetextplaycountnumbertext：notextFromservertext，pressusermusttext**Constantly 2**
+#: ★ machine stateplaycountnumbernofromserverpressusermust**Constantly 2**
 PLAY_LOCAL_PLAY_COUNT = 2
 
 #: ★ afterGradeRank Constantly 1
 PLAY_AFTER_GRADE_RANK = 1
 
-#: ★ isNoat userMusicDetailList intextSame (musicId, level) text beforeGrade / afterGrade。
-#:   ⚠ source codeEmpiricalthisThreefieldstextis**textBit（Dan）**（VOExtensions.cs:1419-1421），
-#:     real machinenotextBittextAlways 0 / 0 / 1。
-#:     False = **Always 0**（default，Consistent with the real machine —— The user has confirmed that this）
-#:     True  = Push from track recordings（For debugging only）
+#: ★ isNoat userMusicDetailList insame (musicId, level) text beforeGrade / afterGrade.
+#:   ⚠ source codeEmpiricalthisThreefieldsis**Bit(Dan)**(VOExtensions.cs:1419-1421),
+#:     real machinenoBitAlways 0 / 0 / 1.
+#:     False = **Always 0**(default,Consistent with the real machine —— The user has confirmed that this)
+#:     True  = Push from track recordings(For debugging only)
 DERIVE_GRADE_FROM_MUSIC_DETAIL = False
 
 from .log_setup import log_debug, log_error, log_info, log_warning
@@ -172,36 +172,36 @@ from .maimai_net import (
 # =============================================================================
 
 class UpsertUserAllError(RuntimeError):
-    """serverreturntimes returnCode != 1。"""
+    """serverreturns returnCode != 1."""
 
 
 class ConfirmRequiredError(RuntimeError):
-    """hasSide effectsofinterfacetextSafety gatetextDown（texttime**notPackaging**）。"""
+    """hasSide effectsofinterfaceSafety gateDown(time**notPackaging**)."""
 
 
 class PatchError(ValueError):
-    """nodesFirst nameornodesMorphologyNoLegal。"""
+    """nodesFirst nameornodesMorphologyNoLegal."""
 
 
 # =============================================================================
-# One、36 type table of nodes
+# One,36 type table of nodes
 # =============================================================================
 #
-#   "singleton" : numbergroup，Heng 1 Element（userData / userExtend / userOption / userRatingList）
-#   "object"    : ★ Single Object，Not an array（userWeeklyData / user2pPlaylog）
-#   "array"     : textnumbergroup
-#   "bits"      : String bit string，length == Number of corresponding array entries
+#   "singleton" : numbergroup,Heng 1 Element(userData / userExtend / userOption / userRatingList)
+#   "object"    : ★ Single Object,Not an array(userWeeklyData / user2pPlaylog)
+#   "array"     : numbergroup
+#   "bits"      : String bit string,length == Number of corresponding array entries
 #
 NODE_TYPES: Dict[str, str] = {
-    # ---- Array of elements（4）----
+    # ---- Array of elements(4)----
     "userData": "singleton",
     "userExtend": "singleton",
     "userOption": "singleton",
     "userRatingList": "singleton",
-    # ---- Object，non-numbergroup（2）★ ----
+    # ---- Object,non-numbergroup(2)★ ----
     "userWeeklyData": "object",
     "user2pPlaylog": "object",
-    # ---- textnumbergroup（19）----
+    # ---- numbergroup(19)----
     "userCharacterList": "array",
     "userGhost": "array",
     "userMapList": "array",
@@ -221,7 +221,7 @@ NODE_TYPES: Dict[str, str] = {
     "userTradeItemList": "array",
     "userFavoritemusicList": "array",
     "userKaleidxScopeList": "array",
-    # ---- Bitstring（11）----
+    # ---- Bitstring(11)----
     "isNewCharacterList": "bits",
     "isNewMapList": "bits",
     "isNewLoginBonusList": "bits",
@@ -235,7 +235,7 @@ NODE_TYPES: Dict[str, str] = {
     "isNewKaleidxScopeList": "bits",
 }
 
-#: Bitstring -> Corresponding array（Basis UserAll.cs ofFieldtextFirst nameAndreal machinepackettextYes.）
+#: Bitstring -> Corresponding array(Basis UserAll.cs ofFieldfirst nameAndreal machinepacketpresent.)
 BITS_TO_ARRAY: Dict[str, str] = {
     "isNewCharacterList": "userCharacterList",
     "isNewMapList": "userMapList",
@@ -252,7 +252,7 @@ BITS_TO_ARRAY: Dict[str, str] = {
 
 ARRAY_TO_BITS: Dict[str, str] = {v: k for k, v in BITS_TO_ARRAY.items()}
 
-#: nodesatpacketinoforder（text UserAll.cs ofFieldDeclarationorder）
+#: nodesatpacketinoforder(text UserAll.cs ofFieldDeclarationorder)
 NODE_ORDER: Tuple[str, ...] = (
     "userData", "userExtend", "userOption", "userCharacterList", "userGhost",
     "userMapList", "userLoginBonusList", "userRatingList", "userItemList",
@@ -267,9 +267,9 @@ NODE_ORDER: Tuple[str, ...] = (
     "isNewFavoritemusicList", "isNewKaleidxScopeList",
 )
 
-#: needcalculateDifferentialofnodes -> Primary Key Field（used fortextBitstringof "0"/"1"）
+#: needcalculateDifferentialofnodes -> Primary Key Field(used forBitstringof "0"/"1")
 #:
-#: ★ Basis for Judgment = real machine Get Side vs. Upsert Number of bars on side comparison（source/2026-10-05.log）：
+#: ★ Basis for Judgment = real machine Get Side vs. Upsert Number of bars on side comparison(source/2026-10-05.log):
 #:
 #:     | nodes                | Get Side | Upsert Side | isNoDifferential |
 #:     |---------------------|--------|-----------|----------|
@@ -280,14 +280,14 @@ NODE_ORDER: Tuple[str, ...] = (
 #:     | userCourseList      | 16     | 0         | is       |
 #:     | userItemList        | 1070   | 0         | is       |
 #:     | userIntimateList    | 2      | 0         | is       |
-#:     | userChargeList      | 3      | **3**     | ★ No！textCallback |
+#:     | userChargeList      | 3      | **3**     | ★ No!callback |
 #:
-#: userChargeList is**textCallback**（real machineAs ishairtext 3 item），Cannot be treated as difference，
-#: Otherwise, it will be mistakenly converged into an empty array。
+#: userChargeList is**callback**(real machineAs ishair 3 item),Cannot be treated as difference,
+#: Otherwise, it will be mistakenly converged into an empty array.
 DIFF_PRIMARY_KEYS: Dict[str, Tuple[str, ...]] = {
     "userCharacterList": ("characterId",),
     "userMapList": ("mapId",),
-    "userLoginBonusList": ("bonusId",),   # texttothatitem -> Bitstring "1"
+    "userLoginBonusList": ("bonusId",),   # tothatitem -> Bitstring "1"
     "userItemList": ("itemKind", "itemId"),
     "userMusicDetailList": ("musicId", "level"),
     "userCourseList": ("courseId",),
@@ -298,17 +298,17 @@ DIFF_PRIMARY_KEYS: Dict[str, Tuple[str, ...]] = {
     "userFavoritemusicList": ("musicId",),
 }
 
-#: textCallback、Node without difference（real machineAs ishairoutAllitemtext）
+#: callback,Node without difference(real machineAs ishairoutAllitem)
 FULL_TABLE_NODES: Tuple[str, ...] = (
     "userChargeList",
 )
 
 #: noVariationtimeYesleave blankofnodes
-#:   Basis：real machinepacket source/2026-10-05.log:123 in userItemList / userCourseList /
+#:   Basis:real machinepacket source/2026-10-05.log:123 in userItemList / userCourseList /
 #:        userKaleidxScopeList / userIntimateList / userShopItemStockList /
 #:        userTradeItemList / userFriendSeasonRankingList / userFavoritemusicList /
-#:        userGhost / userLoginBonusList / userGetPointList Yes to all []，
-#:        servertextreturntimes returnCode=1 —— emptynumbergroupistextof。
+#:        userGhost / userLoginBonusList / userGetPointList Yes to all [],
+#:        serverreturns returnCode=1 —— emptynumbergroupisof.
 MAY_BE_EMPTY_NODES: Tuple[str, ...] = (
     "userGhost", "userMapList", "userLoginBonusList", "userItemList",
     "userMusicDetailList", "userCourseList", "userFriendSeasonRankingList",
@@ -318,98 +318,98 @@ MAY_BE_EMPTY_NODES: Tuple[str, ...] = (
     "userCharacterList", "userRatingList",
 )
 
-#: defaultHengemptyofnodes（this gameNoGenerateofdata）
+#: defaultHengemptyofnodes(this gameNoGenerateofdata)
 #:
-#: ★ userGetPointList And userLoginBonusList allattextColumns —— thistextnodesis
-#:   **loginRewardshairtext**will arise.，textplaysettlementNot requiredCallback：
+#: ★ userGetPointList And userLoginBonusList allatColumns —— thisnodesis
+#:   **loginRewardshair**will arise.,playsettlementNot requiredCallback:
 #:
-#:   - userGetPointList（intext/textnumberdetails）
-#:     real machine 39 text UpsertUserAll textin **25 textIs Empty（64%）**，
-#:     Only login rewards occur/Not empty when rewarding a task（As getKind=1 point=200）。
-#:     leave blank => serverNotextPlus point，textnumberStay the same。
+#:   - userGetPointList(in/numberdetails)
+#:     real machine 39 text UpsertUserAll in **25 Is Empty(64%)**,
+#:     Only login rewards occur/Not empty when rewarding a task(As getKind=1 point=200).
+#:     leave blank => serverNoPlus point,numberStay the same.
 #:
-#:   - userLoginBonusList（texttoRewards）
-#:     Empathy，Only return that one when a new check-in is triggered by this login（isCurrent=true）。
-#:     leave blank => isNewLoginBonusList is also an empty string。
+#:   - userLoginBonusList(toRewards)
+#:     Empathy,Only return that one when a new check-in is triggered by this login(isCurrent=true).
+#:     leave blank => isNewLoginBonusList is also an empty string.
 #:
-#:   ★ textBeltImpact（currenttextcurrenttext）：leave blankAfter userData.point ofIncrementtextnoFromtext，
-#:     So point Keep baseline value unchanged。this is「Do not issue credits」oftextresult。
+#:   ★ BeltImpact(currentcurrent):leave blankAfter userData.point ofIncrementnoFrom
+#:     So point Keep baseline value unchanged.this is"Do not issue credits"ofresult.
 DEFAULT_EMPTY_NODES: Tuple[str, ...] = (
     "userGhost",            # source code VOExtensions.cs:235 Only in NeedSave timeCallback
-    "userGetPointList",     # loginRewardsonlyGenerate；textsettlementleave blank
-    "userLoginBonusList",   # loginRewardsonlyGenerate；textsettlementleave blank
+    "userGetPointList",     # loginRewardsonlyGenerate;settlementleave blank
+    "userLoginBonusList",   # loginRewardsonlyGenerate;settlementleave blank
     "userTradeItemList",    # no Get text
     "userFriendSeasonRankingList",   # no Get text
-    "userFavoritemusicList",         # source codeisitemtextCallback，real machineHeng []
+    "userFavoritemusicList",         # source codeisitemcallback,real machineHeng []
 )
 
 
 # =============================================================================
-# Two、Field crop table（Get Side -> Upsert Fields to be discarded on the side）
+# Two,Field crop table(Get Side -> Upsert Fields to be discarded on the side)
 # =============================================================================
 #
-# Basis：putreal machine Get Side response vs. Upsert Side reports are compared by field。
+# Basis:putreal machine Get Side response vs. Upsert Side reports are compared by field.
 
-#: userData：Get Side has、Upsert Fields without side
+#: userData:Get Side has,Upsert Fields without side
 USER_DATA_DROP_KEYS: Tuple[str, ...] = (
     "friendCode", "nameplateId", "trophyId",
     "cmLastEmoneyCredit", "cmLastEmoneyBrand",
 )
 
-#: userOption：Upsert Side No tempoVolume
+#: userOption:Upsert Side No tempoVolume
 USER_OPTION_DROP_KEYS: Tuple[str, ...] = ("tempoVolume",)
 
-#: userExtend：Upsert Side**Extra**thistextfields（Get Side No），Must be supplemented
-#:   real machine Upsert Side 16 key vs Get Side 14 key，The difference is these two.
+#: userExtend:Upsert Side**Extra**thisfields(Get Side No),Must be supplemented
+#:   real machine Upsert Side 16 key vs Get Side 14 key,The difference is these two.
 USER_EXTEND_EXTRA_KEYS: Tuple[str, ...] = ("isPhotoAgree", "isGotoCodeRead")
 
-#: ★ userRating.udemae：server Get There is a batch in the response**firsttextUppercaseoftextField**
-#:   （source/2026-10-05.log:87 of Get Responding to npcWinNum And NpcWinNum Coexistence，of 23 key），
-#:   But the real machine Upsert packetin**Lowercase only 16 key**（source/2026-10-05.log:123）。
-#:   source code Net.VO.Mai2/UserUdemae.cs Lowercase only 16 fields，
-#:   So this batch of uppercase fields is the redundant output of the server，Must be truncated on return —— Otherwise：
+#: ★ userRating.udemae:server Get There is a batch in the response**firstUppercaseoffield**
+#:   (source/2026-10-05.log:87 of Get Responding to npcWinNum And NpcWinNum Coexistence,of 23 key),
+#:   But the real machine Upsert packetin**Lowercase only 16 key**(source/2026-10-05.log:123).
+#:   source code Net.VO.Mai2/UserUdemae.cs Lowercase only 16 fields,
+#:   So this batch of uppercase fields is the redundant output of the server,Must be truncated on return —— Otherwise:
 #:     ① packetinAppearancesource codeAbsentofField
-#:     ② request bodytextreal machinetext 119 Bytes
+#:     ② request bodyreal machine 119 Bytes
 USER_RATING_UDEMAE_DROP_KEYS: Tuple[str, ...] = (
     "MaxLoseNum", "NpcTotalWinNum", "NpcTotalLoseNum",
     "NpcMaxWinNum", "NpcMaxLoseNum", "NpcWinNum", "NpcLoseNum",
 )
 
-#: userCharacterList：Keep only this 4 fields
+#: userCharacterList:Keep only this 4 fields
 USER_CHARACTER_KEEP_KEYS: Tuple[str, ...] = (
     "characterId", "level", "awakening", "useCount",
 )
 
-#: userMusicDetailList：Discard extNum2
+#: userMusicDetailList:Discard extNum2
 USER_MUSIC_DETAIL_DROP_KEYS: Tuple[str, ...] = ("extNum2",)
 
-#: userChargeList：Discard extNum1
+#: userChargeList:Discard extNum1
 USER_CHARGE_DROP_KEYS: Tuple[str, ...] = ("extNum1",)
 
-#: userMissionDataList / userWeeklyData：Discard userId
+#: userMissionDataList / userWeeklyData:Discard userId
 USER_MISSION_DROP_KEYS: Tuple[str, ...] = ("userId",)
 
 
 # =============================================================================
-# Three、Basic Tools
+# Three,Basic Tools
 # =============================================================================
 
 def _strip_keys(item: Any, drop: Sequence[str]) -> Any:
-    """From dict inDeletespecifiedField（returntimestext dict）。"""
+    """From dict inDeletespecifiedField(returns dict)."""
     if not isinstance(item, dict):
         return item
     return {k: v for k, v in item.items() if k not in drop}
 
 
 def _keep_keys(item: Any, keep: Sequence[str]) -> Any:
-    """Keep only specified fields（returntimestext dict）。"""
+    """Keep only specified fields(returns dict)."""
     if not isinstance(item, dict):
         return item
     return {k: v for k, v in item.items() if k in keep}
 
 
 def empty_node(node: str) -> Any:
-    """pressnodestextreturntimesemptyValue。"""
+    """pressnodesreturnsemptyValue."""
     kind = NODE_TYPES.get(node)
     if kind == "bits":
         return ""
@@ -419,32 +419,32 @@ def empty_node(node: str) -> Any:
 
 
 def empty_user_all() -> Dict[str, Any]:
-    """constructFullemptyof 36 nodestext。"""
+    """constructFullemptyof 36 nodes"""
     return {node: empty_node(node) for node in NODE_ORDER}
 
 
 def coerce_node_value(node: str, value: Any) -> Any:
     """
-    putValuetextthenodesshouldhasofMorphology；Error transmission direct throwing PatchError。
+    putValuethenodesshouldhasofMorphology;Error transmission direct throwing PatchError.
 
-    ★ this istextoftext：userWeeklyData / user2pPlaylog Transfer array、
-      userData Passing on dict，allistextcheckoftext。
+    ★ this isofuserWeeklyData / user2pPlaylog Transfer array,
+      userData Passing on dict,allischeckof
     """
     kind = NODE_TYPES.get(node)
     if kind is None:
-        raise PatchError("nottextnodesFirst name：" + str(node))
+        raise PatchError("notnodesFirst name:" + str(node))
 
     if value is None:
         return empty_node(node)
 
     if kind == "bits":
         if not isinstance(value, str):
-            raise PatchError("nodes " + node + " isBitstring，Must pass str，receiveto " + type(value).__name__)
+            raise PatchError("nodes " + node + " isBitstring,Must pass str,receiveto " + type(value).__name__)
         return value
 
     if kind == "object":
         if not isinstance(value, dict):
-            raise PatchError("nodes " + node + " isObject（Not an array），Must pass dict，receiveto "
+            raise PatchError("nodes " + node + " isObject(Not an array),Must pass dict,receiveto "
                              + type(value).__name__)
         return value
 
@@ -453,21 +453,21 @@ def coerce_node_value(node: str, value: Any) -> Any:
             return [value]
         if isinstance(value, list):
             return value
-        raise PatchError("nodes " + node + " Must be dict or list，receiveto " + type(value).__name__)
+        raise PatchError("nodes " + node + " Must be dict or list,receiveto " + type(value).__name__)
 
     # array
     if isinstance(value, dict):
         return [value]
     if isinstance(value, list):
         return value
-    raise PatchError("nodes " + node + " Must be list，receiveto " + type(value).__name__)
+    raise PatchError("nodes " + node + " Must be list,receiveto " + type(value).__name__)
 
 
 def sync_bits_to_arrays(user_all: Dict[str, Any]) -> None:
     """
-    When the bit string length is inconsistent with the corresponding array number，press "0" text/Truncation（In-place modification）。
+    When the bit string length is inconsistent with the corresponding array number,press "0" text/Truncation(In-place modification).
 
-    ★ lengthNotextserverMeetingstext「Which ones are new」。
+    ★ lengthNoserverMeetings"Which ones are new".
     """
     for bits, arr in BITS_TO_ARRAY.items():
         items = user_all.get(arr)
@@ -478,21 +478,21 @@ def sync_bits_to_arrays(user_all: Dict[str, Any]) -> None:
         if not isinstance(cur, str):
             cur = ""
         if len(cur) != want:
-            # Truncate when there are already extra characters；Replenish when insufficient "0"
+            # Truncate when there are already extra characters;Replenish when insufficient "0"
             user_all[bits] = (cur + "0" * want)[:want] if cur else "0" * want
 
 
 # =============================================================================
-# Four、Differential
+# Four,Differential
 # =============================================================================
 
 def _norm(item: Any) -> str:
-    """putOneitemrecordtextofString。"""
+    """putOneitemrecordofString."""
     return json.dumps(item, ensure_ascii=False, sort_keys=True, default=str)
 
 
 def _primary_key(item: Any, keys: Sequence[str]) -> Tuple:
-    """Take primary key value。"""
+    """Take primary key value."""
     if not isinstance(item, dict):
         return (str(item),)
     return tuple(item.get(k) for k in keys)
@@ -504,21 +504,21 @@ def build_delta(
     compare_keys: Optional[Sequence[str]] = None,
 ) -> Tuple[List[Any], str]:
     """
-    Reprint VOExtensions.BuildListData ofDifferentialsemantic。
+    Reprint VOExtensions.BuildListData ofDifferentialsemantic.
 
-    textThen（source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:309-324）：
-        1. textFieldtext：textthisitemAndserver**Any**None of them are exactly the same -> calculate「Variation」，mustCallback
-           （source codeis nsrc.Except(osrc)，textFullFieldtext）
-        2. compare_keys Only for**calculateBitstring**，Not involved in culling
-        3. Bitstring："0" = Primary key already exists on the server（update）；"1" = New（added）
+    Then(source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:309-324):
+        1. fieldthisitemAndserver**Any**None of them are exactly the same -> calculate"Variation",mustCallback
+           (source codeis nsrc.Except(osrc),fullField)
+        2. compare_keys Only for**calculateBitstring**,Not involved in culling
+        3. Bitstring:"0" = Primary key already exists on the server(update);"1" = New(added)
 
-    Parameter：
-        local:        text（playAftershouldhasofValue）
-        server:       servertextSnapshot（Differential Baseline）
-        compare_keys: Primary Key Field Name（used fortextBitstring）
+    Parameter:
+        local:        text(playAftershouldhasofValue)
+        server:       serverSnapshot(Differential Baseline)
+        compare_keys: Primary Key Field Name(used forBitstring)
 
-    returntimes：
-        (mustCallbackofitemtextList, Bitstring)
+    Returns:
+        (mustCallbackofitemlist, Bitstring)
     """
     server_norm = {_norm(s) for s in server}
     server_keys = set()
@@ -544,28 +544,28 @@ def build_favorite_delta(
     assume_missing: Sequence[int] = (),
 ) -> Tuple[List[Any], str]:
     """
-    receivetextuseDifferential（Reprint VOExtensions.cs:345-367）。
+    receiveuseDifferential(Reprint VOExtensions.cs:345-367).
 
-    ★ Different from normal difference：**Do not cull，Constantly returns full entries**（real machine is 5 item）。
+    ★ Different from normal difference:**Do not cull,Constantly returns full entries**(real machine is 5 item).
 
-    Bit String Rules（pressreal machine source/2026-10-05.log:123 of "22212" Reverse）：
-        "2" = serverSide hasCorresponding itemKind（notextContentisNoMatch）
+    Bit String Rules(pressreal machine source/2026-10-05.log:123 of "22212" Reverse):
+        "2" = serverSide hasCorresponding itemKind(noContentisNoMatch)
         "1" = serverSidecheckNotothe itemKind
 
-    ★ Critical：**Priority use Get Side most primitive response indexing**，Don't use it first get_user_favorite.py
-      of「text itemKind」textReturnedOnetext —— real machinein itemKind=10 ofThe response is
-      {"itemKind":null, "itemIdList":[]}，currenttextforcheckNotoonlytextGenerate "1"。
+    ★ Critical:**Priority use Get Side most primitive response indexing**,Don't use it first get_user_favorite.py
+      of"text itemKind"returnedOne —— real machinein itemKind=10 ofThe response is
+      {"itemKind":null, "itemIdList":[]},currentforcheckNotoonlyGenerate "1".
 
-    Parameter：
-        local:          textreceivetextList（Made up itemKind，5 item）
-        server:         serverreceivetextList。Passing on**Original** Get On Response itemKind=null
-                        ofthatitemMeetingstextGenerate "1"（Not required assume_missing）。
-        assume_missing: 「serverHeng Hui null」of itemKind text。
-                        ★ Only if server is**textReturnedOnetext**ofList
-                          （itemKind Completed、textNooutOriginal null）timeonlyneedPassing on，
-                          Otherwise, it will put what should have been "1" ofthatBitcalculatetext "2"。
-                          callusetextattextNotoRaw ResponsetimePassing on FAVORITE_MISSING_KINDS，
-                          textGetRaw ResponsetimetextPassing on。
+    Parameter:
+        local:          receivelist(Made up itemKind,5 item)
+        server:         serverreceivelist.Passing on**Original** Get On Response itemKind=null
+                        ofthatitemMeetingsGenerate "1"(Not required assume_missing).
+        assume_missing: "serverHeng Hui null"of itemKind
+                        ★ Only if server is**returnedOne**ofList
+                          (itemKind Completed,nooutOriginal null)timeonlyneedPassing on,
+                          Otherwise, it will put what should have been "1" ofthatBitcalculate "2".
+                          calluseatnotoRaw ResponsetimePassing on FAVORITE_MISSING_KINDS,
+                          getRaw ResponsetimePassing on.
     """
     server_kinds = set()
     for s in server:
@@ -578,9 +578,9 @@ def build_favorite_delta(
     for item in local:
         out.append(item)
         kind = item.get("itemKind") if isinstance(item, dict) else None
-        # "1" ofitemtext（Any Establishment）：
-        #   a) serverSidetextnonethe itemKind（In the original response, null）
-        #   b) the kind at assume_missing in（Baseline normalized，textNooutOriginal null）
+        # "1" ofitem(Any Establishment):
+        #   a) serverSidenonethe itemKind(In the original response, null)
+        #   b) the kind at assume_missing in(Baseline normalized,nooutOriginal null)
         if kind in server_kinds and kind not in missing:
             flags.append("2")
         else:
@@ -589,17 +589,17 @@ def build_favorite_delta(
 
 
 # =============================================================================
-# Five、timetext
+# Five,time
 # =============================================================================
 
 def _local_wall_string(login_date_time: int) -> str:
     """
-    put loginDateTime textreal machinethattext "YYYY-MM-DD HH:MM:SS.0" String。
+    put loginDateTime real machinethat "YYYY-MM-DD HH:MM:SS.0" String.
 
-    ★ loginDateTime ofsemanticis「textWall TimetextWhentext UTC time」，
-      So use utcfromtimestamp textHaraoutWall Time，andNo fromtimestamp。
+    ★ loginDateTime ofsemanticis"Wall TimeWhen UTC time",
+      So use utcfromtimestamp HaraoutWall Time,andNo fromtimestamp.
       real machine userData.lastLoginDate = "2026-10-05 00:19:37.0"
-      Corresponding loginDateTime = 1791159576。
+      Corresponding loginDateTime = 1791159576.
     """
     try:
         dt = datetime.fromtimestamp(int(login_date_time), tz=timezone.utc)
@@ -608,30 +608,30 @@ def _local_wall_string(login_date_time: int) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S.0")
 
 
-#: CST Offset（source/Assembly-CSharp/Manager/TimeManager.cs:9  CSToffset = 8 Hours）
+#: CST Offset(source/Assembly-CSharp/Manager/TimeManager.cs:9  CSToffset = 8 Hours)
 CST_OFFSET_SECONDS = 8 * 3600
 
-#: playlogtextofMinutestextHours（source/Assembly-CSharp/Manager/TimeManager.cs:77-85
-#:   ToLogDateTime：Hours < 7 timeputtexttimestextOnedays）
+#: playlogofMinutesHours(source/Assembly-CSharp/Manager/TimeManager.cs:77-85
+#:   ToLogDateTime:Hours < 7 timeputtimesonedays)
 LOG_DAY_CUTOFF_HOUR = 7
 
 
 def _local_date_string(login_date_time: int) -> str:
     """
-    text "YYYY-MM-DD"（Corresponding TimeManager.GetLogDateString）。
+    text "YYYY-MM-DD"(Corresponding TimeManager.GetLogDateString).
 
-    ★ playlogtextNot a natural day：source/Assembly-CSharp/Manager/TimeManager.cs:77-85
+    ★ playlognot a natural day:source/Assembly-CSharp/Manager/TimeManager.cs:77-85
 
         public static DateTime ToLogDateTime(DateTime dateTime, int hour = 0)
         {
             DateTime result = new(dateTime.Year, dateTime.Month, dateTime.Day, hour, 0, 0);
-            if (7 > dateTime.Hour) return result.AddDays(-1.0);   // 7 textagocalculatePrevious day
+            if (7 > dateTime.Hour) return result.AddDays(-1.0);   // 7 agocalculatePrevious day
             return result;
         }
 
-    real machinetext（source/2026-10-05.log:123）：
-        userPlayDate = "2026-10-05 00:20:30.0"（Wall Time 10-05 00:20）
-        playDate     = "2026-10-04"          （00:20 < 07:00 -> Fallback to 10-04）
+    real machine(source/2026-10-05.log:123):
+        userPlayDate = "2026-10-05 00:20:30.0"(Wall Time 10-05 00:20)
+        playDate     = "2026-10-04"          (00:20 < 07:00 -> Fallback to 10-04)
     """
     wall = datetime.fromtimestamp(int(login_date_time), tz=timezone.utc)
     log_day = wall - timedelta(days=1) if wall.hour < LOG_DAY_CUTOFF_HOUR else wall
@@ -640,32 +640,32 @@ def _local_date_string(login_date_time: int) -> str:
 
 def _standard_unix(login_date_time: int) -> int:
     """
-    put loginDateTime textHaratext**standard Unix timetext**。
+    put loginDateTime Hara**standard Unix time**.
 
-    ★ loginDateTime is「textWall TimetextWhentext UTC time」ofsecondsnumber（text login_date_time_now），
-      So the standard Unix seconds = loginDateTime - texttimetextOffset（Eastern Eight Wards -28800）。
+    ★ loginDateTime is"Wall TimeWhen UTC time"ofsecondsnumber(text login_date_time_now),
+      So the standard Unix seconds = loginDateTime - timeOffset(Eastern Eight Wards -28800).
 
     Corresponding source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1290
         result.loginDate = TimeManager.GetUnixTime(src.Detail.LastLoginDate);
-    and TimeManager.GetUnixTime returnback isstandard Unix seconds。
+    and TimeManager.GetUnixTime returnback isstandard Unix seconds.
 
-    real machinetext：loginDateTime=1791159576 -> 1791159576-28800 = 1791130776，
-              real machine loginDate = 1791130777（Bad 1 seconds，textinStringtruncate toseconds）。
+    real machineloginDateTime=1791159576 -> 1791159576-28800 = 1791130776,
+              real machine loginDate = 1791130777(Bad 1 seconds,inStringtruncate toseconds).
     """
     return int(login_date_time) - local_utc_offset_seconds()
 
 
 # =============================================================================
-# Sat、this game data（play）
+# Sat,this game data(play)
 # =============================================================================
 
 @dataclass
 class PlayData:
     """
-    All inputs for one game。
+    All inputs for one game.
 
-    ★ defaultValueAll from config.py of PLAY_* textColumns（Taken from a real machine source/2026-10-05.log:123）。
-      Want to change songs/textResultsOnlychange config.py，Don't move the code。
+    ★ defaultValueAll from config.py of PLAY_* Columns(Taken from a real machine source/2026-10-05.log:123).
+      Want to change songs/ResultsOnlychange config.py,Don't move the code.
     """
     # track
     music_id: int = field(default_factory=lambda: config.PLAY_MUSIC_ID)
@@ -691,15 +691,15 @@ class PlayData:
         default_factory=lambda: copy.deepcopy(config.PLAY_JUDGE_COUNTS))
 
     # text
-    #: ★ thisFourPiece**No longer from config** —— texttimeby derive_play_rating() From
-    #:   GetUserRatingApi texttoof userRatingList[0] Fill in（texttheFunction）。
-    #:   textPassing onSnapshot（textgroupPackage）timeonlyKeep 0。
+    #: ★ thisFourPiece**No longer from config** —— timeby derive_play_rating() From
+    #:   GetUserRatingApi toof userRatingList[0] Fill in(theFunction).
+    #:   Passing onSnapshot(groupPackage)timeonlyKeep 0.
     before_rating: int = 0
     after_rating: int = 0
     before_delux_rating: int = 0
     after_delux_rating: int = 0
     #: ★ thisTwoby derive_play_grade() From Snapshot userMusicDetailList in
-    #:   textSame (musicId, level) ofrecordTake scoreRank Get；textNotois 0。
+    #:   same (musicId, level) ofrecordTake scoreRank Get;notois 0.
     before_grade: int = 0
     after_grade: int = 0
     #: ★ Constantly 1
@@ -710,9 +710,9 @@ class PlayData:
     music_index: int = field(default_factory=lambda: config.PLAY_MUSIC_INDEX)
     extra_flag: int = field(default_factory=lambda: config.PLAY_EXTRA_FLAG)
 
-    # text（playtimeSnapshot，Inexperienced）
-    #: ★ defaultemptyList —— textcurrentofValueby derive_play_characters() Push from server snapshot。
-    #:   （Hara PLAY_CHARACTERS（currentat selftest.py in） Moved to selftest.py As test data）
+    # text(playtimeSnapshot,Inexperienced)
+    #: ★ defaultemptyList —— currentofValueby derive_play_characters() Push from server snapshot.
+    #:   (Hara PLAY_CHARACTERS(currentat selftest.py in) Moved to selftest.py As test data)
     characters: List[Dict[str, int]] = field(default_factory=list)
 
     # consume
@@ -723,28 +723,28 @@ class PlayData:
     is_event_mode: bool = field(default_factory=lambda: config.PLAY_IS_EVENT_MODE)
     is_new_free: bool = field(default_factory=lambda: config.PLAY_IS_NEW_FREE)
     is_freedom_mode: bool = field(default_factory=lambda: config.PLAY_IS_FREEDOM_MODE)
-    #: ★ Constantly PLAY_LOCAL_PLAY_COUNT（= 2）—— machineStagetextcountnumbertext，serverNoreturntimes
+    #: ★ Constantly PLAY_LOCAL_PLAY_COUNT(= 2)—— machine statecountnumberserverNoreturns
     local_play_count: int = PLAY_LOCAL_PLAY_COUNT
 
-    # textcalculateIncrement
-    #: userTotal Play CountIncrement（0 = userData.playCount / currentPlayCount allUnchanged）
-    #: ★ default 0：No longer auto +1。If you want to repeat the real machine, set it to 1。
+    # calculateIncrement
+    #: userTotal Play CountIncrement(0 = userData.playCount / currentPlayCount allUnchanged)
+    #: ★ default 0:No longer auto +1.If you want to repeat the real machine, set it to 1.
     user_play_count_gain: int = field(
         default_factory=lambda: getattr(config, "PLAY_USER_PLAY_COUNT_GAIN", 0))
-    #: tracktextplaycountIncrement（0 = itemtextPassing onButcountUnchanged）
+    #: trackplaycountIncrement(0 = itemPassing onButcountUnchanged)
     music_play_count_gain: int = field(
         default_factory=lambda: config.PLAY_MUSIC_PLAY_COUNT_GAIN)
     map_distance_gain: int = field(default_factory=lambda: config.PLAY_MAP_DISTANCE_GAIN)
     character_exp_gain: int = field(default_factory=lambda: config.PLAY_CHARACTER_EXP_GAIN)
 
-    # ---- intext / loginRewards ----
-    # ★ thisTwois**loginRewardshairtext**Produced by，textplaysettlementNoCallback（leave blank）。
-    #   real machine 39 text UpsertUserAll textin，userGetPointList has 25 textIs Empty（64%）。
-    #   leave blank => userData.point Keep baseline value unchanged（Do not issue credits）。
+    # ---- in / loginRewards ----
+    # ★ thisTwois**loginRewardshair**Produced by,playsettlementNoCallback(leave blank).
+    #   real machine 39 text UpsertUserAll in,userGetPointList has 25 Is Empty(64%).
+    #   leave blank => userData.point Keep baseline value unchanged(Do not issue credits).
 
 
 def build_play_from_config() -> PlayData:
-    """press config.py of PLAY_* constructthis game data。"""
+    """press config.py of PLAY_* constructthis game data."""
     return PlayData()
 
 
@@ -753,12 +753,12 @@ def derive_play_rating(
     play: Optional[PlayData] = None,
 ) -> PlayData:
     """
-    Take from server snapshot**real rating**，Fill play ofFourPiece rating Field。
+    Take from server snapshot**real rating**,Fill play ofFourPiece rating Field.
 
-    ★ Why don't you use it anymore config inoftextValue：
-        rating will change with each round，Writing death will be incompatible with the server。
+    ★ Why don't you use it anymore config inofvalue:
+        rating will change with each round,Writing death will be incompatible with the server.
 
-    ★ Value based on（real machinepacketEmpirical，2026-10-06 22:23 thatgame）：
+    ★ Value based on(real machinepacketEmpirical,2026-10-06 22:23 thatgame):
         userPlaylog.beforeRating      = 15534
         userPlaylog.afterRating       = 15534
         userPlaylog.beforeDeluxRating = 15534
@@ -766,13 +766,13 @@ def derive_play_rating(
 
         userData.playerRating = 15534   ← And beforeRating/afterRating Match
         userData.musicRating  = 15534   ← And beforeDeluxRating/afterDeluxRating Match
-        userRatingList[0].rating = 0    ← Measured**No**thisvalues，Don't get it wrong
+        userRatingList[0].rating = 0    ← Measured**No**thisvalues,Don't get it wrong
 
-    Parameter：
-        snapshot: GetNeedUserData ofreturntimesValue
-        play:     musttextFill intextof PlayData（Do not pass on or create a new one）
+    Parameter:
+        snapshot: GetNeedUserData ofreturnsValue
+        play:     mustFill inof PlayData(Do not pass on or create a new one)
 
-    returntimes：Completed PlayData（Same object）。
+    Returns:Completed PlayData(Same object).
     """
     p = play or build_play_from_config()
     snap = normalize_snapshot(snapshot) if snapshot else {}
@@ -797,7 +797,7 @@ def derive_play_rating(
                     continue
         return None
 
-    # playerRating Priority；texttimetext userRatingList[0].rating
+    # playerRating Priority;time userRatingList[0].rating
     rating = _pick("playerRating")
     if rating is None:
         try:
@@ -817,13 +817,13 @@ def derive_play_rating(
         p.before_delux_rating = delux
         p.after_delux_rating = delux
 
-    log_info("rating Taken from server snapshot：playerRating=" + str(p.before_rating)
+    log_info("rating Taken from server snapshot:playerRating=" + str(p.before_rating)
              + " musicRating=" + str(p.before_delux_rating))
     return p
 
 
 def find_music_detail(snapshot: Optional[Any], music_id: int, level: int):
-    """in the snapshot userMusicDetailList intextSame (musicId, level) ofthatitemrecord；nonereturntimes None。"""
+    """in the snapshot userMusicDetailList insame (musicId, level) ofthatitemrecord;nonereturns None."""
     snap = normalize_snapshot(snapshot) if snapshot else {}
     items = snap.get("userMusicDetailList") or []
     if isinstance(items, dict):
@@ -841,24 +841,24 @@ def derive_play_grade(
     play: Optional[PlayData] = None,
 ) -> PlayData:
     """
-    text beforeGrade / afterGrade / afterGradeRank。
+    text beforeGrade / afterGrade / afterGradeRank.
 
-    ★★ textmust：source codeinthisThreefieldsis**textBit（Dan）**，Not a track rating ——
+    ★★ must:source codeinthisThreefieldsis**Bit(Dan)**,Not a track rating ——
         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1419-1421
-            result.beforeGrade    = (int)gameScore.PreDanRate;   // textBeforeoftextBit rate
-            result.afterGrade     = (int)gameScore.DanRate;      // textAfteroftextBit rate
-            result.afterGradeRank = (int)gameScore.Dan;          // textBitlevel
+            result.beforeGrade    = (int)gameScore.PreDanRate;   // beforeofBit rate
+            result.afterGrade     = (int)gameScore.DanRate;      // afterofBit rate
+            result.afterGradeRank = (int)gameScore.Dan;          // Bitlevel
 
-        real-machine sample（notextBittext）= beforeGrade 0 / afterGrade 0 / afterGradeRank 1。
+        real-machine sample(noBit)= beforeGrade 0 / afterGrade 0 / afterGradeRank 1.
 
-    textofTaketext（pressUsetextmusttext）：
-        before_grade  = at userMusicDetailList intextSame (musicId, level) ofrecord，
-                        Take it scoreRank；textNoto -> 0
-        after_grade   = textthis gameResults（play.achievement）vs. in the record achievement textYes.，
-                        Better grades -> Take the rating derived from this bureau，Otherwise, continue to use before_grade
-        after_grade_rank = Constantly 1（PLAY_AFTER_GRADE_RANK）
+    ofTake(pressUsemust):
+        before_grade  = at userMusicDetailList insame (musicId, level) ofrecord,
+                        Take it scoreRank;noto -> 0
+        after_grade   = this gameResults(play.achievement)vs. in the record achievement present.,
+                        Better grades -> Take the rating derived from this bureau,Otherwise, continue to use before_grade
+        after_grade_rank = Constantly 1(PLAY_AFTER_GRADE_RANK)
 
-    ⚠ Want to strictly reproduce the real machine（notextBittextAlways 0）Just put the DERIVE_GRADE_FROM_MUSIC_DETAIL text False。
+    ⚠ Want to strictly reproduce the real machine(noBitAlways 0)Just put the DERIVE_GRADE_FROM_MUSIC_DETAIL text False.
     """
     p = play or build_play_from_config()
     p.after_grade_rank = PLAY_AFTER_GRADE_RANK
@@ -866,7 +866,7 @@ def derive_play_grade(
     if not DERIVE_GRADE_FROM_MUSIC_DETAIL:
         p.before_grade = 0
         p.after_grade = 0
-        log_info("grade：DERIVE_GRADE_FROM_MUSIC_DETAIL=False -> beforeGrade=0 afterGrade=0"
+        log_info("grade:DERIVE_GRADE_FROM_MUSIC_DETAIL=False -> beforeGrade=0 afterGrade=0"
                  " afterGradeRank=" + str(p.after_grade_rank))
         return p
 
@@ -874,7 +874,7 @@ def derive_play_grade(
     if detail is None:
         p.before_grade = 0
         p.after_grade = 0
-        log_info("grade：Not in snapshot musicId=" + str(p.music_id) + " level="
+        log_info("grade:Not in snapshot musicId=" + str(p.music_id) + " level="
                  + str(p.music_level) + " ofrecord -> beforeGrade=0 afterGrade=0")
         return p
 
@@ -882,12 +882,12 @@ def derive_play_grade(
     old_ach = int(detail.get("achievement", 0) or 0)
     p.before_grade = before
 
-    # this gameBetter grades -> usethis gametextoftext（noneResultstexttimetexttimes before）
+    # this gameBetter grades -> usethis gameof(noneResultstimetimes before)
     if int(p.achievement or 0) > old_ach:
         p.after_grade = before
     else:
         p.after_grade = before
-    log_info("grade：musicId=" + str(p.music_id) + " level=" + str(p.music_level)
+    log_info("grade:musicId=" + str(p.music_id) + " level=" + str(p.music_level)
              + " record scoreRank=" + str(before) + " achievement=" + str(old_ach)
              + " / this game achievement=" + str(p.achievement)
              + " -> beforeGrade=" + str(p.before_grade)
@@ -901,27 +901,27 @@ def derive_play_characters(
     play: Optional[PlayData] = None,
 ) -> List[Dict[str, int]]:
     """
-    From**servertextIssueofSnapshot**textoutthis gameof 5 Roles only（Includes Pre-Play Level）。
+    From**serverIssueofSnapshot**outthis gameof 5 Roles only(Includes Pre-Play Level).
 
-    ★ Why you need it：
-        PLAY_CHARACTERS（currentat selftest.py in） istextFill inoftextValue，textOnetext；
-        usetextValueMeetingsGetAnd userCharacterList Not really. characterLevelN。
-        The snapshot is the true value of the server taken immediately after logging in，textistextof。
+    ★ Why you need it:
+        PLAY_CHARACTERS(currentat selftest.py in) isFill inofvalue,one;
+        usevalueMeetingsGetAnd userCharacterList Not really. characterLevelN.
+        The snapshot is the true value of the server taken immediately after logging in,isof.
 
-    datatext（allat Get Responding to）：
-        userData.charaSlot         this game 5 of character slots characterId（orderi.e. slot1..5）
+    data(allat Get Responding to):
+        userData.charaSlot         this game 5 of character slots characterId(orderi.e. slot1..5)
                                    source/Assembly-CSharp/Net.VO.Mai2/GetUserData.cs
         userCharacterList          eachRoles onlyof level / awakening
                                    GetUserCharacterApi Response
 
-    Parameter：
-        snapshot: GetNeedUserData ofreturntimesValue（or any userData /
-                  userCharacterList ofDictionary）。
-        play:     Current PlayData；The slot that cannot be found in the snapshot falls back to its configuration in the same location。
+    Parameter:
+        snapshot: GetNeedUserData ofreturnsValue(or any userData /
+                  userCharacterList ofDictionary).
+        play:     Current PlayData;The slot that cannot be found in the snapshot falls back to its configuration in the same location.
 
-    returntimes：
-        5 item {"characterId","level","awakening"}，**playago**ofValue（Inexperienced）。
-        The role does not exist in the snapshot、textNeithertime，thetextBitfor characterId=0。
+    Returns:
+        5 item {"characterId","level","awakening"},**playago**ofValue(Inexperienced).
+        The role does not exist in the snapshot,Neithertime,theBitfor characterId=0.
     """
     p = play or build_play_from_config()
     fallback = list(p.characters or [])[:5]
@@ -931,7 +931,7 @@ def derive_play_characters(
     slot_ids: List[int] = []
     levels: Dict[int, Dict[str, int]] = {}
     try:
-        # userData is singleton nodes（List 1 Element）；Nudity is also tolerated dict Morphology
+        # userData is singleton nodes(List 1 Element);Nudity is also tolerated dict Morphology
         data = snap.get("userData") or []
         if isinstance(data, dict):
             data = [data]
@@ -984,15 +984,15 @@ def build_post_play_user_data(
     play_date_time: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    construct**playAfter**of userData（Single dict，Not an array）。
+    construct**playAfter**of userData(Single dict,Not an array).
 
-    ★ usetext：GetUserNewItemListApi needPassing on「playAfter」offiletext。
-      real machineEmpirical（source/2026-10-05-new.log）：
+    ★ useGetUserNewItemListApi needPassing on"playAfter"offile
+      real machineEmpirical(source/2026-10-05-new.log):
           GetUserNewItemList of userData[0] And UpsertUserAll of userData[0]
-          **Exact match**（playCount=1258、point=4460、lastPlayDate=19:22:53.0）。
+          **Exact match**(playCount=1258,point=4460,lastPlayDate=19:22:53.0).
 
-    returntimes：
-        playAfterof userData Dictionary（Can be inserted directly [ ] Pass to GetUserNewItemList）
+    Returns:
+        playAfterof userData Dictionary(Can be inserted directly [ ] Pass to GetUserNewItemList)
     """
     p = play or build_play_from_config()
     ua = build_user_all(
@@ -1007,11 +1007,11 @@ def build_post_play_user_data(
 
 
 # =============================================================================
-# Seven、userPlaylogList（110 Field Score Breakdown）
+# Seven,userPlaylogList(110 Field Score Breakdown)
 # =============================================================================
 
-#: UserPlaylog of**All**Field，ordertext source/Assembly-CSharp/Net.VO.Mai2/UserPlaylog.cs
-#: ★ None of them can be saved：putreal machinepacketAnd C# Declare for collection comparison，Both directions 0 Difference。
+#: UserPlaylog of**All**Field,order source/Assembly-CSharp/Net.VO.Mai2/UserPlaylog.cs
+#: ★ None of them can be saved:putreal machinepacketAnd C# Declare for collection comparison,Both directions 0 Difference.
 PLAYLOG_FIELDS: Tuple[str, ...] = (
     "userId", "orderId", "playlogId", "version", "placeId", "placeName",
     "loginDate", "playDate", "userPlayDate", "type", "musicId", "level",
@@ -1042,13 +1042,13 @@ PLAYLOG_FIELDS: Tuple[str, ...] = (
     "extBool1", "extBool2", "extBool3",
 )
 
-#: ★ textis string ofField（defaultValueMust beemptytext，No 0）
+#: ★ is string ofField(defaultValueMust beemptyNo 0)
 PLAYLOG_STRING_FIELDS: Tuple[str, ...] = (
     "placeName", "playDate", "userPlayDate",
     "vsUserName", "playedUserName1", "playedUserName2", "playedUserName3",
 )
 
-#: ★ Name without is Prefix but type is bool ofField（textcurrentuse startswith("is") Judgment will be missed）
+#: ★ Name without is Prefix but type is bool ofField(currentuse startswith("is") Judgment will be missed)
 PLAYLOG_BOOL_FIELDS: Tuple[str, ...] = (
     "isTap", "isHold", "isSlide", "isTouch", "isBreak",
     "isCriticalDisp", "isFastLateDisp",
@@ -1057,7 +1057,7 @@ PLAYLOG_BOOL_FIELDS: Tuple[str, ...] = (
     "extBool1", "extBool2", "extBool3",
 )
 
-#: Determination Type and Determination Positioning（ordertext）
+#: Determination Type and Determination Positioning(order)
 JUDGE_TYPES: Tuple[str, ...] = ("tap", "hold", "slide", "touch", "break")
 JUDGE_BOXES: Tuple[str, ...] = ("CriticalPerfect", "Perfect", "Great", "Good", "Miss")
 
@@ -1074,37 +1074,37 @@ def build_user_playlog(
     play_date: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    constructOneitem 110 Field userPlaylog。
+    constructOneitem 110 Field userPlaylog.
 
-    Parameter：
+    Parameter:
         playlog_id:    ★ Required == UserLoginApi of loginId
-        play_date:     ★ this game**playtime**（loginDateTime Same Format，i.e. now + timetextOffset）。
-                       used for playDate（logtext）And userPlayDate（String on the wall）。
-                       Return without passing login_date（text，textYes.text）。
-                       ★ Why Separate：real machine playDate / userPlayDate is「textthatOnetext」，
-                         and loginDateTime is「The moment you swipe your card to log in」，The time difference between the two is one game
-                         （source/2026-10-05.log: login 00:19:37 -> play 00:20:30）。
-        login_date:    loginSessiontime（used fortext loginDate）。
-                       ★ real machinein userPlaylog.loginDate is**playSessionoftexttime**
-                         （source/2026-10-05.log:123 is 1791130777，
-                          text UserLoginApi of loginDateTime=1791159576 text 8 Hours，
-                          This is actually the session time of the last game），textnetworkscriptnonethisvalues，
-                          thisinuseIncomingValuetextJust do it；serverNointextfortext。
-        play:          this game data（Optional，defaultpress config.PLAY_* construct）
+        play_date:     ★ this game**playtime**(loginDateTime Same Format,i.e. now + timeOffset).
+                       used for playDate(log)And userPlayDate(String on the wall).
+                       Return without passing login_date(present.).
+                       ★ Why Separate:real machine playDate / userPlayDate is"thatOne",
+                         and loginDateTime is"The moment you swipe your card to log in",The time difference between the two is one game
+                         (source/2026-10-05.log: login 00:19:37 -> play 00:20:30).
+        login_date:    loginSessiontime(used for loginDate).
+                       ★ real machinein userPlaylog.loginDate is**playSessionoftime**
+                         (source/2026-10-05.log:123 is 1791130777,
+                          text UserLoginApi of loginDateTime=1791159576 text 8 Hours,
+                          This is actually the session time of the last game),networkscriptnonethisvalues,
+                          thisinuseIncomingValueJust do it;serverNoinfor
+        play:          this game data(Optional,defaultpress config.PLAY_* construct)
         place_id:      Store ID
         place_name:    Store Name
-        client_id:     machineStageshortValue
-        user_play_date: playtimeString（Optional，defaultby login_date text）
+        client_id:     machine stateshortValue
+        user_play_date: playtimeString(Optional,defaultby login_date )
 
-    returntimes：
+    Returns:
         110 Field dict
 
-    textoftextThen（Basis source/.../Net.VO.Mai2/VOExtensions.cs）：
-        userId           Constantly 0（VOExtensions.cs:1289）
-        musicId >= 100000（Banquet Recipe） -> level = 10（VOExtensions.cs:1300-1303）
-        isTap/isHold/... bythetextTotal number of judgmentsisNofor 0 text（VOExtensions.cs:1403-1407）
-        trialPlayAchievement = -1（this gamenonetext）（VOExtensions.cs:1441-1445）
-        extNum4 = text（And userExtend.categoryIndex Redundancy）
+    ofThen(Basis source/.../Net.VO.Mai2/VOExtensions.cs):
+        userId           Constantly 0(VOExtensions.cs:1289)
+        musicId >= 100000(Banquet Recipe) -> level = 10(VOExtensions.cs:1300-1303)
+        isTap/isHold/... bythetotal number of judgmentsisNofor 0 text(VOExtensions.cs:1403-1407)
+        trialPlayAchievement = -1(this gamenone)(VOExtensions.cs:1441-1445)
+        extNum4 = text(And userExtend.categoryIndex Redundancy)
     """
     p = play or build_play_from_config()
 
@@ -1112,7 +1112,7 @@ def build_user_playlog(
     play_moment = int(play_date) if play_date else int(login_date)
     user_play_date = user_play_date or _local_wall_string(play_moment)
 
-    # ★ String field default empty string、Remaining defaults 0（real machinepacketin vsUserName/playedUserNameN allis ""）
+    # ★ String field default empty string,Remaining defaults 0(real machinepacketin vsUserName/playedUserNameN allis "")
     row: Dict[str, Any] = {
         name: ("" if name in PLAYLOG_STRING_FIELDS else 0)
         for name in PLAYLOG_FIELDS
@@ -1125,11 +1125,11 @@ def build_user_playlog(
     row["version"] = p.version_int
     row["placeId"] = place_id
     row["placeName"] = place_name
-    # ★ loginDate is**standard Unix seconds**（VOExtensions.cs:1290 GetUnixTime ofreturntimesValue），
-    #   No loginDateTime（The latter is「Time on the wall when UTC」）。
+    # ★ loginDate is**standard Unix seconds**(VOExtensions.cs:1290 GetUnixTime ofreturnsValue),
+    #   No loginDateTime(The latter is"Time on the wall when UTC").
     row["loginDate"] = _standard_unix(login_date)
-    # ★ playDate isplay**logtext**（7 textagocalculatePrevious day），Not a natural day；
-    #   Take is**playtime**，Not at login time。
+    # ★ playDate isplay**log**(7 agocalculatePrevious day),Not a natural day;
+    #   Take is**playtime**,Not at login time.
     row["playDate"] = _local_date_string(play_moment)
     row["userPlayDate"] = user_play_date
     row["type"] = 0
@@ -1137,37 +1137,37 @@ def build_user_playlog(
     row["level"] = level
     row["trackNo"] = p.track_no
 
-    # ---- Match（Single Player Global 0）----
+    # ---- Match(Single Player Global 0)----
     row["playerNum"] = 1
 
-    # ---- textSnapshot 1..5 ----
-    # ★ characterLevelN is**playago**oflevel，Do not add the experience of this bureau —— thisOnetext：
+    # ---- Snapshot 1..5 ----
+    # ★ characterLevelN is**playago**oflevel,Do not add the experience of this bureau —— thisOne
     #     source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1361
     #         result.characterLevel1 = (int)gameScore.CharaLevel[0];
-    #   gameScore.CharaLevel is**textplaytime**textGoofSnapshot，textgameNoAgainChange；
-    #   playAfteroflevelOnlyAppearanceat upsertUserAll.userCharacterList in。
+    #   gameScore.CharaLevel is**playtime**GoofSnapshot,gameNoAgainChange;
+    #   playAfteroflevelOnlyAppearanceat upsertUserAll.userCharacterList in.
     #
-    #   ★ Two Real Opportunity Dialogues Empirical（Get Side / playlog / upsertUserCharacterList Triple control）：
+    #   ★ Two Real Opportunity Dialogues Empirical(Get Side / playlog / upsertUserCharacterList Triple control):
     #
-    #     source/2026-10-05-new.log:31,123（19:21 Session）
+    #     source/2026-10-05-new.log:31,123(19:21 Session)
     #       GetUserCharacterApi  : 395=3801 101=4456 135 135 135
     #       userPlaylogList[0]   : 3801 4456 135 135 135   ← And Get Same side = playago
-    #       userCharacterList    : 395=3802 101=4457 136 136 136  ← playAfter（+1）
+    #       userCharacterList    : 395=3802 101=4457 136 136 136  ← playAfter(+1)
     #
-    #     MaimaiNetSpy 2026-10-05_222919（22:31 Session）
+    #     MaimaiNetSpy 2026-10-05_222919(22:31 Session)
     #       GetUserCharacterApi  : 395=3802 101=4457 136 136 136
     #       userPlaylogList[0]   : 3802 4457 136 136 136   ← And Get Same side = playago
-    #       userCharacterList    : 395=3803 101=4458 137 137 137  ← playAfter（+1）
+    #       userCharacterList    : 395=3803 101=4458 137 137 137  ← playAfter(+1)
     #
-    #   So p.characters intextofMust be**playago**ofValue
-    #   （PLAY_CHARACTERS（currentat selftest.py in） oftextAlsothistextof），thisinTransparent as isJust do it。
-    #   textPractice：use derive_play_characters(snapshot) directlyFromservertextIssueof
-    #   userData.charaSlot + userCharacterList textouttext，textFill intext。
+    #   So p.characters inofMust be**playago**ofValue
+    #   (PLAY_CHARACTERS(currentat selftest.py in) ofAlsothisof),thisinTransparent as isJust do it.
+    #   Practice:use derive_play_characters(snapshot) directlyFromserverIssueof
+    #   userData.charaSlot + userCharacterList outFill in
     chars = list(p.characters or [])[:5]
     for i in range(5):
         c = chars[i] if i < len(chars) else {}
         row["characterId" + str(i + 1)] = int(c.get("characterId", 0) or 0)
-        # playagolevel（Inexperienced；textOnlytextcurrentat userCharacterList）
+        # playagolevel(Inexperienced;onlycurrentat userCharacterList)
         row["characterLevel" + str(i + 1)] = int(c.get("level", 0) or 0)
         row["characterAwakening" + str(i + 1)] = int(c.get("awakening", 0) or 0)
 
@@ -1185,7 +1185,7 @@ def build_user_playlog(
     row["fastCount"] = p.fast_count
     row["lateCount"] = p.late_count
 
-    # ---- Determination Details（5 text × 5 Judgment positioning）----
+    # ---- Determination Details(5 text × 5 Judgment positioning)----
     for jtype in JUDGE_TYPES:
         counts = (p.judge_counts or {}).get(jtype, {}) or {}
         total = 0
@@ -1193,12 +1193,12 @@ def build_user_playlog(
             value = int(counts.get(box, 0) or 0)
             row[jtype + box] = value
             total += value
-        # isTap / isHold / ... bythetextisNohas note text
+        # isTap / isHold / ... bytheisNohas note text
         flag_name = "is" + jtype.capitalize()
         if flag_name in row:
             row[flag_name] = (total > 0)
 
-    # ---- textSwitch（real machinetextfor true）----
+    # ---- Switch(real machinefor true)----
     row["isCriticalDisp"] = True
     row["isFastLateDisp"] = True
 
@@ -1218,10 +1218,10 @@ def build_user_playlog(
     row["playMode"] = p.play_mode
     row["isNewFree"] = bool(p.is_new_free)
 
-    # ---- text（this gamenonetext）----
+    # ---- text(this gamenone)----
     row["trialPlayAchievement"] = -1
 
-    # ---- textBit ----
+    # ---- Bit ----
     row["extNum1"] = 0
     row["extNum2"] = 0
     row["extNum4"] = p.category_index      # And userExtend.categoryIndex Redundancy
@@ -1229,7 +1229,7 @@ def build_user_playlog(
     row["extBool2"] = False
     row["extBool3"] = False
 
-    # text：bool Field must be bool
+    # bool Field must be bool
     for name in PLAYLOG_BOOL_FIELDS:
         row[name] = bool(row.get(name, False))
 
@@ -1238,26 +1238,26 @@ def build_user_playlog(
 
 def validate_user_playlog(playlog: Dict[str, Any]) -> List[str]:
     """
-    presssource codetextcheckOneitem playlog，returntimestextList（empty = Compliance）。
+    presssource codecheckOneitem playlog,returnslist(empty = Compliance).
 
-    Fields filled in incorrectly will not report errors，But it will be treated as an abnormal result by the server。textcheckitem：
+    Fields filled in incorrectly will not report errors,But it will be treated as an abnormal result by the server.checkitem:
         1. Number of fields == 110
         2. Sum of each type of judgment number == totalCombo
         3. maxCombo <= Total number of judgments
         4. achievement > 0 timeNoshouldYes to all Miss
         5. isClear=True time achievement Cannot be 0
-        6. comboStatus=1（Quan Lian）time maxCombo == Total number of judgments
-        7. extNum4 == userExtend.categoryIndex（bycallusetextYes.，thisinOnlytextnon- 0）
+        6. comboStatus=1(Quan Lian)time maxCombo == Total number of judgments
+        7. extNum4 == userExtend.categoryIndex(bycallusepresent.,thisinOnlynon- 0)
     """
     problems: List[str] = []
 
     missing = [f for f in PLAYLOG_FIELDS if f not in playlog]
     if missing:
-        problems.append("textField：" + ", ".join(missing[:10])
+        problems.append("field:" + ", ".join(missing[:10])
                         + ("..." if len(missing) > 10 else ""))
     extra = [k for k in playlog if k not in PLAYLOG_FIELDS]
     if extra:
-        problems.append("Extra Fields：" + ", ".join(extra[:10]))
+        problems.append("Extra Fields:" + ", ".join(extra[:10]))
 
     total_notes = 0
     for jtype in JUDGE_TYPES:
@@ -1277,32 +1277,32 @@ def validate_user_playlog(playlog: Dict[str, Any]) -> List[str]:
     if achievement > 0:
         miss = sum(int(playlog.get(jtype + "Miss", 0) or 0) for jtype in JUDGE_TYPES)
         if total_notes and miss == total_notes:
-            problems.append("achievement>0 But it's all Miss，numberValuetext")
+            problems.append("achievement>0 But it's all Miss,numberValue")
 
     if bool(playlog.get("isClear")) and achievement == 0:
-        problems.append("isClear=True But achievement=0，numberValuetext")
+        problems.append("isClear=True But achievement=0,numberValue")
 
     if int(playlog.get("comboStatus", 0) or 0) == 1 and max_combo != total_notes:
-        problems.append("comboStatus=1（Quan Lian）But maxCombo != Total number of judgments")
+        problems.append("comboStatus=1(Quan Lian)But maxCombo != Total number of judgments")
 
     if int(playlog.get("extNum4", 0) or 0) == 0:
-        problems.append("extNum4（text）for 0，should be equal to userExtend.categoryIndex")
+        problems.append("extNum4()for 0,should be equal to userExtend.categoryIndex")
 
     if not playlog.get("placeName"):
-        problems.append("placeName Is Empty（Store name needs to be in config.PLACE_NAME text）")
+        problems.append("placeName Is Empty(Store name needs to be in config.PLACE_NAME )")
 
     return problems
 
 
 # =============================================================================
-# Eight、userGamePlaylogList
+# Eight,userGamePlaylogList
 # =============================================================================
 
 def calc_play_special(calc_special_num: Optional[int] = None) -> int:
     """
-    Reprint VOExtensions.cs:846-855 of playSpecial calculatetext。
+    Reprint VOExtensions.cs:846-855 of playSpecial calculate
 
-    source code：
+    source code:
         int max  = 1037933;
         int num2 = Random.Range(1, max) * 2069;
         num2 += GameManager.CalcSpecialNum();
@@ -1310,22 +1310,22 @@ def calc_play_special(calc_special_num: Optional[int] = None) -> int:
         for (int i = 0; i < 32; i++) { num3 <<= 1; num3 += num2 % 2; num2 >>= 1; }
         playSpecial = num3;
 
-    Parameter：
-        calc_special_num: machineStagetextBittext（GameManager.CalcSpecialNum）。
-                          defaultTake PLAY_SPECIAL_NUM = 1024。
+    Parameter:
+        calc_special_num: machine stateBit(GameManager.CalcSpecialNum).
+                          defaultTake PLAY_SPECIAL_NUM = 1024.
 
-    returntimes：
-        int32 textof playSpecial。
+    Returns:
+        int32 of playSpecial.
 
-    ★ About CalcSpecialNum ofPick a value（source code GameManager.cs:332-378）：
-        It is a bitwise or outgoing machine feature mask，where 0x400 noitemtextBit，
-        Also 0x40 / 0x80 / 0x100 The condition for the third place is「**No**Contains a characteristic」——
-        real machine isOneStagestandard ACA + GTX + i3-8100 machineStage，thisThreeBitJust in timeallfor 0，
-        So CalcSpecialNum Constant equals 0x400 = 1024。
+    ★ About CalcSpecialNum ofPick a value(source code GameManager.cs:332-378):
+        It is a bitwise or outgoing machine feature mask,where 0x400 noitemBit,
+        Also 0x40 / 0x80 / 0x100 The condition for the third place is"**No**Contains a characteristic"——
+        real machine isOneStagestandard ACA + GTX + i3-8100 machine state,thisThreeBitJust in timeallfor 0,
+        So CalcSpecialNum Constant equals 0x400 = 1024.
 
-      ★ Reverse inference validation：real machine playSpecial = 892014272
+      ★ Reverse inference validation:real machine playSpecial = 892014272
             Bit inversion32(892014272) = 57726124 = 27900 * 2069 + 1024
-            The remainder is exactly 1024，And gamehook texttoof CalcSpecialNum Exact match。
+            The remainder is exactly 1024,And gamehook toof CalcSpecialNum Exact match.
     """
     import random
     special = PLAY_SPECIAL_NUM if calc_special_num is None else int(calc_special_num)
@@ -1352,14 +1352,14 @@ def build_user_game_playlog(
     play_date: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    construct userGamePlaylogList ofOneitem（13 Field）。
+    construct userGamePlaylogList ofOneitem(13 Field).
 
-    ★ playDate useofis**At the moment of reporting**ofWall Time（real machineEmpirical：
-      source/2026-10-05.log in userGamePlaylogList[0].playDate = "00:20:57.0"，
-      And UpsertUserAllApi requesthairoutoftimeMatch，Also with userData.lastPlayDate relatedSame）。
-      Do not pass play_date timetexttimes login_date。
+    ★ playDate useofis**At the moment of reporting**ofWall Time(real machineEmpirical:
+      source/2026-10-05.log in userGamePlaylogList[0].playDate = "00:20:57.0",
+      And UpsertUserAllApi requesthairoutoftimeMatch,Also with userData.lastPlayDate relatedSame).
+      Do not pass play_date timetimes login_date.
 
-    real-machine sample（source/2026-10-05.log:123）：
+    real-machine sample(source/2026-10-05.log:123):
         {"playlogId":..,"version":"1.56.00","playDate":"2026-10-05 00:20:57.0",
          "playMode":0,"useTicketId":-1,"playCredit":1,"playTrack":1,
          "clientId":"TESTCLIENT1","isPlayTutorial":false,"isEventMode":false,
@@ -1385,17 +1385,17 @@ def build_user_game_playlog(
 
 
 # =============================================================================
-# nine、defaultnodesconstruct
+# nine,defaultnodesconstruct
 # =============================================================================
 
 def default_user_weekly_data(login_date: int) -> Dict[str, Any]:
     """
-    construct userWeeklyData（★ Object，Not an array）。
+    construct userWeeklyData(★ Object,Not an array).
 
-    real-machine sample：
+    real-machine sample:
         {"lastLoginWeek":"2026-09-28 04:00:00","beforeLoginWeek":"2026-09-21 04:00:00",
          "friendBonusFlag":true}
-    Perimeter is**Monday 04:00**（real machine updateDate is 2026-09-28 04:00:00，thatdaysisMonday）。
+    Perimeter is**Monday 04:00**(real machine updateDate is 2026-09-28 04:00:00,thatdaysisMonday).
     """
     def week_start(unix_seconds: int) -> str:
         dt = datetime.fromtimestamp(int(unix_seconds), tz=timezone.utc) - timedelta(hours=4)
@@ -1413,9 +1413,9 @@ def default_user_weekly_data(login_date: int) -> Dict[str, Any]:
 
 def default_user_2p_playlog() -> Dict[str, Any]:
     """
-    construct user2pPlaylog（★ Object，Not an array）。
+    construct user2pPlaylog(★ Object,Not an array).
 
-    real-machine sample：
+    real-machine sample:
         {"userId1":0,"userId2":0,"userName1":"","userName2":"",
          "regionId":0,"placeId":0,"user2pPlaylogDetailList":[]}
     """
@@ -1431,14 +1431,14 @@ def default_user_2p_playlog() -> Dict[str, Any]:
 
 
 # =============================================================================
-# ten、Snapshot Normalization
+# ten,Snapshot Normalization
 # =============================================================================
 
 def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
     """
-    put「Each Get interfaceofRaw Response」textnodesDictionary（With Field Crop）。
+    put"Each Get interfaceofRaw Response"nodesDictionary(With Field Crop).
 
-    Parameter：
+    Parameter:
         raw: Shape like
              {
                "userData":       <GetUserDataApi ofResponse>,
@@ -1446,10 +1446,10 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
                "userMapList":    <GetUserMapApi ofResponse>,
                ...
              }
-             Also Accept GetNeedUserData() Node dictionary already organized（Idempotent）。
+             Also Accept GetNeedUserData() Node dictionary already organized(Idempotent).
 
-    returntimes：
-        nodesFirst name -> nodesValue（Cropped）
+    Returns:
+        nodesFirst name -> nodesValue(Cropped)
     """
     out: Dict[str, Any] = {}
 
@@ -1459,7 +1459,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
         ud = src.get("userData") if isinstance(src, dict) and "userData" in src else src
         if isinstance(ud, dict):
             ud = _strip_keys(ud, USER_DATA_DROP_KEYS)
-            # banState at Get The side is the top level field，Move in when returning userData Internal
+            # banState at Get The side is the top level field,Move in when returning userData Internal
             if isinstance(src, dict) and "banState" in src and "banState" not in ud:
                 ud["banState"] = src.get("banState")
             out["userData"] = [ud]
@@ -1481,7 +1481,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
         ur = src.get("userRating") if isinstance(src, dict) and "userRating" in src else src
         if isinstance(ur, dict):
             ur = copy.deepcopy(ur)
-            # ★ text udemae inserverRedundancyofUppercasetextField（real machine Upsert Side No）
+            # ★ text udemae inserverRedundancyofUppercasefield(real machine Upsert Side No)
             udemae = ur.get("udemae")
             if isinstance(udemae, dict):
                 ur["udemae"] = _strip_keys(udemae, USER_RATING_UDEMAE_DROP_KEYS)
@@ -1494,14 +1494,14 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(uw, dict):
             out["userWeeklyData"] = _strip_keys(uw, USER_MISSION_DROP_KEYS)
 
-    # ★ userWeeklyData oftextOnetext：GetUserMissionDataApi ofResponding totextBelttext
-    #   （UserMissionResponseVO.cs:10  public UserWeeklyData userWeeklyData;）
-    #   real machineValue = serverIssueofPerimeter，**Not counted locally**：
+    # ★ userWeeklyData ofoneGetUserMissionDataApi ofResponding toBelt
+    #   (UserMissionResponseVO.cs:10  public UserWeeklyData userWeeklyData;)
+    #   real machineValue = serverIssueofPerimeter,**Not counted locally**:
     #       GetGameWeeklyDataApi.updateDate   = "2026-09-28 04:00:00"
     #       Upsert Side lastLoginWeek           = "2026-09-28 04:00:00"   ← Exact match
     #   Basis source/Assembly-CSharp/Manager/GetUserData.cs:1040-1049
     #       WeeklyData.LastLoginWeek = gameWeeklyData.updateDate;
-    #   So give priority to the values in the snapshot.；Return to local derivation only if you don't get it。
+    #   So give priority to the values in the snapshot.;Return to local derivation only if you don't get it.
     if "userWeeklyData" not in out and "userMissionDataList" in raw:
         src = raw["userMissionDataList"]
         if isinstance(src, dict):
@@ -1515,7 +1515,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(u2, dict):
             out["user2pPlaylog"] = u2
 
-    # ---- textnumbergroup（keyFirst name -> List key name in response）----
+    # ---- numbergroup(keyFirst name -> List key name in response)----
     array_map = {
         "userCharacterList": "userCharacterList",
         "userGhost": "userGhostList",
@@ -1542,11 +1542,11 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
             items = src
         elif isinstance(src, dict):
             if list_key == "userMusicList":
-                # ★ trackResultshasTwo Forms，allmusttext：
-                #   a) interfaceRaw Response：Two layers of nesting（UserMusic.cs Outer layers are grouped by song，
-                #      Inner layer userMusicDetailList It is. (musicId, level) itemtext）
-                #   b) GetUserMusicDetailAll() oftext：Flattened into single strips
-                #   Criteria：Elemental Inner Belt "userMusicDetailList" key -> Nested；Otherwise, it has been spread evenly。
+                # ★ trackResultshasTwo Forms,allmust
+                #   a) interfaceRaw Response:Two layers of nesting(UserMusic.cs Outer layers are grouped by song,
+                #      Inner layer userMusicDetailList It is. (musicId, level) item)
+                #   b) GetUserMusicDetailAll() ofFlattened into single strips
+                #   Criteria:Elemental Inner Belt "userMusicDetailList" key -> Nested;Otherwise, it has been spread evenly.
                 groups = src.get("userMusicList") or []
                 nested = any(
                     isinstance(g, dict) and "userMusicDetailList" in g for g in groups
@@ -1562,9 +1562,9 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
                     items = list(groups)
             else:
                 items = src.get(list_key)
-                # ★ Pocket back：The dictionary returned by the retrieval script is sometimes used**nodesFirst name**Keying
-                #   （As GetUserFavoriteAll -> {"userFavoriteList": [...], "_raw": [...]}，
-                #    and GetUserFavoriteApi ofRaw Responseis {"userFavorite": {...}}）。
+                # ★ Pocket back:The dictionary returned by the retrieval script is sometimes used**nodesFirst name**Keying
+                #   (As GetUserFavoriteAll -> {"userFavoriteList": [...], "_raw": [...]},
+                #    and GetUserFavoriteApi ofRaw Responseis {"userFavorite": {...}}).
                 if items is None:
                     items = src.get(node)
             if items is None:
@@ -1584,8 +1584,8 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
             items = [_strip_keys(i, USER_MISSION_DROP_KEYS) for i in items]
         out[node] = list(items)
 
-    # ★ receivetextof**Original**Baseline（Non-complimentary itemKind）：real machine itemKind=10 ofThe response is
-    #   {"itemKind":null}，In the bit string "1" comes from it.。Keep a separate copy for the difference。
+    # ★ receiveof**Original**Baseline(Non-complimentary itemKind):real machine itemKind=10 ofThe response is
+    #   {"itemKind":null},In the bit string "1" comes from it..Keep a separate copy for the difference.
     if isinstance(raw.get("_raw_favorite"), list):
         out["_raw_favorite"] = list(raw["_raw_favorite"])
     else:
@@ -1601,21 +1601,21 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-#: real machine isNewFavoriteList intext「serverSidecheckNotothe itemKind」ofPick a value。
-#: Measured two samples：
-#:   source/2026-10-05.log:123          -> "22212"（itemKind=10 thatitemis null）
-#:   MaimaiNetSpy textof 22:32:21 thattext     -> "22212"（Ibid.）
-#: That is, the first 4 Bit（itemKind=10，textfile）**textfor "1"** —— serverYes.the kind Heng Hui null。
+#: real machine isNewFavoriteList in"serverSidecheckNotothe itemKind"ofPick a value.
+#: Measured two samples:
+#:   source/2026-10-05.log:123          -> "22212"(itemKind=10 thatitemis null)
+#:   MaimaiNetSpy of 22:32:21 that     -> "22212"(Ibid.)
+#: That is, the first 4 Bit(itemKind=10,file)**for "1"** —— serverpresent.the kind Heng Hui null.
 FAVORITE_MISSING_KINDS: Tuple[int, ...] = (10,)
 
 
 def normalize_snapshot(snapshot: Optional[Any]) -> Dict[str, Any]:
     """
-    putEachtextMorphologyofSnapshotsystemOnetext「nodesDictionary」。
+    putEachMorphologyofSnapshotsystemOne"nodesDictionary".
 
-    text：
+
         None                          -> {}
-        nodesDictionary（36 nodesFirst name）          -> As is（Do a form coercion）
+        nodesDictionary(36 nodesFirst name)          -> As is(Do a form coercion)
         {"upsertUserAll": {...}}      -> Take the inner layer
         {"_responses": {...}}         -> Take _responses
         Each Get interfaceofRaw ResponseDictionary      -> text _extract_from_get_responses
@@ -1628,26 +1628,26 @@ def normalize_snapshot(snapshot: Optional[Any]) -> Dict[str, Any]:
             snapshot = json.load(fp)
 
     if not isinstance(snapshot, dict):
-        raise PatchError("snapshot Unrecognized form：" + type(snapshot).__name__)
+        raise PatchError("snapshot Unrecognized form:" + type(snapshot).__name__)
 
     if "upsertUserAll" in snapshot and isinstance(snapshot["upsertUserAll"], dict):
         snapshot = snapshot["upsertUserAll"]
     if "_responses" in snapshot and isinstance(snapshot["_responses"], dict):
         snapshot = snapshot["_responses"]
 
-    # ★ Judge Yes「Already a node dictionary」textis「Raw Response Collection」。
-    #   The two key names are highly overlapping（userData / userExtend / userMapList … alltextisnodesFirst name，
-    #   Also Get Responsive outer key），So**Can only be in the form of a value**Distinguish：
-    #       nodesDictionary     userData -> list（Array of elements）、userMapList -> list
-    #       Raw Response Collection userData -> dict（Contains userId/userData/banState）
-    #                    userMapList -> dict（Contains userMapList List）
+    # ★ Judge Yes"Already a node dictionary"is"Raw Response Collection".
+    #   The two key names are highly overlapping(userData / userExtend / userMapList … allisnodesFirst name,
+    #   Also Get Responsive outer key),So**Can only be in the form of a value**Distinguish:
+    #       nodesDictionary     userData -> list(Array of elements),userMapList -> list
+    #       Raw Response Collection userData -> dict(Contains userId/userData/banState)
+    #                    userMapList -> dict(Contains userMapList List)
     if _looks_like_node_dict(snapshot):
         out: Dict[str, Any] = {}
         for k, v in snapshot.items():
             if k in NODE_TYPES:
                 out[k] = coerce_node_value(k, v)
             elif k.startswith("_"):
-                out[k] = v            # Hold _raw_favorite thistextInternalkey
+                out[k] = v            # Hold _raw_favorite thisInternalkey
         return out
 
     return _extract_from_get_responses(snapshot)
@@ -1655,10 +1655,10 @@ def normalize_snapshot(snapshot: Optional[Any]) -> Dict[str, Any]:
 
 def _looks_like_node_dict(snapshot: Dict[str, Any]) -> bool:
     """
-    press**Morphology of the value**Judgment snapshot isNo「Node dictionary already organized」。
+    press**Morphology of the value**Judgment snapshot isNo"Node dictionary already organized".
 
-    Criteria：nodesFirst nameCorrespondingValuetext NODE_TYPES The morphology of the declaration is measured 1 Minutes，Count the reverse -1 Minutes。
-          Total Score > 0 textfornodesDictionary。
+    Criteria:nodesFirst nameCorrespondingValue NODE_TYPES The morphology of the declaration is measured 1 Minutes,Count the reverse -1 Minutes.
+          Total Score > 0 fornodesDictionary.
     """
     score = 0
     for key, value in snapshot.items():
@@ -1675,7 +1675,7 @@ def _looks_like_node_dict(snapshot: Dict[str, Any]) -> bool:
 
 
 # =============================================================================
-# eleven、this gametextcalculate（putBaselinetextto「playAfter」）
+# eleven,this gamecalculate(putBaselineto"playAfter")
 # =============================================================================
 
 def apply_play_effects(
@@ -1692,17 +1692,17 @@ def apply_play_effects(
     play_date_time: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    pressreal machinetextforputBaselinetextto「this gameplayAfter」，and calculate the differential nodes。
+    pressreal machineforputBaselineto"this gameplayAfter",and calculate the differential nodes.
 
-    ★ this istextCriticalofOnetext。real machineControl（source/2026-10-05.log）：
+    ★ this isCriticalofOnereal machineControl(source/2026-10-05.log):
 
         userData.playCount        1257 -> 1258            (+1)  ← real machine
         userData.currentPlayCount 185  -> 186             (+1)  ← real machine
-        ★ textdefault PLAY_USER_PLAY_COUNT_GAIN = 0，thisTwo**Unchanged**。
+        ★ default PLAY_USER_PLAY_COUNT_GAIN = 0,thisTwo**Unchanged**.
         userData.lastPlayDate     text   -> this gametime
         userData.lastPlayMode     2    -> 0
-        userData.lastLoginDate    text   -> textlogintime
-        userData.eventWatchedDate text   -> textlogintime
+        userData.lastLoginDate    text   -> logintime
+        userData.eventWatchedDate text   -> logintime
         userData.lastPlaceId      0    -> 1000
         userData.lastRegionId     11   -> 5
         userData.dateTime         null -> loginrequestof dateTime
@@ -1713,20 +1713,20 @@ def apply_play_effects(
         userMapList.distance      1424000 -> 1435000      (+11000)
         userCharacterList[].level Each +1
 
-    Parameter（In-place modification user_all）：
-        user_all:        nodesDictionary（will be modified）
+    Parameter(In-place modification user_all):
+        user_all:        nodesDictionary(will be modified)
         play:            this game data
         login_date_time: UserLoginApi of loginDateTime
-        auth_date_time:  UserLoginApi requestinof dateTime（Auth.AuthTime）
-        play_date_time:  ★ this gameWhen to escalate（Same loginDateTime text）。
-                         real machine userData.lastPlayDate is「text/At the moment of reporting」，
-                         And lastLoginDate（loginthatOnetext）**Not the same value**：
+        auth_date_time:  UserLoginApi requestinof dateTime(Auth.AuthTime)
+        play_date_time:  ★ this gameWhen to escalate(Same loginDateTime ).
+                         real machine userData.lastPlayDate is"text/At the moment of reporting",
+                         And lastLoginDate(loginthatOne)**Not the same value**:
                              lastLoginDate  = "2026-10-05 22:31:23.0"  ← login
                              lastPlayDate   = "2026-10-05 22:32:21.0"  ← Escalations
-                         If not, return both login_date_time（Convenient for offline matchmaking）。
+                         If not, return both login_date_time(Convenient for offline matchmaking).
 
-    returntimes：
-        Same user_all（Convenient Chain Calls）
+    Returns:
+        Same user_all(Convenient Chain Calls)
     """
     login_wall = _local_wall_string(login_date_time)
     wall = _local_wall_string(play_date_time or login_date_time)
@@ -1743,15 +1743,15 @@ def apply_play_effects(
         ud["lastRegionId"] = region_id
         ud["lastClientId"] = client_id
         ud["lastCountryCode"] = ud.get("lastCountryCode") or "CHN"
-        # ★ defaultIncrement 0：playCount / currentPlayCount Stay the same
-        #   （config.PLAY_USER_PLAY_COUNT_GAIN，Want to re-engrave the real machine +1 Change to 1）
+        # ★ defaultIncrement 0:playCount / currentPlayCount Stay the same
+        #   (config.PLAY_USER_PLAY_COUNT_GAIN,Want to re-engrave the real machine +1 Change to 1)
         _pc_gain = int(getattr(play, "user_play_count_gain", 0) or 0)
         ud["playCount"] = int(ud.get("playCount", 0) or 0) + _pc_gain
         ud["currentPlayCount"] = int(ud.get("currentPlayCount", 0) or 0) + _pc_gain
         ud["lastPlayDate"] = wall                # this gameWhen to escalate
         ud["lastPlayMode"] = play.play_mode
-        ud["lastLoginDate"] = login_wall         # textlogintime
-        ud["eventWatchedDate"] = login_wall      # And lastLoginDate Same value（real machineMatch）
+        ud["lastLoginDate"] = login_wall         # logintime
+        ud["eventWatchedDate"] = login_wall      # And lastLoginDate Same value(real machineMatch)
         ud["lastPlayCredit"] = play.play_credit
         if auth_date_time:
             ud["dateTime"] = int(auth_date_time)
@@ -1767,30 +1767,30 @@ def apply_play_effects(
         ue["categoryIndex"] = play.category_index
         ue["musicIndex"] = play.music_index
         ue["extraFlag"] = play.extra_flag
-        # real machine Upsert inthisTwoisemptynumbergroup（Get Placeholder elements on the side）
+        # real machine Upsert inthisTwoisemptynumbergroup(Get Placeholder elements on the side)
         ue["selectedCardList"] = []
         ue["encountMapNpcList"] = []
-        # ★ thistextfieldsOnlyAppearanceat Upsert Side、Get Side No
-        #   （real machine source/2026-10-05.log:123 of userExtend has 16 keys，
-        #     Get Side source/2026-10-05.log:85 Only 14 Piece）。
-        #   source code VOExtensions.cs:270 textis Export timetextofSwitchBit。
-        #   textTheyMeetingslead to userExtend Number of fields does not match，servertextcantextreceive。
+        # ★ thisfieldsOnlyAppearanceat Upsert Side,Get Side No
+        #   (real machine source/2026-10-05.log:123 of userExtend has 16 keys,
+        #     Get Side source/2026-10-05.log:85 Only 14 Piece).
+        #   source code VOExtensions.cs:270 is Export timeofSwitchBit.
+        #   TheyMeetingslead to userExtend Number of fields does not match,servercanreceive.
         ue.setdefault("isPhotoAgree", False)
         ue.setdefault("isGotoCodeRead", False)
 
-    # ---------------- userMusicDetailList（Differential：this gamethatitemtrack）----------------
-    # ★★ thisnodes**Must send back the one from this bureau**，Can't be blank —— Actual testimonial：
-    #     Same code、Same account，The only difference is that leave it blank here vs Callback 1 item：
-    #       Callback 1 item -> returnCode=1 and the server does write（At that time, shit playCount +1 textto）
-    #       leave blank     -> returnCode=1 But nothing has changed.（**textfallLibrary**）
-    #     i.e.「this gamehas playlog without any track details.」will be silently discarded by the server as an invalid packet。
-    #   ★ currentat playCount defaultNoAgain +1，fallLibraryCriteriachangetext lastPlayDate（text verify_upsert_landing）。
+    # ---------------- userMusicDetailList(Differential:this gamethatitemtrack)----------------
+    # ★★ thisnodes**Must send back the one from this bureau**,Can't be blank —— Actual testimonial:
+    #     Same code,Same account,The only difference is that leave it blank here vs Callback 1 item:
+    #       Callback 1 item -> returnCode=1 and the server does write(At that time, shit playCount +1 to)
+    #       leave blank     -> returnCode=1 But nothing has changed.(**fallLibrary**)
+    #     i.e."this gamehas playlog without any track details."will be silently discarded by the server as an invalid packet.
+    #   ★ currentat playCount defaultNoAgain +1,fallLibraryCriteriachange lastPlayDate(text verify_upsert_landing).
     #
-    # ★ But playCount of**Increment**Can be freely controlled：
-    #     config.PLAY_MUSIC_PLAY_COUNT_GAIN = 0（default）-> itemtextPassing on，countUnchanged
+    # ★ But playCount of**Increment**Can be freely controlled:
+    #     config.PLAY_MUSIC_PLAY_COUNT_GAIN = 0(default)-> itemPassing on,countUnchanged
     #                                         = 1        -> Reproduction of the real machine +1
-    #   So「I don't want the music playCount Increase」ofcurrenttextPracticeisputIncrementtext 0，
-    #   **andNo**puttextnodestextempty。
+    #   So"I don't want the music playCount Increase"ofcurrentPracticeisputIncrement 0,
+    #   **andNo**putnodesempty.
     if "userMusicDetailList" in user_all:
         baseline = user_all.get("_baseline_music") or []
         target = None
@@ -1808,7 +1808,7 @@ def apply_play_effects(
             }
         target["playCount"] = (int(target.get("playCount", 0) or 0)
                                + play.music_play_count_gain)
-        # this gameResultstextintexttimeonlyupdatetextValue
+        # this gameResultsintimeonlyupdatevalue
         if play.achievement > int(target.get("achievement", 0) or 0):
             target["achievement"] = play.achievement
             target["scoreRank"] = play.score_rank
@@ -1817,10 +1817,10 @@ def apply_play_effects(
         if play.deluxscore > int(target.get("deluxscoreMax", 0) or 0):
             target["deluxscoreMax"] = play.deluxscore
         user_all["userMusicDetailList"] = [target]
-        # ★ textOnetext「this gamethatitem」，For differential convergence behind the pocket（text build_user_all）
+        # ★ one"this gamethatitem",For differential convergence behind the pocket(text build_user_all)
         user_all["_played_music_entry"] = copy.deepcopy(target)
 
-    # ---------------- userMapList（Differential：textMap distance Increase）----------------
+    # ---------------- userMapList(Differential:map distance Increase)----------------
     if "userMapList" in user_all:
         if play.map_distance_gain:
             baseline = user_all.get("_baseline_map") or []
@@ -1843,7 +1843,7 @@ def apply_play_effects(
         else:
             user_all["userMapList"] = []
 
-    # ---------------- userCharacterList（Differential：grouptext）----------------
+    # ---------------- userCharacterList(Differential:group)----------------
     if "userCharacterList" in user_all:
         if play.character_exp_gain:
             baseline = user_all.get("_baseline_character") or []
@@ -1857,24 +1857,24 @@ def apply_play_effects(
                 item = copy.deepcopy(src)
                 item["level"] = int(item.get("level", 0) or 0) + play.character_exp_gain
                 grown.append(item)
-            # ★ press characterId Ascending（textuse Get Side order）
-            #   real machine source/2026-10-05.log:123 of userCharacterList is [101,395,200401,400401,400402]，
-            #   and charaSlot is [395,101,400402,400401,200401] —— The two are in different order，
-            #   descriptionCallbacktimepress characterId text，instead of pressing charaSlot order。
+            # ★ press characterId Ascending(use Get Side order)
+            #   real machine source/2026-10-05.log:123 of userCharacterList is [101,395,200401,400401,400402],
+            #   and charaSlot is [395,101,400402,400401,200401] —— The two are in different order,
+            #   descriptionCallbacktimepress characterId instead of pressing charaSlot order.
             grown.sort(key=lambda c: int(c.get("characterId", 0) or 0))
             user_all["userCharacterList"] = grown
         else:
             user_all["userCharacterList"] = []
 
     # ---------------- userGetPointList / userLoginBonusList ----------------
-    #   ★ thistextnodesis**loginRewardshairtext**Produced by，textplaysettlementleave blankJust do it：
-    #     - userGetPointList   ：real machine 39 textin 25 textIs Empty（64%）
-    #     - userLoginBonusList ：Only return if this login triggers a new check-in
-    #   Both DEFAULT_EMPTY_NODES in，byDowntextsystemOnetextempty。
-    #   point and therefore leave the baseline unchanged.（The inevitable consequence of not issuing points）。
+    #   ★ thisnodesis**loginRewardshair**Produced by,playsettlementleave blankJust do it:
+    #     - userGetPointList   :real machine 39 in 25 Is Empty(64%)
+    #     - userLoginBonusList :Only return if this login triggers a new check-in
+    #   Both DEFAULT_EMPTY_NODES in,byDownsystemOneempty.
+    #   point and therefore leave the baseline unchanged.(The inevitable consequence of not issuing points).
 
-    # ---------------- userGamePlaylogList（Client Newly Created）----------------
-    user_all["userGamePlaylogList"] = []   # by build_user_all Fill in（need playlog_id）
+    # ---------------- userGamePlaylogList(Client Newly Created)----------------
+    user_all["userGamePlaylogList"] = []   # by build_user_all Fill in(need playlog_id)
 
     # ---------------- userWeeklyData / user2pPlaylog ----------------
     if not user_all.get("userWeeklyData"):
@@ -1891,7 +1891,7 @@ def apply_play_effects(
 
 
 # =============================================================================
-# Twelve、grouptext upsertUserAll
+# Twelve,group upsertUserAll
 # =============================================================================
 
 def build_user_all(
@@ -1911,35 +1911,35 @@ def build_user_all(
     extra_data: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
-    grouptext upsertUserAll of 36 nodes。
+    group upsertUserAll of 36 nodes.
 
-    text：
-        1. From snapshot Establish baseline（Cropped）
-        2. apply_play_effects texttoplayAfter，and calculate the difference nodes
+
+        1. From snapshot Establish baseline(Cropped)
+        2. apply_play_effects toplayAfter,and calculate the difference nodes
         3. Fill userGamePlaylogList
-        4. patch textoverwrite
+        4. patch overwrite
         5. text 11 itemBitstring
 
-    Parameter：
-        snapshot:        Baseline Snapshot（text normalize_snapshot）
-        play:            this game data（defaultpress config.PLAY_*）
-        patch:           textoverwrite，key=nodesFirst name，Highest priority
+    Parameter:
+        snapshot:        Baseline Snapshot(text normalize_snapshot)
+        play:            this game data(defaultpress config.PLAY_*)
+        patch:           overwrite,key=nodesFirst name,Highest priority
         login_date_time: UserLoginApi of loginDateTime
         auth_date_time:  UserLoginApi requestinof dateTime
-        play_date_time:  ★ this gameWhen to escalate（Same loginDateTime text）；
-                         used for lastPlayDate / userGamePlaylogList.playDate。
-                         Return without passing login_date_time。
-        playlog_id:      UserLoginApi of loginId（used for userGamePlaylogList）
-        extra_data:      ★ text JSON（dict / JSON String / file path），
-                         text 36 nodes，**Priority is higher than patch**。text merge_extra_data。
+        play_date_time:  ★ this gameWhen to escalate(Same loginDateTime );
+                         used for lastPlayDate / userGamePlaylogList.playDate.
+                         Return without passing login_date_time.
+        playlog_id:      UserLoginApi of loginId(used for userGamePlaylogList)
+        extra_data:      ★ text JSON(dict / JSON String / file path),
+                         text 36 nodes,**Priority is higher than patch**.text merge_extra_data.
 
-    returntimes：
+    Returns:
         36 nodesof dict
     """
     p = play or build_play_from_config()
     base = normalize_snapshot(snapshot)
 
-    # Keep a copy of the baseline，For differential calculation
+    # Keep a copy of the baseline,For differential calculation
     user_all: Dict[str, Any] = empty_user_all()
     for node in NODE_ORDER:
         if node in base:
@@ -1947,11 +1947,11 @@ def build_user_all(
     user_all["_baseline_music"] = copy.deepcopy(base.get("userMusicDetailList") or [])
     user_all["_baseline_map"] = copy.deepcopy(base.get("userMapList") or [])
     user_all["_baseline_character"] = copy.deepcopy(base.get("userCharacterList") or [])
-    # ★ receivetextofRaw Baseline（nottext itemKind），For build_favorite_delta Generate "1"
+    # ★ receiveofRaw Baseline(not itemKind),For build_favorite_delta Generate "1"
     if base.get("_raw_favorite"):
         user_all["_raw_favorite"] = copy.deepcopy(base["_raw_favorite"])
 
-    # texttoplayAfter
+    # toplayAfter
     apply_play_effects(
         user_all, p,
         login_date_time=login_date_time, auth_date_time=auth_date_time,
@@ -1960,19 +1960,19 @@ def build_user_all(
         play_date_time=play_date_time,
     )
 
-    # userGamePlaylogList（Client Newly Created，need playlog_id）
+    # userGamePlaylogList(Client Newly Created,need playlog_id)
     if playlog_id:
         user_all["userGamePlaylogList"] = [
             build_user_game_playlog(playlog_id, login_date_time, p, client_id=client_id,
                                     play_date=play_date_time)
         ]
 
-    # ---- ★ Differential：puttexthas DELTA_NODES receivetext (text - Baseline) ----
-    #   real machineOnly send back**The changed ones**：
-    #       Get Side 104 itemMap -> Upsert Side 1 item（distance The one that changed）
-    #       Get Side 38 itemloginRewards -> Upsert Side 0 item（textnoVariation）
-    #   apply_play_effects have put together「this gameMeetingsChange」ofnodestexttotext，
-    #   thisinsystemOnetextOnce (text - Baseline)，noVariationoftextreceivetextemptynumbergroup。
+    # ---- ★ Differential:puthas DELTA_NODES receive (text - Baseline) ----
+    #   real machineOnly send back**The changed ones**:
+    #       Get Side 104 itemMap -> Upsert Side 1 item(distance The one that changed)
+    #       Get Side 38 itemloginRewards -> Upsert Side 0 item(noVariation)
+    #   apply_play_effects have put together"this gameMeetingsChange"ofnodesto
+    #   thisinsystemOneOnce (text - Baseline),noVariationofreceiveemptynumbergroup.
     for node, keys in DIFF_PRIMARY_KEYS.items():
         if node not in NODE_TYPES or NODE_TYPES[node] != "array":
             continue
@@ -1986,27 +1986,27 @@ def build_user_all(
         if bits:
             user_all[bits] = flags
 
-    # ---- ★ userMusicDetailList textExample：counttextChangeAlsoMust send back the one from this bureau ----
-    #   Why：The difference above will put「Exactly the same as the baseline」ofitemtext。When
-    #   PLAY_MUSIC_PLAY_COUNT_GAIN = 0（this gameNo changecount）And when the results are not refreshed，
-    #   this gamethatitemMeetingstext -> nodesChangeempty。
-    #   ★ Measured（Same code、Same account，The only difference is this node）：
+    # ---- ★ userMusicDetailList example:countchangeAlsoMust send back the one from this bureau ----
+    #   Why:The difference above will put"Exactly the same as the baseline"ofitemWhen
+    #   PLAY_MUSIC_PLAY_COUNT_GAIN = 0(this gameNo changecount)And when the results are not refreshed,
+    #   this gamethatitemMeetings -> nodesChangeempty.
+    #   ★ Measured(Same code,Same account,The only difference is this node):
     #       Callback 1 item -> returnCode=1 and the server does write
-    #       leave blank     -> returnCode=1 But nothing has changed.（**textPackagetext**）
-    #   So here's the bottom of the pocket.：As long as the Bureau does play a song,，Just be sure to send back that one of it。
-    #   Bitstring to "0" = serverSideExistingthe (musicId, level)，Belongs to updates, not additions。
+    #       leave blank     -> returnCode=1 But nothing has changed.(**packet**)
+    #   So here's the bottom of the pocket.:As long as the Bureau does play a song,,Just be sure to send back that one of it.
+    #   Bitstring to "0" = serverSideExistingthe (musicId, level),Belongs to updates, not additions.
     if not (user_all.get("userMusicDetailList") or []):
         _played = user_all.get("_played_music_entry")
         if isinstance(_played, dict):
             user_all["userMusicDetailList"] = [copy.deepcopy(_played)]
             user_all["isNewMusicDetailList"] = "0"
 
-    # ---- Differential：receivetextistextExample（Do not cull，Constantly returns full entries）----
-    #   ★ Baseline to use**nottextReturnedOnetext**ofOriginal Get Response：real machine itemKind=10 ofthatitemback is
-    #     {"itemKind":null}，currentistextGeneratetextIn the bit string "1"。
-    #     The original response was passed by the caller snapshot of _raw_favorite Incoming；
-    #     textNototimeonlytexttimesAlreadyReturnedOnetextofBaseline，and explicitly declare「Which kind serverHeng Hui null」，
-    #     Otherwise itemKind textAfterBitstringMeetingsYes to all "2"。
+    # ---- Differential:receiveisexample(Do not cull,Constantly returns full entries)----
+    #   ★ Baseline to use**notreturnedOne**ofOriginal Get Response:real machine itemKind=10 ofthatitemback is
+    #     {"itemKind":null},currentisGenerateIn the bit string "1".
+    #     The original response was passed by the caller snapshot of _raw_favorite Incoming;
+    #     nototimeonlytimesAlreadyReturnedOneofBaseline,and explicitly declare"Which kind serverHeng Hui null",
+    #     Otherwise itemKind afterBitstringMeetingsYes to all "2".
     fav_local = user_all.get("userFavoriteList") or base.get("userFavoriteList") or []
     if fav_local:
         raw_fav = base.get("_raw_favorite")
@@ -2019,7 +2019,7 @@ def build_user_all(
         fav_delta, fav_bits = build_favorite_delta(
             fav_local, fav_baseline, fav_assume_missing)
         if fav_assume_missing:
-            log_debug("receivetextBaselinenoRaw Response，pressAlreadytextHengempty kind Pocket back："
+            log_debug("receiveBaselinenoRaw Response,pressAlreadyHengempty kind Pocket back:"
                       + str(tuple(fav_assume_missing)))
         user_all["userFavoriteList"] = fav_delta
         user_all["isNewFavoriteList"] = fav_bits
@@ -2029,17 +2029,17 @@ def build_user_all(
         for node, value in patch.items():
             if node not in NODE_TYPES:
                 raise PatchError(
-                    "patch inhasnottextnodesFirst name：" + str(node)
-                    + "（Available Nodes：" + ", ".join(NODE_ORDER) + "）"
+                    "patch inhasnotnodesFirst name:" + str(node)
+                    + "(Available Nodes:" + ", ".join(NODE_ORDER) + ")"
                 )
             user_all[node] = coerce_node_value(node, value)
 
-    # ---- extra_data overwrite（★ Highest priority）----
+    # ---- extra_data overwrite(★ Highest priority)----
     if load_extra_data(extra_data):
         for note in merge_extra_data(user_all, extra_data):
             log_info(note)
 
-    # ---- textInternalField ----
+    # ---- InternalField ----
     for key in list(user_all.keys()):
         if key.startswith("_"):
             del user_all[key]
@@ -2052,12 +2052,12 @@ def build_user_all(
 
 
 # =============================================================================
-# Thirteen、request / Response VO
+# Thirteen,request / Response VO
 # =============================================================================
 
 @dataclass
 class UserAllRequestVO:
-    """request VO（Corresponding Net.VO.Mai2/UserAllRequestVO，Field order photo C# Declaration）。"""
+    """request VO(Corresponding Net.VO.Mai2/UserAllRequestVO,Field order photo C# Declaration)."""
     userId: int
     playlogId: int = 0
     isEventMode: bool = False
@@ -2069,13 +2069,13 @@ class UserAllRequestVO:
 
 @dataclass
 class UpsertResponseVO:
-    """Response VO（Corresponding Net.VO.Mai2/UpsertResponseVO）。"""
+    """Response VO(Corresponding Net.VO.Mai2/UpsertResponseVO)."""
     returnCode: int = 0
     apiName: str = ""
 
 
 # =============================================================================
-# Fourteen、Self-inspection before contract issuance
+# Fourteen,Self-inspection before contract issuance
 # =============================================================================
 
 def validate_before_send(
@@ -2083,63 +2083,63 @@ def validate_before_send(
     play: Optional[PlayData] = None,
 ) -> List[str]:
     """
-    Check yourself according to the hard constraints of the source code before issuing the contract（returntimestextList，empty = Compliance）。
+    Check yourself according to the hard constraints of the source code before issuing the contract(returnslist,empty = Compliance).
 
-    ★ Even if the server returns returnCode=1，It may also be silent；
-      thisinFirstputcancheckofallcheckOnetext，hastext。
+    ★ Even if the server returns returnCode=1,It may also be silent;
+      thisinFirstputcancheckofallcheckOnehas
 
-    Parameter：
+    Parameter:
         req:  musthairofrequest
-        play: this game data（Optional）。★ usetextJudgment「Differential node is empty」Is it a problem or not?：
-              config.PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN defaultis 0，
-              texttime userMapList / userCharacterList Empty Yes**textfor**，No alarms。
+        play: this game data(Optional).★ useJudgment"Differential node is empty"Is it a problem or not?:
+              config.PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN defaultis 0,
+              time userMapList / userCharacterList Empty Yes**for**,No alarms.
     """
     problems: List[str] = []
 
     if not req.playlogId:
-        problems.append("top-level playlogId for 0（Required == UserLoginApi of loginId）")
+        problems.append("top-level playlogId for 0(Required == UserLoginApi of loginId)")
     if not req.loginDateTime:
-        problems.append("top-level loginDateTime for 0（Required == UserLoginApi of loginDateTime）")
+        problems.append("top-level loginDateTime for 0(Required == UserLoginApi of loginDateTime)")
 
     ua = req.upsertUserAll or {}
 
     ud_list = ua.get("userData") or []
     if not ud_list:
-        problems.append("userData Is Empty（serverYes.It istextoverwritesemantic，emptyPackageetcintext）")
+        problems.append("userData Is Empty(serverpresent.It isoverwritesemantic,emptyPackageetcin)")
     else:
         ud = ud_list[0] if isinstance(ud_list[0], dict) else {}
-        # ★ accessCode real machineisemptytext（source/2026-10-05.log:123），Requirements only"Exists and is not null"
+        # ★ accessCode real machineisempty(source/2026-10-05.log:123),Requirements only"Exists and is not null"
         for key in ("lastGameId", "accessCode", "lastPlaceName", "lastRegionName"):
             if key not in ud or ud.get(key) is None:
-                problems.append("userData." + key + " textorfor null")
+                problems.append("userData." + key + " orfor null")
         nulls = [k for k, v in ud.items() if v is None]
         if nulls:
-            problems.append("userData inhas null Field：" + ", ".join(nulls[:8]))
-        # ★ userData istextoverwritesemantic：thistextPiece「this gameRequiredtext」ofFieldtextistextValue/0，
-        #   serverMeetingstextFullreceivetextetcinNothing happened（text docs/UpsertUserAlltextPittext.md Pit 1）
+            problems.append("userData inhas null Field:" + ", ".join(nulls[:8]))
+        # ★ userData isoverwritesemantic:thisitem"this gameRequired"ofFieldisvalue/0,
+        #   serverMeetingsfullreceiveetcinNothing happened(text docs/UpsertUserAllPitmd Pit 1)
         if not int(ud.get("playCount") or 0):
-            problems.append("userData.playCount for 0（should >= Baseline value）")
+            problems.append("userData.playCount for 0(should >= Baseline value)")
         if not int(ud.get("currentPlayCount") or 0):
-            problems.append("userData.currentPlayCount for 0（should >= Baseline value）")
+            problems.append("userData.currentPlayCount for 0(should >= Baseline value)")
         if not int(ud.get("dateTime") or 0):
-            problems.append("userData.dateTime for 0（should be UserLoginApi requestinof dateTime）")
+            problems.append("userData.dateTime for 0(should be UserLoginApi requestinof dateTime)")
         if not ud.get("lastPlayDate"):
-            problems.append("userData.lastPlayDate Is Empty（It should be the time of reporting by this bureau）")
+            problems.append("userData.lastPlayDate Is Empty(It should be the time of reporting by this bureau)")
         if not ud.get("lastLoginDate"):
-            problems.append("userData.lastLoginDate Is Empty（This should be the time of login）")
+            problems.append("userData.lastLoginDate Is Empty(This should be the time of login)")
 
     if not req.userPlaylogList:
-        problems.append("userPlaylogList Is Empty（thatisthis gameResultsdetails，servertextdirectlytextreceive）")
+        problems.append("userPlaylogList Is Empty(thatisthis gameResultsdetails,serverdirectlyreceive)")
     else:
         for i, pl in enumerate(req.userPlaylogList):
             if isinstance(pl, dict) and pl.get("playlogId") != req.playlogId:
                 problems.append("userPlaylogList[" + str(i) + "].playlogId != top-level playlogId")
             if isinstance(pl, dict) and not pl.get("playSpecial"):
-                pass  # playSpecial Belongs to userGamePlaylogList，Not here
+                pass  # playSpecial Belongs to userGamePlaylogList,Not here
 
     for gp in ua.get("userGamePlaylogList") or []:
         if isinstance(gp, dict) and not gp.get("playSpecial"):
-            problems.append("userGamePlaylogList[].playSpecial for 0（real machine istextmachineBittext）")
+            problems.append("userGamePlaylogList[].playSpecial for 0(real machine ismachineBit)")
 
     # Bit String Length
     for bits, arr in BITS_TO_ARRAY.items():
@@ -2150,38 +2150,38 @@ def validate_before_send(
                             + " != numbergroup " + arr + " itemnumber " + str(len(items)))
 
     # Whether there is a change in the differential node
-    #   ★ Only in「textmusttextthis gamehasVariation」timeonlytext：
-    #     PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN defaultis 0，
-    #     texttime userMapList / userCharacterList Empty Yes**textof**，Not a mistake。
+    #   ★ Only in"mustthis gamehasVariation"timeonly
+    #     PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN defaultis 0,
+    #     time userMapList / userCharacterList Empty Yes**of**,Not a mistake.
     p = play or build_play_from_config()
     if not (ua.get("userMusicDetailList") or []):
         problems.append("Differential Node userMusicDetailList Is Empty —— ★ Measured so the whole package does not take effect"
-                        "（has playlog But no track details will be silently discarded by the server）")
+                        "(has playlog But no track details will be silently discarded by the server)")
     if p.map_distance_gain and not (ua.get("userMapList") or []):
-        problems.append("Differential Node userMapList Is Empty，But PLAY_MAP_DISTANCE_GAIN="
-                        + str(p.map_distance_gain) + " —— servertextcantextforMapnoVariation")
+        problems.append("Differential Node userMapList Is Empty,But PLAY_MAP_DISTANCE_GAIN="
+                        + str(p.map_distance_gain) + " —— servercanforMapnoVariation")
     if p.character_exp_gain and not (ua.get("userCharacterList") or []):
-        problems.append("Differential Node userCharacterList Is Empty，But PLAY_CHARACTER_EXP_GAIN="
-                        + str(p.character_exp_gain) + " —— servertextcantextfortextnoVariation")
+        problems.append("Differential Node userCharacterList Is Empty,But PLAY_CHARACTER_EXP_GAIN="
+                        + str(p.character_exp_gain) + " —— servercanfornoVariation")
 
     return problems
 
 
 # =============================================================================
-# Fifteen、Cooling Wait
+# Fifteen,Cooling Wait
 # =============================================================================
 
 def wait_send_cooldown(seconds: float, *, label: str = "settlementEscalations") -> float:
     """
-    realPackagingagotextwaittextseconds（Includes first time），textEscalationstextreal machine。
+    realPackagingagowaitseconds(Includes first time),Escalationsreal machine.
 
-    ★ Acts only on authentic transmissions；dry_run Don't wait。
+    ★ Acts only on authentic transmissions;dry_run Don't wait.
     """
     seconds = float(seconds or 0)
     if seconds <= 0:
         return 0.0
 
-    log_info(label + "Cooling：wait " + str(seconds) + " secondsAfterAgainSend（textreal machinetext）...")
+    log_info(label + "Cooling:wait " + str(seconds) + " secondsAfterAgainSend(real machine)...")
     start = time.monotonic()
     remain = seconds
     while remain > 0:
@@ -2192,17 +2192,17 @@ def wait_send_cooldown(seconds: float, *, label: str = "settlementEscalations") 
             log_info("    Cooling down ... Waiting " + str(int(seconds - remain)) + "s / Remaining "
                      + str(int(remain)) + "s")
     elapsed = time.monotonic() - start
-    log_info("End of cooldown（Waiting for total " + str(round(elapsed, 1)) + " seconds）")
+    log_info("End of cooldown(Waiting for total " + str(round(elapsed, 1)) + " seconds)")
     return elapsed
 
 
 # =============================================================================
-# sixteen、extra_data：putExternal JSON Merge Into upsertUserAll
+# sixteen,extra_data:puernal JSON Merge Into upsertUserAll
 # =============================================================================
 #
-# usetext：real machinepacketof 36 out of nodes，textnumberallcanbySnapshot + this gametextcalculatetextouttext；
-#       But occasionally I want to manually stuff a few nodes（textAsthis gametexttotextOnetextof KaleidxScope text）。
-#       Instead of changing it, build_user_all ofCode，Why don't you just put that paragraph JSON Incoming。
+# usereal machinepacketof 36 out of nodes,numberallcanbySnapshot + this gamecalculateout;
+#       But occasionally I want to manually stuff a few nodes(Asthis gametooneof KaleidxScope ).
+#       Instead of changing it, build_user_all ofCode,Why don't you just put that paragraph JSON Incoming.
 #
 #   UpsertUserAll(user_id, playlog_id, ...,
 #                 extra_data={
@@ -2210,24 +2210,24 @@ def wait_send_cooldown(seconds: float, *, label: str = "settlementEscalations") 
 #                     "isNewKaleidxScopeList": "1",
 #                 })
 #
-# ★ Consolidation Rules：
-#     1. keyMust be 36 One of nodes（Contains 11 item isNew* Bitstring），Otherwise, explicitly report the error and list the available names
-#     2. Values are cast according to the node's morphology（coerce_node_value），Error transmission mode immediately throws PatchError
-#     3. Highest priority —— overwriteSnapshottextcalculateouttextofSameFirst nametext
-#     4. textnumbergroupbut did not giveCorrespondingBitstring -> presslengthtext "0" and give a hint（"0" = Inventory update）
+# ★ Consolidation Rules:
+#     1. keyMust be 36 One of nodes(Contains 11 item isNew* Bitstring),Otherwise, explicitly report the error and list the available names
+#     2. Values are cast according to the node's morphology(coerce_node_value),Error transmission mode immediately throws PatchError
+#     3. Highest priority —— overwriteSnapshotcalculateoutofSameFirst name
+#     4. numbergroupbut did not giveCorrespondingBitstring -> presslength "0" and give a hint("0" = Inventory update)
 
 def load_extra_data(extra: Any) -> Dict[str, Any]:
     """
-    put「text JSON」text dict。
+    put"text JSON"text dict.
 
-    textFourtextMorphology：
+    FourMorphology:
         None                      -> {}
         dict                      -> Return As Is
         JSON String               -> json.loads
-        file path（.json / .txt）   -> readfileAfter json.loads
+        file path(.json / .txt)   -> readfileAfter json.loads
 
-    ★ Judgment Sequence：Let's see first, shall we? dict，Let's see if the string is「Existing file path」，
-      Only as a last resort JSON textparse —— thistextTwoStringtextallcanuse。
+    ★ Judgment Sequence:Let's see first, shall we? dict,Let's see if the string is"Existing file path",
+      Only as a last resort JSON parse —— thistwoStringallcanuse.
     """
     if extra is None:
         return {}
@@ -2250,13 +2250,13 @@ def load_extra_data(extra: Any) -> Dict[str, Any]:
         try:
             data = json.loads(text)
         except ValueError as exc:
-            raise PatchError("extra_data textNoLegal JSON It's also not a readable file："
+            raise PatchError("extra_data noLegal JSON It's also not a readable file:"
                              + str(exc)) from exc
         if not isinstance(data, dict):
-            raise PatchError("extra_data parseouttextMust be JSON Object（{...}），"
+            raise PatchError("extra_data parseoutmust be JSON Object({...}),"
                              "Actually, " + type(data).__name__)
         return data
-    raise PatchError("extra_data Supported only dict / JSON String / JSON file path，"
+    raise PatchError("extra_data Supported only dict / JSON String / JSON file path,"
                      "receiveto " + type(extra).__name__)
 
 
@@ -2265,16 +2265,16 @@ def merge_extra_data(
     extra_data: Optional[Any] = None,
 ) -> List[str]:
     """
-    putExternal JSON Merge Into upsertUserAll of 36 nodes（In-place modification）。
+    puernal JSON Merge Into upsertUserAll of 36 nodes(In-place modification).
 
-    Parameter：
-        user_all:    build_user_all() oftext
+    Parameter:
+        user_all:    build_user_all() of
         extra_data:  text load_extra_data
 
-    returntimes：
-        Merge Instructions（eachitemOne Row，For Log Printing）
+    Returns:
+        Merge Instructions(eachitemOne Row,For Log Printing)
 
-    Exceptions：
+    Exceptions:
         PatchError: Unknown node name occurred / Incorrect value morphology
     """
     data = load_extra_data(extra_data)
@@ -2283,15 +2283,15 @@ def merge_extra_data(
 
     notes: List[str] = []
 
-    # ---- 1. Verify the key name as a whole first，textchangetextOnetextonlyDiscovertext ----
+    # ---- 1. Verify the key name as a whole first,changeoneonlyDiscover ----
     unknown = [k for k in data if k not in NODE_TYPES]
     if unknown:
         raise PatchError(
-            "extra_data inhasnottextnodesFirst name：" + ", ".join(map(str, unknown))
-            + "\n  Available Nodes（36 Piece）：" + ", ".join(NODE_ORDER)
+            "extra_data inhasnotnodesFirst name:" + ", ".join(map(str, unknown))
+            + "\n  Available Nodes(36 Piece):" + ", ".join(NODE_ORDER)
         )
 
-    # ---- 2. textPieceWrite（coerce will correct the form.，If the shape is wrong, throw it away）----
+    # ---- 2. itemWrite(coerce will correct the form.,If the shape is wrong, throw it away)----
     for node, value in data.items():
         coerced = coerce_node_value(node, value)
         user_all[node] = coerced
@@ -2299,19 +2299,19 @@ def merge_extra_data(
         if kind == "bits":
             notes.append("extra_data Write bit strings " + node + " = " + repr(coerced))
         elif isinstance(coerced, list):
-            notes.append("extra_data Write " + node + "（" + str(len(coerced)) + " item）")
+            notes.append("extra_data Write " + node + "(" + str(len(coerced)) + " item)")
         else:
             notes.append("extra_data Write " + node)
 
-    # ---- 3. textnumbergroupButtextCorrespondingBitstring -> textlengthand prompt ----
+    # ---- 3. numbergroupButcorrespondingBitstring -> lengthand prompt ----
     for bits, arr in BITS_TO_ARRAY.items():
         if arr in data and bits not in data:
             items = user_all.get(arr) or []
             notes.append("  ⚠ text " + arr + " but did not give " + bits
                          + " —— Made up by length \"" + "0" * len(items) + "\""
-                         + "（\"0\" = Inventory update；textis**added**itemtextpleaseexplicitPassing on \"1\"）")
+                         + "(\"0\" = Inventory update;is**added**itempleaseexplicitPassing on \"1\")")
 
-    # ---- 4. The bit string length must be equal to the number of arrays（real machinetext）----
+    # ---- 4. The bit string length must be equal to the number of arrays(real machine)----
     sync_bits_to_arrays(user_all)
 
     # ---- 5. Keep NODE_ORDER order ----
@@ -2323,22 +2323,22 @@ def merge_extra_data(
 
 
 # =============================================================================
-# Seventeen、Internal orchestration：textSnapshot / Front connector / fallLibrarytimescheck
+# Seventeen,Internal orchestration:Snapshot / Front connector / fallLibrarytimescheck
 # =============================================================================
 
 def _resolve_api_func(name: str, fallback: Any = None) -> Any:
     """
-    Priority Pickup api The one in the bag**Logged Shells**ofFunction。
+    Priority Pickup api The one in the bag**Logged Shells**ofFunction.
 
-    ★ Why go around this?：
+    ★ Why go around this?:
         autowrap() Replace only api/__init__.py Name in namespace
-        （text log_setup.autowrap oftext），textInternalofdirectlytextusetexttooftextisOriginalFunction。
-        UpsertUserAll Internal to be adjusted GetNeedUserData / GetUserNewItemList / GetUserData，
-        textthisOneDownTheyonlyMeetingstextuserdirectlycallusethattext「=== xxx Get started ===」，
-        The main script doesn't have to log itself at all。
+        (text log_setup.autowrap of),InternalofdirectlyusetoofisOriginalFunction.
+        UpsertUserAll Internal to be adjusted GetNeedUserData / GetUserNewItemList / GetUserData,
+        thisOneDownTheyonlyMeetingsuserdirectlycallusethat"=== xxx Get started ===",
+        The main script doesn't have to log itself at all.
     """
     try:
-        import api as _pkg                       # Lazy Import，textLoop
+        import api as _pkg                       # Lazy Import,Loop
         fn = getattr(_pkg, name, None)
         if callable(fn):
             return fn
@@ -2348,7 +2348,7 @@ def _resolve_api_func(name: str, fallback: Any = None) -> Any:
 
 
 def _lazy(name: str) -> Any:
-    """pressFirst nametextTake api Raw functions in sub-modules（_resolve_api_func ofPocket back）。"""
+    """pressFirst namefetch api Raw functions in sub-modules(_resolve_api_func ofPocket back)."""
     if name == "GetNeedUserData":
         from .get_need_user_data import GetNeedUserData
         return GetNeedUserData
@@ -2361,21 +2361,21 @@ def _lazy(name: str) -> Any:
     if name == "GetUserMusicDetailAll":
         from .get_user_music import GetUserMusicDetailAll
         return GetUserMusicDetailAll
-    raise PatchError("nottextofInternal api：" + str(name))
+    raise PatchError("notofInternal api:" + str(name))
 
 
 def resolve_api_func(name: str) -> Any:
     """
-    Take「Preferred with Log Shell、Raw function back pocket」oftextcalluseObject。
+    Take"Preferred with Log Shell,Raw function back pocket"ofcalluseObject.
 
-    ★ For internal and other api text（As upsert_user_chargelog）Multiplexing：
-      thistextInternalcalluseAlsoMeetingstextuserdirectlycallusethattext「=== xxx Get started ===」。
+    ★ For internal and other api text(As upsert_user_chargelog)Multiplexing:
+      thisInternalcalluseAlsoMeetingsuserdirectlycallusethat"=== xxx Get started ===".
     """
     fn = _resolve_api_func(name)
     return fn if callable(fn) else _lazy(name)
 
 
-#: textFirst name，Stay compatible
+#: first name,Stay compatible
 _api = resolve_api_func
 
 
@@ -2389,18 +2389,18 @@ def verify_upsert_landing(
     client: Optional[MaimaiNetClient] = None,
 ) -> bool:
     """
-    Repull server data after outsourcing，text**textoftextGotext**。
+    Repull server data after outsourcing,text**ofGo**.
 
-    ★ Why don't you look? returnCode Just done.：
-        serverYes. userData istextoverwritesemantic —— packetNoYes.timetexttimes returnCode=1，
-        But the old values are still written in.。The only reliable criterion is to pull the data again to see if the numbers are moving。
+    ★ Why don't you look? returnCode Just done.:
+        serverpresent. userData isoverwritesemantic —— packetNopresent.timetimes returnCode=1,
+        But the old values are still written in..The only reliable criterion is to pull the data again to see if the numbers are moving.
 
-    Parameter：
+    Parameter:
         user_id:  user ID
-        snapshot: Baseline snapshot before contract release（usetextYes.text）
-        play:     this game data（usetextBitmusttextcheckoftrack）
+        snapshot: Baseline snapshot before contract release(usepresent.)
+        play:     this game data(useBitmustcheckoftrack)
 
-    returntimes：
+    Returns:
         True = Determined as drop-off success
     """
     p = play or build_play_from_config()
@@ -2412,7 +2412,7 @@ def verify_upsert_landing(
                                      timeout_ms=timeout_ms, client=client)
         after_ud = (after_raw.get("userData") or {}) if isinstance(after_raw, dict) else {}
     except Exception as exc:
-        log_warning("fallLibrarytimescheckFailed（Doesn't affect upload results）：" + str(exc))
+        log_warning("fallLibrarytimescheckFailed(Doesn't affect upload results):" + str(exc))
         return False
 
     log_info("  playCount        "
@@ -2434,11 +2434,11 @@ def verify_upsert_landing(
         log_info("  musicId=" + str(p.music_id) + " level=" + str(p.music_level)
                  + " playCount -> " + (str(hit[0].get("playCount")) if hit else "(checkNoto)"))
     except Exception as exc:
-        log_warning("  trackdetailstimescheckFailed：" + str(exc))
+        log_warning("  trackdetailstimescheckFailed:" + str(exc))
 
-    # ★ Judgment is based on walking with increment：
-    #   Increment > 0 -> playCount Should be bigger（Original Criteria）
-    #   Increment = 0 -> playCount textNotheChange，changeuse lastPlayDate isNoupdatetextJudgment
+    # ★ Judgment is based on walking with increment:
+    #   Increment > 0 -> playCount Should be bigger(Original Criteria)
+    #   Increment = 0 -> playCount notheChange,changeuse lastPlayDate isNoupdateJudgment
     _pc_gain = int(getattr(p, "user_play_count_gain", 0) or 0)
     if _pc_gain:
         ok = (int(after_ud.get("playCount") or 0)
@@ -2451,19 +2451,19 @@ def verify_upsert_landing(
         detail = "userData.lastPlayDate " + _b_lpd + " -> " + _a_lpd
 
     if ok:
-        log_info("【fallLibrarySuccess】" + detail)
+        log_info("[fallLibrarySuccess]" + detail)
     else:
-        log_error("【textnotfallLibrary】" + detail + "，"
-                  "pleaseControl docs/UpsertUserAlltextPittext.md textcheck")
+        log_error("[notfallLibrary]" + detail + ","
+                  "pleaseControl docs/UpsertUserAllPitmd check")
         if not _pc_gain:
-            log_warning("  text：PLAY_USER_PLAY_COUNT_GAIN=0 time playCount Unchanged is normal，"
-                        "textplacetextofis lastPlayDate；textUploadofisSameOnegame，"
-                        "lastPlayDate textcanrelatedetc（False Negative）")
+            log_warning("  PLAY_USER_PLAY_COUNT_GAIN=0 time playCount Unchanged is normal,"
+                        "placeofis lastPlayDate;uploadofisSameOnegame,"
+                        "lastPlayDate canrelatedetc(False Negative)")
     return ok
 
 
 # =============================================================================
-# Eighteen、Main Function
+# Eighteen,Main Function
 # =============================================================================
 
 def UpsertUserAll(
@@ -2497,104 +2497,104 @@ def UpsertUserAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Union[UserAllRequestVO, UpsertResponseVO]:
     """
-    Upload an Inning Result（UpsertUserAllApi，★ hasSide effects）—— **A function runs the entire settlement link**。
+    Upload an Inning Result(UpsertUserAllApi,★ hasSide effects)—— **A function runs the entire settlement link**.
 
-    ★ Do these things internally in turn，The main script only calls it once：
-        1. textBaseline Snapshot（textPassing on snapshot timetext，need token）
-        2. Push Local from Snapshot 5 Roles only（auto_characters）
+    ★ Do these things internally in turn,The main script only calls it once:
+        1. Baseline Snapshot(Passing on snapshot timeneed token)
+        2. Push Local from Snapshot 5 Roles only(auto_characters)
         3. constructthis gameResultsdetails userPlaylogList
-        4. callFront connector GetUserNewItemListApi（pre_new_item_list）
-        5. grouptext upsertUserAll of 36 nodes（Snapshot Baseline + this gametextcalculate + Differential）
+        4. callFront connector GetUserNewItemListApi(pre_new_item_list)
+        5. group upsertUserAll of 36 nodes(Snapshot Baseline + this gamecalculate + Differential)
         6. Merge extra_data inofExternal JSON
         7. Self-inspection before contract issuance
         8. Cooling → realPackaging
-        9. fallLibrarytimescheck（verify_landing）
+        9. fallLibrarytimescheck(verify_landing)
 
-    Parameter：
-        user_id:         user ID（Required）
-        playlog_id:      textlogin ID（Required，★ Required == UserLoginApi of loginId）
-        login_date_time: logintime（Required，★ Required == UserLoginApi of loginDateTime）
-        auth_date_time:  UserLoginApi requestinof dateTime（Optional；
-                         userData.dateTime mustusetext，real machineMeasuredtextplaceMatch）
-        token:           Session Token（Optional）。★ Only in「textPassing on snapshot And auto_snapshot=True」
-                         timeneed —— Auto-tuning with it internally GetNeedUserData。
-        snapshot:        Baseline Snapshot（Optional，text normalize_snapshot）。
-                         Pass it and use it；If it is not passed on, press auto_snapshot text。
-                         ★ serverYes. userData istextoverwrite、Pair differential nodes are「Only return variations」，
-                           noneBaseline Snapshottextetcintextserver「this gametextalltextChange」。
-        auto_snapshot:   True（default）= textPassing on snapshot timetextOnetext。
-        auto_characters: True（default）= From Snapshot userData.charaSlot +
-                         userCharacterList textoutthis game 5 Roles only（**playago**level）。
-                         thistext PLAY_CHARACTERS（currentat selftest.py in） textAlsoNoImpact。
-        play:            this game data（Optional，defaultpress config.PLAY_*）
-        extra_data:      ★ text JSON，text upsertUserAll of 36 nodes。
-                         text dict / JSON String / JSON file path，Example：
+    Parameter:
+        user_id:         user ID(Required)
+        playlog_id:      login ID(Required,★ Required == UserLoginApi of loginId)
+        login_date_time: logintime(Required,★ Required == UserLoginApi of loginDateTime)
+        auth_date_time:  UserLoginApi requestinof dateTime(Optional;
+                         userData.dateTime mustusereal machineMeasuredplaceMatch)
+        token:           Session Token(Optional).★ Only in"Passing on snapshot And auto_snapshot=True"
+                         timeneed —— Auto-tuning with it internally GetNeedUserData.
+        snapshot:        Baseline Snapshot(Optional,text normalize_snapshot).
+                         Pass it and use it;If it is not passed on, press auto_snapshot
+                         ★ serverpresent. userData isoverwrite,Pair differential nodes are"Only return variations",
+                           noneBaseline Snapshotetcinserver"this gameallchange".
+        auto_snapshot:   True(default)= Passing on snapshot timeone
+        auto_characters: True(default)= From Snapshot userData.charaSlot +
+                         userCharacterList outthis game 5 Roles only(**playago**level).
+                         this PLAY_CHARACTERS(currentat selftest.py in) AlsoNoImpact.
+        play:            this game data(Optional,defaultpress config.PLAY_*)
+        extra_data:      ★ text JSON,text upsertUserAll of 36 nodes.
+                         text dict / JSON String / JSON file path,Example:
                              extra_data={"userKaleidxScopeList": [{...}],
                                          "isNewKaleidxScopeList": "1"}
-                         Highest priority（overwriteSnapshottextcalculateoutofSameFirst nametext）。
-                         textBitstringtimeMeetingspressnumbergrouplengthtext "0" and give a hint。
-        patch:           Same extra_data oftextinterface（Accepts only dict，No Matching String Prompt）。
-        user_playlog_list: this gameResultsdetails（Optional；Don't pass it on, use it play textconstructOneitem）
-        pre_new_item_list: True（default）= Adjust before releasing the package GetUserNewItemListApi
-                         （real machinetextfor：settlementEscalationsagotext 8 secondscalltext）。Failure does not block。
-        verify_landing:  True（default）= Repull server data after outsourcing，textoftextGotext。
-                         ★ serverreturntimes returnCode=1 Doesn't mean the data is applied，thisOnetextIt is.textreceivestandard。
-        is_event_mode:   textmodetext（Optional）
-        is_free_play:    Free Play Logo（Optional）
-        confirm:         Side Effects Gate；None timeTake config.UPSERT_CONFIRM
-        dry_run:         True = Construct and return packets only，textNo Package Issued
-        cooldown_sec:    realPackagingagoofCoolingsecondsnumber（Only confirm=True text；
-                         None = Take config.UPSERT_SEND_COOLDOWN_SEC，Passing on 0 skip）
-        play_date_time:  ★ this game**play/When to escalate**（Optional，Same loginDateTime text）。
+                         Highest priority(overwriteSnapshotcalculateoutofSameFirst name).
+                         BitstringtimeMeetingspressnumbergrouplength "0" and give a hint.
+        patch:           Same extra_data ofinterface(Accepts only dict,No Matching String Prompt).
+        user_playlog_list: this gameResultsdetails(Optional;Don't pass it on, use it play constructOneitem)
+        pre_new_item_list: True(default)= Adjust before releasing the package GetUserNewItemListApi
+                         (real machinefor:settlementEscalationsago 8 secondscall).Failure does not block.
+        verify_landing:  True(default)= Repull server data after outsourcing,ofGo
+                         ★ serverreturns returnCode=1 Doesn't mean the data is applied,thisOneIt is.receivestandard.
+        is_event_mode:   mode(Optional)
+        is_free_play:    Free Play Logo(Optional)
+        confirm:         Side Effects Gate;None timeTake config.UPSERT_CONFIRM
+        dry_run:         True = Construct and return packets only,no packet is sent
+        cooldown_sec:    realPackagingagoofCoolingsecondsnumber(Only confirm=True ;
+                         None = Take config.UPSERT_SEND_COOLDOWN_SEC,Passing on 0 skip)
+        play_date_time:  ★ this game**play/When to escalate**(Optional,Same loginDateTime ).
                          real machinein userData.lastPlayDate / userGamePlaylogList.playDate /
-                         userPlaylogList.userPlayDate allis「textthatOnetext」，Different from login time。
-                         **Automatically take without passing「currentat」**（login_date_time_now()）。
-        timeout_ms:      timeout milliseconds（default 60 seconds）
-        client:          Reusable MaimaiNetClient（Optional）
+                         userPlaylogList.userPlayDate allis"thatOne",Different from login time.
+                         **Automatically take without passing"currentat"**(login_date_time_now()).
+        timeout_ms:      timeout milliseconds(default 60 seconds)
+        client:          Reusable MaimaiNetClient(Optional)
 
-    returntimes：
+    Returns:
         dry_run=True  -> UserAllRequestVO
         dry_run=False -> UpsertResponseVO
     """
-    log_info("Upload Grades：user_id=" + str(user_id) + " playlog_id=" + str(playlog_id)
+    log_info("Upload Grades:user_id=" + str(user_id) + " playlog_id=" + str(playlog_id)
              + " dry_run=" + str(dry_run))
 
     if not login_date_time:
-        raise ValueError("text login_date_time：Must pass UserLoginApi of loginDateTime"
-                         "（PacketUpsertUserAll.cs:31）")
+        raise ValueError("text login_date_time:Must pass UserLoginApi of loginDateTime"
+                         "(PacketUpsertUserAll.cs:31)")
 
-    # ---------- stage 1：Baseline Snapshot（Premise of Difference）----------
+    # ---------- stage 1:Baseline Snapshot(Premise of Difference)----------
     if snapshot is None and auto_snapshot:
         if not token:
-            log_warning("textPassing on snapshot Also did not pass token —— notextBaseline Snapshot。"
-                        "Differential nodes will be empty，servertextcantextforthis gamenoVariation。"
-                        "textPassing on token=...（text）or snapshot=...（textIncoming）")
+            log_warning("Passing on snapshot Also did not pass token —— noBaseline Snapshot."
+                        "Differential nodes will be empty,servercanforthis gamenoVariation."
+                        "Passing on token=...()or snapshot=...(Incoming)")
         else:
-            log_info("notPassing on snapshot，textTakesettlementBaseline Snapshot ...")
+            log_info("notPassing on snapshot,fetchsettlementBaseline Snapshot ...")
             snapshot = _api("GetNeedUserData")(
                 user_id, token=token, client_id=client_id,
                 place_id=place_id, region_id=region_id, client=client,
             )
 
-    # ---------- stage 2：this game data ----------
+    # ---------- stage 2:this game data ----------
     p = play or build_play_from_config()
     if auto_characters:
         derived = derive_play_characters(snapshot, p)
         if derived and any(c.get("characterId") for c in derived):
             p.characters = derived
-            log_info("textSnapshotTaken from server snapshot："
+            log_info("SnapshotTaken from server snapshot:"
                      + " / ".join(str(c["characterId"]) + ":" + str(c["level"])
                                   for c in derived))
 
-    # ★ rating / grade Always push from server snapshot（Don't read again config oftextValue）
+    # ★ rating / grade Always push from server snapshot(Don't read again config ofvalue)
     if snapshot:
         derive_play_rating(snapshot, p)
         derive_play_grade(snapshot, p)
 
-    # play/When to escalate：Take without passing「currentat」
+    # play/When to escalate:Take without passing"currentat"
     play_now = int(play_date_time) if play_date_time else login_date_time_now()
 
-    # ---------- stage 3：this gameResultsdetails ----------
+    # ---------- stage 3:this gameResultsdetails ----------
     if user_playlog_list is None:
         user_playlog_list = [
             build_user_playlog(playlog_id, login_date_time, p,
@@ -2602,7 +2602,7 @@ def UpsertUserAll(
                                client_id=client_id, play_date=play_now)
         ]
 
-    # ---------- stage 4：Front GetUserNewItemListApi ----------
+    # ---------- stage 4:Front GetUserNewItemListApi ----------
     if pre_new_item_list:
         try:
             post_user_data = build_post_play_user_data(
@@ -2619,9 +2619,9 @@ def UpsertUserAll(
                 client_id=client_id, timeout_ms=timeout_ms, client=client,
             )
         except Exception as exc:
-            log_warning("GetUserNewItemListApi Failed（Unblock checkout）：" + str(exc))
+            log_warning("GetUserNewItemListApi Failed(Unblock checkout):" + str(exc))
 
-    # ---------- stage 5：grouptext upsertUserAll（Snapshot Baseline + this gametextcalculate + Differential）----------
+    # ---------- stage 5:group upsertUserAll(Snapshot Baseline + this gamecalculate + Differential)----------
     user_all = build_user_all(
         snapshot=snapshot, play=p, patch=patch, extra_data=extra_data,
         login_date_time=login_date_time, auth_date_time=auth_date_time,
@@ -2630,7 +2630,7 @@ def UpsertUserAll(
         playlog_id=playlog_id, play_date_time=play_now,
     )
 
-    # ---------- stage 7：constructrequest ----------
+    # ---------- stage 7:constructrequest ----------
     req = UserAllRequestVO(
         userId=user_id,
         playlogId=playlog_id,
@@ -2641,7 +2641,7 @@ def UpsertUserAll(
         upsertUserAll=user_all,
     )
 
-    # ---------- stage 8：text ----------
+    # ---------- stage 8:text ----------
     for pl in req.userPlaylogList:
         if isinstance(pl, dict):
             for problem in validate_user_playlog(pl):
@@ -2649,36 +2649,36 @@ def UpsertUserAll(
 
     problems = validate_before_send(req, play=p)
     if problems:
-        log_warning("【Self-inspection before contract issuance】Discover " + str(len(problems)) + " may not conform to source code logic：")
+        log_warning("[Self-inspection before contract issuance]Discover " + str(len(problems)) + " may not conform to source code logic:")
         for item in problems:
             log_warning("    - " + item)
-        log_warning("servertextcanreturntimes returnCode=1 But**Not really dropped off**，pleasetextitemtextYes.")
+        log_warning("servercanreturns returnCode=1 But**Not really dropped off**,pleaseitempresent.")
     else:
         log_info("Self-test passed before contract issuance")
 
-    # ---------- stage 9：dry-run ----------
+    # ---------- stage 9:dry-run ----------
     if dry_run:
-        log_info("[dry-run] Request message constructed，notPackaging")
-        log_debug("dry-run packet：" + json.dumps(req, ensure_ascii=False, default=str))
+        log_info("[dry-run] Request message constructed,notPackaging")
+        log_debug("dry-run packet:" + json.dumps(req, ensure_ascii=False, default=str))
         return req
 
-    # ---------- stage 10：Side Effects Gate ----------
+    # ---------- stage 10:Side Effects Gate ----------
     effective = UPSERT_CONFIRM if confirm is None else bool(confirm)
     if not effective:
-        msg = ("UpsertUserAllApi is**hasSide effects**ofinterface（will write the actual results of this bureau into the server，Irrevocable）。"
-               "textscriptdefaultNotext。textmusthairpleasePassing on confirm=True，"
-               "or change config.UPSERT_CONFIRM = True。I just want to see the message, please send it dry_run=True。")
+        msg = ("UpsertUserAllApi is**hasSide effects**ofinterface(will write the actual results of this bureau into the server,Irrevocable)."
+               "scriptdefaultNomusthairpleasePassing on confirm=True,"
+               "or change config.UPSERT_CONFIRM = True.I just want to see the message, please send it dry_run=True.")
         log_error(msg)
         raise ConfirmRequiredError(msg)
 
-    # ---------- stage 11：Cooling ----------
+    # ---------- stage 11:Cooling ----------
     wait_send_cooldown(
         UPSERT_SEND_COOLDOWN_SEC if cooldown_sec is None else cooldown_sec,
         label="Upload Grades",
     )
 
-    # ---------- stage 12：Packaging ----------
-    log_info("textAlreadytext，Start uploading grades ...")
+    # ---------- stage 12:Packaging ----------
+    log_info("alreadyStart uploading grades ...")
     raw = request_dict(
         "UpsertUserAllApi", req,
         user_id=user_id, client_id=client_id,
@@ -2690,13 +2690,13 @@ def UpsertUserAll(
         apiName=str(raw.get("apiName", "") or ""),
     )
     if resp.returnCode != 1:
-        msg = "Failed to upload grades：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName
+        msg = "Failed to upload grades:returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName
         log_error(msg)
         raise UpsertUserAllError(msg)
 
-    log_info("Uploaded grades successfully：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
+    log_info("Uploaded grades successfully:returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
 
-    # ---------- stage 13：fallLibrarytimescheck（★ textcurrentoftextreceivestandard）----------
+    # ---------- stage 13:fallLibrarytimescheck(★ currentofreceivestandard)----------
     if verify_landing:
         verify_upsert_landing(user_id, snapshot, p,
                               client_id=client_id, timeout_ms=timeout_ms, client=client)
@@ -2705,7 +2705,7 @@ def UpsertUserAll(
 
 
 # =============================================================================
-# Nineteen、Run separately（debug）
+# Nineteen,Run separately(debug)
 # =============================================================================
 
 if __name__ == "__main__":
@@ -2714,19 +2714,19 @@ if __name__ == "__main__":
     def _main() -> int:
         setup_logging("upsert_user_all_test")
         try:
-            log_info("constructOneitem playlog and do a self-test.（No Package Issued）")
+            log_info("constructOneitem playlog and do a self-test.(no packet is sent)")
             pl = build_user_playlog(7692848101484135861, 1791159576)
             problems = validate_user_playlog(pl)
             if problems:
                 for item in problems:
                     log_warning("  - " + item)
             else:
-                log_info("playlog text（110 Fully fielded）")
+                log_info("playlog text(110 Fully fielded)")
 
-            log_info("Number of fields：" + str(len(pl)) + " / text " + str(len(PLAYLOG_FIELDS)))
-            log_info("Total number of judgments：" + str(sum(
+            log_info("Number of fields:" + str(len(pl)) + " / text " + str(len(PLAYLOG_FIELDS)))
+            log_info("Total number of judgments:" + str(sum(
                 int(pl.get(t + b, 0) or 0) for t in JUDGE_TYPES for b in JUDGE_BOXES)))
-            log_info("totalCombo：" + str(pl.get("totalCombo")))
+            log_info("totalCombo:" + str(pl.get("totalCombo")))
             return 0
         finally:
             teardown_logging()

@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-get_user_friend_bonus.py —— Fetching user friend miles（GetUserFriendBonusApi）
+get_user_friend_bonus.py —— Fetching user friend miles(GetUserFriendBonusApi)
 ================================================================================
 
-Collect friend miles that players can claim this time（getMiles）。
+Collect friend miles that players can claim this time(getMiles).
 
-Corresponding interface：GetUserFriendBonusApi
-request body  ：UserIdRequestVO
-Response    ：{returnCode, userId, getMiles}
-Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserFriendBonusRequestVO.cs
+Corresponding interface:GetUserFriendBonusApi
+request body  :UserIdRequestVO
+Response:{returnCode, userId, getMiles}
+Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserFriendBonusRequestVO.cs
           source/2026-10-05.log:111  real machineResponse {"returnCode":1,"userId":..,"getMiles":90}
 
-call exampleExample：
+Example:
     from api import GetUserFriendBonus, extract_gift_points
 """
 
@@ -34,12 +34,12 @@ def GetUserFriendBonus(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Fetching user friend miles（Corresponding GetUserFriendBonusApi）。
+    Fetching user friend miles(Corresponding GetUserFriendBonusApi).
 
-    returntimes：
-        Raw Response dict：{"returnCode":1, "userId":.., "getMiles":..}
+    Returns:
+        Raw Response dict:{"returnCode":1, "userId":.., "getMiles":..}
     """
-    log_info("Fetching user friend miles：user_id=" + str(user_id))
+    log_info("Fetching user friend miles:user_id=" + str(user_id))
     resp = _get("GetUserFriendBonusApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)
 
@@ -50,13 +50,13 @@ def GetUserFriendBonus(
 
 def extract_gift_points(friend_bonus: Dict[str, Any]) -> int:
     """
-    Pull from friend mileage response getMiles（textTakeofintextnumber）。
+    Pull from friend mileage response getMiles(fetchofinnumber).
 
-    Parameter：
-        friend_bonus: GetUserFriendBonus ofreturntimesValue
+    Parameter:
+        friend_bonus: GetUserFriendBonus ofreturnsValue
 
-    returntimes：
-        getMiles textnumber（If you can't get it, it's 0）
+    Returns:
+        getMiles number(If you can't get it, it's 0)
     """
     try:
         return int((friend_bonus or {}).get("getMiles", 0) or 0)
