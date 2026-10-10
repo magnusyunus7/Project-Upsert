@@ -1,14 +1,3 @@
-<h1 align="center">WaHappy</h1>
-
-<p align="center">
- <b>maimai DX of</b><br>
- Purpose: maimai DXofcanplayget
-</p>
-
-<p align="center">AIofuse</p>
-
----
-
 ## Current Status: v0
 
 | script | |
