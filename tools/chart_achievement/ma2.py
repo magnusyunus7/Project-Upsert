@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""maimai DX (maimai DX) .ma2 chartparse.
+"""maimai DX (maimai DX). ma2 chartparse.
 
-text -> note ofCorrespondingDecompile source code
-  source/Assembly-CSharp/Manager/Ma2fileRecordID.cs
-  (s_Ma2fileRecord_Data in Ma2Category.MA2_Note of 102 itemrecord)
+-> note ofCorrespondingDecompile source code
+ source/Assembly-CSharp/Manager/Ma2fileRecordID. cs
+ (s_Ma2fileRecord_Data in Ma2Category. MA2_Note of 102 itemrecord)
 countCategoriesofDivideReprint
-  source/Assembly-CSharp/Manager/GamePlayManager.cs  NoteType2ScoreType()
+ source/Assembly-CSharp/Manager/GamePlayManager. cs NoteType2ScoreType()
 theoreticalMinutesweight
-  source/Assembly-CSharp/Manager/NotesReader.cs  calcTotal()
+ source/Assembly-CSharp/Manager/NotesReader. cs calcTotal()
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from typing import Dict, List, Optional
 WEIGHT_TAP = 500      # TAP / XTP / STR / XST / TTP(Touch And Tap Same as 500)
 WEIGHT_HOLD = 1000    # HLD / XHO / THO
 WEIGHT_SLIDE = 1500   # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_
-WEIGHT_BREAK = 2500   # BRK / BST / BRTAP / BRHLD / BRSTR / BRSI_ ... and ExBreak text
+WEIGHT_BREAK = 2500   # BRK / BST / BRTAP / BRHLD / BRSTR / BRSI_... and ExBreak
 BREAK_BONUS_THEORY = 100   # eachPiececritical perfect(Break)oftheoreticalReward Points
 
 CATEGORY_TAP = "Tap"
@@ -43,7 +43,7 @@ CATEGORY_LABEL = {
     CATEGORY_BREAK: "Break",
 }
 
-# ------------------------------------------------- ma2 text -> NotesTypeID.Def
+# ------------------------------------------------- ma2 -> NotesTypeID. Def
 NOTE_COMMAND_TYPES: Dict[str, str] = {
     # --- current ---
     "TAP": "Begin", "BRK": "Break", "XTP": "ExTap", "HLD": "Hold", "XHO": "ExHold",
@@ -85,29 +85,29 @@ _CONNECT_DEFS = frozenset(("ConnectSlide",))
 EX_DEFS = frozenset(("ExTap", "ExStar", "ExBreakTap", "ExBreakStar"))
 
 # ---------------------------------------------------------------- notegroup
-# "notegroup"= countMinutesforfullrelatedSameofOnenote:weight,Optional Determination,Missed Gear,critical perfectRewardsfileBitallSame.
+# "notegroup"= countMinutesforfullrelatedSameofOnenote: weight, Optional Determination, Missed Gear, critical perfectRewardsfileBitallSame.
 # Classification by(Decompile source code):
-#   * countCategories NoteScore.EScoreType by GamePlayManager.NoteType2ScoreType() Decision
-#     (Break text -> Break,item -> Slide,hold -> Hold,Remaining -> Tap/Touch)
-#   * Determine timing table NoteJudge.EJudgeType byEachnoteDecision:
-#       TapNote/StarNote   -> Tap(or ExNote time ExTap)
-#       HoldNote/BreakHoldNote/TouchHoldC -> holdsettlement JudgeHoldTotal(Irrespective 2nd/3rd file)
-#       SlideRoot/SlideFan -> SlideOut(Irrespective 2nd/3rd file,There is also no non- Critical of Perfect)
-#       BreakNote/BreakStarNote -> Break text(Great has 1250/1500/2000 Third Grade)
-#   * ExTap Determination table [-9,-9,-9,-9,-9,-9,-9,0,9,9,9,9,9,9,9] Make Not Critical offileBitAllNo
-#     -> ExTap/ExStar(Contains ExBreak )Only Critical or Miss
-#   * ExHold/ExBreakHold ofFor head ExTap But the results will have to go through JudgeHoldTotal
-#     Ultimately still available Critical/Perfect/Great/Good/Miss -> vs Normal Hold / BreakHold relatedSame
-#   * ExSlide / ExBreakSlide of JudgeType Constantly SlideOut,And isBreak() Excluding ExBreakSlide
-#     -> countMinutesvs Normal Slide Exact match(datainthisTwoAppearancecountfor 0)
-GROUP_TAP = "tap"                  # TAP NMTAP STR NMSTR TTP NMTTP          weight 500
-GROUP_HOLD = "hold"                # HLD NMHLD XHO EXHLD THO NMTHO          weight 1000
-GROUP_SLIDE = "slide"              # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_ + NM/EX/CN Variants  weight 1500
-GROUP_BREAK = "break"              # BRK BRTAP BST BRSTR                    weight 2500,Great Third Grade,Perfect Reward two tiers
-GROUP_BREAK_FLAT = "break_flat"    # BRHLD BXHLD                            weight 2500,holdDetermine,No Gear Break
+#  * countCategories NoteScore. EScoreType by GamePlayManager. NoteType2ScoreType() Decision
+#   (Break -> Break, item -> Slide, hold -> Hold, Remaining -> Tap/Touch)
+#  * Determine timing table NoteJudge. EJudgeType byEachnoteDecision:
+#    TapNote/StarNote  -> Tap(or ExNote time ExTap)
+#    HoldNote/BreakHoldNote/TouchHoldC -> holdsettlement JudgeHoldTotal(Irrespective 2nd/3rd file)
+#    SlideRoot/SlideFan -> SlideOut(Irrespective 2nd/3rd file, There is also no non- Critical of Perfect)
+#    BreakNote/BreakStarNote -> Break(Great has 1250/1500/2000 Third Grade)
+#  * ExTap Determination table [-9,-9,-9,-9,-9,-9,-9,0,9,9,9,9,9,9,9] Make Not Critical offileBitAllNo
+#   -> ExTap/ExStar(Contains ExBreak )Only Critical or Miss
+#  * ExHold/ExBreakHold ofFor head ExTap But the results will have to go through JudgeHoldTotal
+#   Ultimately still available Critical/Perfect/Great/Good/Miss -> vs Normal Hold / BreakHold relatedSame
+#  * ExSlide / ExBreakSlide of JudgeType Constantly SlideOut, And isBreak() Excluding ExBreakSlide
+#   -> countMinutesvs Normal Slide Exact match(datainthisTwoAppearancecountfor 0)
+GROUP_TAP = "tap"                  # TAP NMTAP STR NMSTR TTP NMTTP     weight 500
+GROUP_HOLD = "hold"                # HLD NMHLD XHO EXHLD THO NMTHO     weight 1000
+GROUP_SLIDE = "slide"              # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_ + NM/EX/CN Variants weight 1500
+GROUP_BREAK = "break"              # BRK BRTAP BST BRSTR          weight 2500, Great Third Grade, Perfect Reward two tiers
+GROUP_BREAK_FLAT = "break_flat"    # BRHLD BXHLD              weight 2500, holdDetermine, No Gear Break
 GROUP_BREAK_SLIDE = "break_slide"  # BRSI_ BRSCL BRSCR BRSUL BRSUR BRSSL BRSSR BRSV_ BRSXL BRSXR BRSLL BRSLR BRSF_
-GROUP_EX = "ex"                    # XTP EXTAP XST EXSTR                    weight 500,Only Critical / Miss
-GROUP_EX_BREAK = "ex_break"        # BXTAP BXSTR                            weight 2500,Only Critical / Miss
+GROUP_EX = "ex"                    # XTP EXTAP XST EXSTR          weight 500, Only Critical / Miss
+GROUP_EX_BREAK = "ex_break"        # BXTAP BXSTR              weight 2500, Only Critical / Miss
 
 GROUP_ORDER = (GROUP_TAP, GROUP_HOLD, GROUP_SLIDE, GROUP_BREAK,
                GROUP_BREAK_FLAT, GROUP_BREAK_SLIDE, GROUP_EX, GROUP_EX_BREAK)
@@ -151,12 +151,12 @@ _CATEGORY_BY_GROUP = {
 
 
 def note_group(def_name: str) -> Optional[str]:
-    """NotesTypeID.Def First name -> notegroup;continueitemetcNo scorenotereturns None."""
+    """NotesTypeID. Def First name -> notegroup; continueitemetcNo scorenotereturns None."""
     return _GROUP_BY_DEF.get(def_name)
 
 
 def score_category(def_name: str) -> Optional[str]:
-    """Reprint GamePlayManager.NoteType2ScoreType() ofCategories(Tap/Hold/Slide/Break)."""
+    """Reprint GamePlayManager. NoteType2ScoreType() ofCategories(Tap/Hold/Slide/Break)."""
     grp = note_group(def_name)
     if grp is None:
         return None
@@ -256,13 +256,13 @@ def parse_ma2_bytes(raw: bytes, path: str = "<memory>") -> Chart:
 
 
 # ------------------------------------------------------------ parse
-DIFFICULTY_NAMES = ("Basic", "Advanced", "Expert", "Master", "Re:Master")
+DIFFICULTY_NAMES = ("Basic", "Advanced", "Expert", "Master", "Re: Master")
 _DIFFICULTY_ALIASES = {
     "basic": 0, "bas": 0, "bsc": 0, "0": 0, "00": 0,
     "advanced": 1, "adv": 1, "1": 1, "01": 1,
     "expert": 2, "exp": 2, "2": 2, "02": 2,
     "master": 3, "mas": 3, "mst": 3, "3": 3, "03": 3,
-    "remaster": 4, "re:master": 4, "remas": 4, "re": 4, "4": 4, "04": 4,
+    "remaster": 4, "re: master": 4, "remas": 4, "re": 4, "4": 4, "04": 4,
 }
 
 
@@ -270,16 +270,16 @@ def parse_difficulty(text) -> int:
     if isinstance(text, int):
         if 0 <= text <= 4:
             return text
-        raise ValueError("difficultynone.Must be 0~4")
+        raise ValueError("difficultynone. Must be 0~4")
     key = str(text).strip().lower()
     if key in _DIFFICULTY_ALIASES:
         return _DIFFICULTY_ALIASES[key]
-    raise ValueError("noofdifficulty:%s(Available 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER,"
+    raise ValueError("noofdifficulty:%s(Available 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE: MASTER,"
                      "or just write your name)" % text)
 
 
 def find_music_dir(game_path: str) -> str:
-    """put"text / Sinmai_Data / StreamingAssets / A000"allReturnedOneto A000/music."""
+    """put"/ Sinmai_Data / StreamingAssets / A000"allReturnedOneto A000/music."""
     p = os.path.abspath(os.path.expanduser(game_path))
     if not os.path.isdir(p):
         raise FileNotFoundError("Absent:%s" % p)
@@ -296,7 +296,7 @@ def find_music_dir(game_path: str) -> str:
     for c in candidates:
         if os.path.isdir(c) and os.path.basename(c).lower() == "music":
             return c
-    raise FileNotFoundError("at %s Not found under A000/music text" % p)
+    raise FileNotFoundError("at %s Not found under A000/music" % p)
 
 
 def music_dir_path(music_dir: str, music_id: int) -> str:
@@ -304,11 +304,11 @@ def music_dir_path(music_dir: str, music_id: int) -> str:
 
 
 def chart_path(music_dir: str, music_id: int, difficulty: int) -> str:
-    return os.path.join(music_dir_path(music_dir, music_id), "%06d_%02d.ma2" % (music_id, difficulty))
+    return os.path.join(music_dir_path(music_dir, music_id), "%06d_%02d. ma2" % (music_id, difficulty))
 
 
 def parse_music_xml(path: str) -> Dict[str, object]:
-    """readTake Music.xml(Only use standard libraries),Take out song names and difficulty information."""
+    """readTake Music. xml(Only use standard libraries), Take out song names and difficulty information."""
     import xml.etree.ElementTree as ET
 
     info: Dict[str, object] = {"notes": []}

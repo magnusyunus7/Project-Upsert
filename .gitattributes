@@ -1,7 +1,7 @@
 # systemOne Windows/Linux timesputeachPiecefileall modified
-* text=auto
-*.py   text eol=lf
-*.md   text eol=lf
-*.cs   text eol=crlf
-*.csproj text eol=crlf
-*.json text eol=lf
+*=auto
+*. py  eol=lf
+*. md  eol=lf
+*. cs  eol=crlf
+*. csproj eol=crlf
+*. json eol=lf

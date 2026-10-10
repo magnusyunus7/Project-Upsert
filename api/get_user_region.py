@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_user_region.py —— Fetch user area play statistics(GetUserRegionApi)
+get_user_region. py — Fetch user area play statistics(GetUserRegionApi)
 ================================================================================
 
 Take the number of times players play in each region.
 
-Corresponding interface:GetUserRegionApi
-request body  :UserIdRequestVO
-Response:{userId, length, userRegionList:[{regionId,playCount,created}]}
-Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserRegionRequestVO.cs
-          source/2026-10-05.log:77
+Corresponding interface: GetUserRegionApi
+request body: UserIdRequestVO
+Response:{userId, length, userRegionList:[{regionId, playCount, created}]}
+Basis: source/Assembly-CSharp/Net. VO. Mai2/UserRegionRequestVO. cs
+     source/2026-10-05. log:77
 
 Example:
-    from api import GetUserRegion
+  from api import GetUserRegion
 """
 
 from __future__ import annotations
@@ -34,11 +34,11 @@ def GetUserRegion(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Fetch user area play statistics(Corresponding GetUserRegionApi).
+  Fetch user area play statistics(Corresponding GetUserRegionApi).
 
-    Returns:
-        Raw Response dict,Contains userRegionList
-    """
-    log_info("Fetch user area statistics:user_id=" + str(user_id))
+  Returns:
+    Raw Response dict, Contains userRegionList
+  """
+    log_info("Fetch user area statistics: user_id=" + str(user_id))
     return _get("GetUserRegionApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

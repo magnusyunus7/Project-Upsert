@@ -1,72 +1,72 @@
 # -*- coding: utf-8 -*-
 """
-log_setup.py —— systemOnelog(INFO / DEBUG Dual Mode)
+log_setup. py — systemOnelog(INFO / DEBUG Dual Mode)
 ================================================================================
 
 [Two modes]
 
-    INFO (default)  Show only api scriptofandresult:
-                      === ParseQRCode Get started ===
-                        [interfacedescription] ...
-                        [calluseParameter] ...
-                        [result] ...
-                      === ParseQRCode run completion ===
+  INFO (default) Show only api scriptofandresult:
+           === ParseQRCode Get started ===
+            [interfacedescription]...
+            [calluseParameter]...
+            [result]...
+           === ParseQRCode run completion ===
 
-    DEBUG          at INFO Basis,Showcase"Towards api Data sent"and"api returnsofdata":
-                      -> request GetUserPreviewApi
-                           URL    : https://...
-                           requestHead : {...}
-                           request body : {...JSON Full ..}
-                      <- Response GetUserPreviewApi
-                           text : 200
-                           Response body : {...JSON Full ..}
+  DEBUG     at INFO Basis, Showcase"Towards api Data sent"and"api returnsofdata":
+           -> request GetUserPreviewApi
+              URL: https://...
+              request header: {...}
+              request body: {... JSON Full..}
+           <- Response GetUserPreviewApi
+: 200
+              Response body: {... JSON Full..}
 
 [modeWhere did you come from?]
 
-    Priority:  setup_logging(level=...) explicitPassing on  >  config.py of LOG_LEVEL  >  INFO
+  Priority: setup_logging(level=...) explicitPassing on > config. py of LOG_LEVEL > INFO
 
-    onlychange config.py One Row:
+  onlychange config. py One Row:
 
-        LOG_LEVEL = "info"      # Just look at the flow
-        LOG_LEVEL = "debug"     # receivehairdataOne
+    LOG_LEVEL = "info"   # Just look at the flow
+    LOG_LEVEL = "debug"   # receivehairdataOne
 
-[logfile(Two forms co-exist,Simultaneous writes)]
+[logfile(Two forms co-exist, Simultaneous writes)]
 
-    logs/latest.log        overwritemode("w")—— Contains only[Current time]Log of master script run output,
-                           Overwritten the next time the master script is run
-    logs/YYYY-MM-DD.log    Plusmode("a")—— Storage[Same day]All generated logs
+  logs/latest. log    overwritemode("w")— Contains only[Current time]Log of master script run output,
+              Overwritten the next time the master script is run
+  logs/YYYY-MM-DD. log  Plusmode("a")— Storage[Same day]All generated logs
 
-    eachallBelt [YYYY-MM-DD HH:MM:SS] time
+  eachallBelt [YYYY-MM-DD HH: MM: SS] time
 
 [How to use the main script]
 
-    from api import setup_logging, teardown_logging, ParseQRCode, UserLogin
+  from api import setup_logging, teardown_logging, ParseQRCode, UserLogin
 
-    def main():
-        setup_logging("My Master Script")     # Beginning sentence;api calluseFromrecord
-        try:
-            user_id, token = ParseQRCode(qr)     # output"Get started / run completion"
-            login = UserLogin(user_id, token)
-        finally:
-            teardown_logging()                   # TailOne(It will end automatically when you exit without writing)
+  def main():
+    setup_logging("My Master Script")   # Beginning sentence; api calluseFromrecord
+    try:
+      user_id, token = ParseQRCode(qr)   # output"Get started / run completion"
+      login = UserLogin(user_id, token)
+    finally:
+      teardown_logging()          # TailOne(It will end automatically when you exit without writing)
 
-    api Functions don't need to be written by themselves print,or decorators. —— api/__init__.py At the time of import
-    systemOneUplog(text autowrap).
+  api Functions don't need to be written by themselves print, or decorators. — api/__init__. py At the time of import
+  systemOneUplog(autowrap).
 
 [api scriptuse]
 
-    from api import log_info, log_debug, log_request, log_response
+  from api import log_info, log_debug, log_request, log_response
 
-    def GetUserPreview(user_id, token, ...):
-        # First line of the function docstring will be in the log."[interfacedescription]"
-        # Example: '''getFetch Users'''
-        log_info(f"requestuser user_id={user_id}")   # Optional,Write only when you want to memorize extra words
+  def GetUserPreview(user_id, token,...):
+    # First line of the function docstring will be in the log."[interfacedescription]"
+    # Example: '''getFetch Users'''
+    log_info(f"requestuser user_id={user_id}")  # Optional, Write only when you want to memorize extra words
 
-        log_request(url=url, body=req, headers=hdr, api_name="GetUserPreviewApi")
-        raw = _http_post(...)
-        log_response(status=200, body=raw, headers=hdr, api_name="GetUserPreviewApi")
+    log_request(url=url, body=req, headers=hdr, api_name="GetUserPreviewApi")
+    raw = _http_post(...)
+    log_response(status=200, body=raw, headers=hdr, api_name="GetUserPreviewApi")
 
-        return parsed
+    return parsed
 """
 
 from __future__ import annotations
@@ -89,12 +89,12 @@ LEVEL_DEBUG = "debug"
 
 _LEVEL_RANK = {LEVEL_INFO: 20, LEVEL_DEBUG: 10}
 
-# item(fileat api/ Down,isUpOne)
+# item(fileat api/ Down, isUpOne)
 _ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _LOGS_DIR = os.path.join(_ROOT_DIR, "logs")
 
 _SEPARATOR = "=" * 66
-_INDENT = "  "
+_INDENT = " "
 
 # Global State
 _session_started = False
@@ -109,7 +109,7 @@ _latest_log_file = None
 
 # of api Function name(For banner display)
 _tracked_api_names: list = []
-# SessionActualcalluseof api(pressfirstcalluseorder)
+# Sessionactualcalluseof api(pressfirstcalluseorder)
 _called_apis: list = []
 
 
@@ -128,7 +128,7 @@ def _normalize_level(level: Any) -> str:
 
 
 def _config_level() -> str:
-    """From config.py read LOG_LEVEL;readNotouse INFO."""
+    """From config. py read LOG_LEVEL; readNotouse INFO."""
     try:
         import config  # type: ignore
         return _normalize_level(getattr(config, "LOG_LEVEL", LEVEL_INFO))
@@ -137,7 +137,7 @@ def _config_level() -> str:
 
 
 def _config_value_max() -> int:
-    """From config.py read LOG_VALUE_MAX(0 = No truncation)."""
+    """From config. py read LOG_VALUE_MAX(0 = No truncation)."""
     try:
         import config  # type: ignore
         return int(getattr(config, "LOG_VALUE_MAX", 0) or 0)
@@ -156,7 +156,7 @@ def is_debug() -> bool:
 
 
 def set_level(level: Any) -> str:
-    """timeCutmode(Generally not,change config.py Just do it).returnsCutafterofmode."""
+    """timeCutmode(Generally not, change config. py Just do it). returnsCutafterofmode."""
     global _current_level
     _current_level = _normalize_level(level)
     return _current_level
@@ -171,11 +171,11 @@ def _ensure_logs_dir() -> None:
 
 
 def _get_date_log_path() -> str:
-    return os.path.join(_LOGS_DIR, datetime.now().strftime("%Y-%m-%d") + ".log")
+    return os.path.join(_LOGS_DIR, datetime.now().strftime("%Y-%m-%d") + ". log")
 
 
 def _get_latest_log_path() -> str:
-    return os.path.join(_LOGS_DIR, "latest.log")
+    return os.path.join(_LOGS_DIR, "latest. log")
 
 
 def _write_files(message: str) -> None:
@@ -218,16 +218,16 @@ def _close_log_files() -> None:
 
 
 # =============================================================================
-# text api Function sleeve log shell
+# api Function sleeve log shell
 # =============================================================================
 #
 # Main Script Write Only setup_logging("First name") + Business Code,
-#       calluseofeachPiece api Function Automatic Output"===Function name Get started=== / ===Function name run completion===",
-#       callusenoWrite Decorator,You don't have to bury it yourself..
+#    calluseofeachPiece api Function Automatic Output"===Function name Get started=== / ===Function name run completion===",
+#    callusenoWrite Decorator, You don't have to bury it yourself..
 #
-# Principle:api/__init__.py After importing each api scriptAftercalluse autowrap(globals(), _API_FUNCS),
-#       putfirst nameemptyinofFunctionBeltlogof —— So from api import ParseQRCode
-#       toofAlreadyisPackagingAfterofFunction.
+# Principle: api/__init__. py After importing each api scriptAftercalluse autowrap(globals(), _API_FUNCS),
+#    putfirst nameemptyinofFunctionBeltlogof — So from api import ParseQRCode
+#    toofAlreadyisPackagingAfterofFunction.
 
 def _describe(func: Callable) -> str:
     """Fetch Function docstring firstAs"[interfacedescription]"."""
@@ -251,7 +251,7 @@ def _make_tracked(func: Callable) -> Callable:
         if summary:
             _emit(_INDENT + "[interfacedescription] " + summary)
 
-        # calluseParameter:DEBUG Expand multiple rows JSON,INFO must
+        # calluseParameter: DEBUG Expand multiple rows JSON, INFO must
         if args:
             if is_debug():
                 _emit(_INDENT + "[Location Parameters]")
@@ -296,15 +296,15 @@ def _make_tracked(func: Callable) -> Callable:
 
 def autowrap(namespace: dict, names: Iterable[str]) -> list:
     """
-    first nameemptyinofFunctionUplog(Called on import,Idempotent).
+  first nameemptyinofFunctionUplog(Called on import, Idempotent).
 
-    Parameter:
-        namespace: first nameemptyis api/__init__.py of globals()
-        names:     mustPackagingofFunction nameSequence
+  Parameter:
+    namespace: first nameemptyis api/__init__. py of globals()
+    names:   mustPackagingofFunction nameSequence
 
-    Returns:
-        List of function names that actually finished wrapping
-    """
+  Returns:
+    List of function names that actually finished wrapping
+  """
     wrapped = []
     for name in names:
         obj = namespace.get(name)
@@ -326,36 +326,36 @@ def autowrap(namespace: dict, names: Iterable[str]) -> list:
 
 
 def _note_api_call(name: str) -> None:
-    """recordMaster Scriptcalluseof api(Deduplication,Preserve first call order)."""
+    """recordMaster Scriptcalluseof api(Deduplication, Preserve first call order)."""
     if name not in _called_apis:
         _called_apis.append(name)
 
 
 def get_called_apis() -> list:
-    """returnsSessionActualcalluseof api Name(pressfirstcalluseorder)."""
+    """returnsSessionactualcalluseof api Name(pressfirstcalluseorder)."""
     return list(_called_apis)
 
 
 # =============================================================================
-# Session:Initialization / receiveTail
+# Session: Initialization / receiveTail
 # =============================================================================
 
 def setup_logging(script_name: str, level: Any = None) -> str:
     """
-    Initialize Log Session(Called once at the beginning of the main script).
+  Initialize Log Session(Called once at the beginning of the main script).
 
-    Do three things:
-      1. logmode(level explicitPassing on > config.LOG_LEVEL > INFO)
-      2. two log files:log(Plus)+ latest.log(overwrite)
-      3. Session
+  Do three things:
+   1. logmode(level explicitPassing on > config. LOG_LEVEL > INFO)
+   2. two log files: log(Plus)+ latest. log(overwrite)
+   3. Session
 
-    Parameter:
-        script_name: scriptFirst name,atUp
-        level:       logmode;None(default)= read config.py of LOG_LEVEL
+  Parameter:
+    script_name: scriptFirst name, atUp
+    level:    logmode; None(default)= read config. py of LOG_LEVEL
 
-    Returns:
-        Patterns actually in effect('info' / 'debug')
-    """
+  Returns:
+    Patterns actually in effect('info' / 'debug')
+  """
     global _session_started, _session_script_name, _value_max
     global _date_log_path, _latest_log_path, _date_log_file, _latest_log_file
 
@@ -372,8 +372,8 @@ def setup_logging(script_name: str, level: Any = None) -> str:
 
     _called_apis.clear()
 
-    _date_log_file = open(_date_log_path, "a", encoding="utf-8")      # Plus:All of the day
-    _latest_log_file = open(_latest_log_path, "w", encoding="utf-8")  # overwrite:Only if times
+    _date_log_file = open(_date_log_path, "a", encoding="utf-8")      # Plus: All of the day
+    _latest_log_file = open(_latest_log_path, "w", encoding="utf-8")  # overwrite: Only if times
 
     _print_banner(script_name)
     _session_started = True
@@ -384,25 +384,25 @@ def _print_banner(script_name: str) -> None:
     mode_text = "DEBUG(Includes transceiver data)" if is_debug() else "INFO(Runs and results only)"
     lines = [
         _SEPARATOR,
-        _INDENT + "logSession  ——  " + script_name,
+        _INDENT + "logSession — " + script_name,
         _SEPARATOR,
-        _INDENT * 2 + "Master Script      : " + script_name,
-        _INDENT * 2 + "Start time    : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        _INDENT * 2 + "logmode    : " + mode_text,
-        _INDENT * 2 + "Python      : " + platform.python_version()
+        _INDENT * 2 + "Master Script: " + script_name,
+        _INDENT * 2 + "Start time: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        _INDENT * 2 + "logmode: " + mode_text,
+        _INDENT * 2 + "Python: " + platform.python_version()
         + " (" + platform.python_implementation() + " " + platform.machine() + ")",
-        _INDENT * 2 + "Working Directory    : " + os.getcwd(),
-        _INDENT * 2 + "Mounted api  : " + str(len(_tracked_api_names))
+        _INDENT * 2 + "Working Directory: " + os.getcwd(),
+        _INDENT * 2 + "Mounted api: " + str(len(_tracked_api_names))
         + " Piece(The main script does not need to write log code)",
-        _INDENT * 2 + "Current Log    : " + str(_latest_log_path),
-        _INDENT * 2 + "log    : " + str(_date_log_path),
+        _INDENT * 2 + "Current Log: " + str(_latest_log_path),
+        _INDENT * 2 + "log: " + str(_date_log_path),
         _SEPARATOR,
     ]
     _emit("\n".join(lines))
 
 
 def teardown_logging() -> None:
-    """logSession(Main script end call;Automatically ends when you exit without calling)."""
+    """logSession(Main script end call; Automatically ends when you exit without calling)."""
     global _session_started
     if not _session_started:
         return
@@ -414,7 +414,7 @@ def teardown_logging() -> None:
     else:
         lines.append(_INDENT * 2 + "(notcalluseAny api)")
     lines.append(_SEPARATOR)
-    lines.append(_INDENT + "logSession  ——  " + _session_script_name)
+    lines.append(_INDENT + "logSession — " + _session_script_name)
     lines.append(_SEPARATOR)
 
     _emit("\n".join(lines))
@@ -469,8 +469,8 @@ def _to_plain(value: Any) -> Any:
     return str(value)
 
 
-def _fmt_pretty(value: Any, indent: str = "      ") -> str:
-    """put dict / list / VO of JSON.DEBUG Next Full Output,Unfolded."""
+def _fmt_pretty(value: Any, indent: str = "   ") -> str:
+    """put dict / list / VO of JSON. DEBUG Next Full Output, Unfolded."""
     data = _to_plain(value)
     if isinstance(data, str):
         stripped = data.strip()
@@ -485,7 +485,7 @@ def _fmt_pretty(value: Any, indent: str = "      ") -> str:
         text = repr(data)
 
     if _value_max and len(text) > _value_max:
-        text = text[:_value_max] + "\n" + indent + "...(of " + str(len(text)) + " Character,Truncated)"
+        text = text[:_value_max] + "\n" + indent + "...(of " + str(len(text)) + " Character, Truncated)"
     return "\n".join(indent + line for line in text.splitlines())
 
 
@@ -509,16 +509,16 @@ def _fmt_result(result: Any) -> str:
 # =============================================================================
 
 def log_info(message: str) -> None:
-    """text —— relatedWhenin"It will go into the log file. print"."""
+    """— relatedWhenin"It will go into the log file. print"."""
     _emit(str(message))
 
 
 def log_step(title: str, *, index: int = 0, total: int = 0) -> None:
-    """onelog_step("QR login", index=1, total=5) -> [text 1/5] QR login"""
+    """onelog_step("QR login", index=1, total=5) -> [1/5] QR login"""
     if index and total:
-        _emit("[text " + str(index) + "/" + str(total) + "] " + title)
+        _emit("[" + str(index) + "/" + str(total) + "] " + title)
     elif index:
-        _emit("[text " + str(index) + "] " + title)
+        _emit("[" + str(index) + "] " + title)
     else:
         _emit("[text] " + title)
 
@@ -529,7 +529,7 @@ def log_result(message: Any) -> None:
 
 
 def log_warning(message: str) -> None:
-    """text(Does not affect process,But beware.)."""
+    """text(Does not affect process, But beware.)."""
     _emit("[text] " + str(message))
 
 
@@ -539,17 +539,17 @@ def log_error(message: str) -> None:
 
 
 def log_section(title: str) -> None:
-    """oneMinutes(With Divider),used forMaster ScriptMinutes"""
+    """oneMinutes(With Divider), used forMaster ScriptMinutes"""
     _emit("\n" + "-" * 60 + "\n" + title + "\n" + "-" * 60)
 
 
 def log_field(name: str, value: Any, *, debug_only: bool = False) -> None:
     """
-    one"Field: Value";DEBUG Down dict / list / VO
+  one"Field: Value"; DEBUG Down dict / list / VO
 
-        log_field("user_id", 12345)
-        log_field("request body", {"userId": 12345}, debug_only=True)   # Only in DEBUG Appearance
-    """
+    log_field("user_id", 12345)
+    log_field("request body", {"userId": 12345}, debug_only=True)  # Only in DEBUG Appearance
+  """
     if debug_only and not is_debug():
         return
     if is_debug() and (isinstance(value, (dict, list)) or hasattr(value, "__dataclass_fields__")):
@@ -560,14 +560,14 @@ def log_field(name: str, value: Any, *, debug_only: bool = False) -> None:
 
 
 def log_debug(message: Any) -> None:
-    """debug —— Only DEBUG modeout."""
+    """debug — Only DEBUG modeout."""
     if not is_debug():
         return
     _emit("[debug] " + _fmt(message))
 
 
 # =============================================================================
-# receivehairdatalog(DEBUG Exclusive)—— api scriptuserecord"Data sent / returnsofdata"
+# receivehairdatalog(DEBUG Exclusive)— api scriptuserecord"Data sent / returnsofdata"
 # =============================================================================
 
 def log_request(
@@ -578,24 +578,24 @@ def log_request(
     api_name: str = "",
 ) -> None:
     """
-    recordOnce"Towards api Data sent"(Only DEBUG modeout).
+  recordOnce"Towards api Data sent"(Only DEBUG modeout).
 
-    Parameter:
-        url:      Full Request Address
-        body:     request body(dict / VO / JSON String),Expand into JSON Full text
-        headers:  requestHead(dict)
-        api_name: interfaceFirst name
-    """
+  Parameter:
+    url:   Full Request Address
+    body:   request body(dict / VO / JSON String), Expand into JSON Full
+    headers: request header(dict)
+    api_name: interfaceFirst name
+  """
     if not is_debug():
         return
     _emit("")
     _emit("-> request " + api_name if api_name else "-> request")
     if url:
-        _emit("      URL    : " + str(url))
+        _emit("   URL: " + str(url))
     if headers:
-        _emit("      requestHead : " + _fmt(headers))
+        _emit("   request header: " + _fmt(headers))
     if body is not None:
-        _emit("      request body :")
+        _emit("   request body:")
         _emit(_fmt_pretty(body))
 
 
@@ -608,27 +608,27 @@ def log_response(
     elapsed_ms: Optional[int] = None,
 ) -> None:
     """
-    recordOnce"api returnsofdata"(Only DEBUG modeout).
+  recordOnce"api returnsofdata"(Only DEBUG modeout).
 
-    Parameter:
-        status:     HTTP text
-        body:       Response body(JSON String / dict / VO)
-        headers:    Response header(dict)
-        api_name:   interfaceFirst name
-        elapsed_ms: time(seconds)
-    """
+  Parameter:
+    status:   HTTP
+    body:    Response body(JSON String / dict / VO)
+    headers:  Response header(dict)
+    api_name:  interfaceFirst name
+    elapsed_ms: time(seconds)
+  """
     if not is_debug():
         return
     _emit("")
     _emit("<- Response " + api_name if api_name else "<- Response")
     if status is not None:
-        _emit("      text : " + str(status))
+        _emit(": " + str(status))
     if elapsed_ms is not None:
-        _emit("      time   : " + str(elapsed_ms) + " ms")
+        _emit("   time: " + str(elapsed_ms) + " ms")
     if headers:
-        _emit("      Response header : " + _fmt(headers))
+        _emit("   Response header: " + _fmt(headers))
     if body is not None:
-        _emit("      Response body :")
+        _emit("   Response body:")
         _emit(_fmt_pretty(body))
 
 
@@ -637,28 +637,28 @@ def log_payload(label: str, data: Any) -> None:
     if not is_debug():
         return
     _emit("")
-    _emit("      " + label + " :")
+    _emit("   " + label + ":")
     _emit(_fmt_pretty(data))
 
 
 # =============================================================================
-# Compatible:And logger Object
+# Compatible: And logger Object
 # =============================================================================
 
 def api_log(func: Callable) -> Callable:
     """
-    api Function Decorator —— Equivalent to auto-tracking(PackagingMeetingsskip).
+  api Function Decorator — Equivalent to auto-tracking(PackagingMeetingsskip).
 
-    General[Not required]Handwriting:api/__init__.py of autowrap The shell has been uniformly set.
-    thisinHoldisfor api scriptRun separately(python -m api.xxx)timeAlsocanrecord.
-    """
+  General[Not required]Handwriting: api/__init__. py of autowrap The shell has been uniformly set.
+  thisinHoldisfor api scriptRun separately(python -m api. xxx)timeAlsocanrecord.
+  """
     if getattr(func, "__mai_logged__", False):
         return func
     return _make_tracked(func)
 
 
 class _Logger:
-    """Compatible with legacy logger Object;codedirectlyuseFunctionJust do it."""
+    """Compatible with legacy logger Object; codedirectlyuseFunctionJust do it."""
 
     def info(self, message: str) -> None:
         log_info(message)

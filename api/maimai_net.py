@@ -1,102 +1,102 @@
 # -*- coding: utf-8 -*-
 """
-maimai_net.py —— maimai DX network client(text HTTP Reprint)
+maimai_net. py — maimai DX network client(HTTP Reprint)
 ================================================================================
 
-is[Unique]directlyandserverofRemaining api scriptallreceivehairpacket.
+is[Unique]directlyandserver-sideRemaining api scriptallreceive the complete packet.
 
 --------------------------------------------------------------------------------
-One,Agreement Basis(All from source/ Decompile source code)
+One, Agreement Basis(All from source/ Decompile source code)
 --------------------------------------------------------------------------------
 
-1) serverAnd API text
-     source/Assembly-CSharp/Manager/OperationManager.cs:225,338
-         ServerUri = Auth.GameServerUri + MovieServerUri("mE2s3Jhd/")
-     source/Assembly-CSharp/Net.Packet/Packet.cs:116
-         Client = NetHttpClient.Create(BaseUrl + Obfuscator(query.Api))
-     source/Assembly-CSharp/Net.Packet/Packet.cs:485
-         Obfuscator(s) = md5_hex_lower(s + "8bF76dE9")
-     source/Assembly-CSharp/Net.VO/NetQuery.cs:14
-         Api = api + "MaimaiChn"
+1) serverAnd API
+   source/Assembly-CSharp/Manager/OperationManager. cs:225,338
+     ServerUri = Auth. GameServerUri + MovieServerUri("mE2s3Jhd/")
+   source/Assembly-CSharp/Net. Packet/Packet. cs:116
+     Client = NetHttpClient. Create(BaseUrl + Obfuscator(query. Api))
+   source/Assembly-CSharp/Net. Packet/Packet. cs:485
+     Obfuscator(s) = md5_hex_lower(s + "8bF76dE9")
+   source/Assembly-CSharp/Net. VO/NetQuery. cs:14
+     Api = api + "MaimaiChn"
 
-     => Final URL = BASE_URL + md5(interfaceFirst name + "MaimaiChn" + "8bF76dE9")
+   => Final URL = BASE_URL + md5(interfaceFirst name + "MaimaiChn" + "8bF76dE9")
 
-     Validated with real logs:md5("GetGameSettingApiMaimaiChn" + "8bF76dE9")
-                       = 83a5d5a20b062c5c2ad817460b8f7f76
-                       (source/2026-10-05.log:1 ofrequestistothisPieceTail Segment)
+   Validated with real logs: md5("GetGameSettingApiMaimaiChn" + "8bF76dE9")
+            = 83a5d5a20b062c5c2ad817460b8f7f76
+            (source/2026-10-05. log:1 ofrequestistothisPieceTail Segment)
 
-2) request body(Stage 3:JSON -> deflate -> AES)
-     source/Assembly-CSharp/Net/NetHttpClient.cs:262-300 RequestCallback
-         a. DeflateStream(CompressionMode.Compress) Compression JSON Bytes
-         b. Spell it by hand zlib Head 0x78 0x9C + Compress Data + Adler32(4 Byte Big End)
-         c. CipherAES.Encrypt(...) text AES Encryption
-     source/Assembly-CSharp/Net/CipherAES.cs:11-30
-         AES-256-CBC / PKCS7 / Key 32B / IV 16B
+2) request body(Stage 3: JSON -> deflate -> AES)
+   source/Assembly-CSharp/Net/NetHttpClient. cs:262-300 RequestCallback
+     a. DeflateStream(CompressionMode. Compress) Compression JSON Bytes
+     b. Spell it by hand zlib Head 0x78 0x9C + Compress Data + Adler32(4 Byte Big End)
+     c. CipherAES. Encrypt(...) AES Encryption
+   source/Assembly-CSharp/Net/CipherAES. cs:11-30
+     AES-256-CBC / PKCS7 / Key 32B / IV 16B
 
 3) Response body decapsulation()
-     source/Assembly-CSharp/Net/NetHttpClient.cs:355-380 Decrypt + Decompress
-         a. AES decrypt
-         b. Before Removal 2 Bytes zlib Head and back 4 Bytes Adler32
-         c. Deflate text -> UTF-8 JSON
+   source/Assembly-CSharp/Net/NetHttpClient. cs:355-380 Decrypt + Decompress
+     a. AES decrypt
+     b. Before Removal 2 Bytes zlib Head and back 4 Bytes Adler32
+     c. Deflate -> UTF-8 JSON
 
-4) requestHead
-     source/Assembly-CSharp/Net/NetHttpClient.cs:174-190 Request()
-         Content-Type   : application/json
-         charset        : UTF-8
-         Mai-Encoding   : 1.55      (DefaultHttpHeaderEncryption)
-         Content-Encoding: deflate  (hasrequest bodytime)
-         User-Agent     : <obfuscationAfterofAPIFirst name>#<userId or clientId>
-                          (source/Assembly-CSharp/Net/NetPacketUtil.cs:12-19)
-         number         : <ping seconds>(non- Ping interface;Packet.cs:189)
+4) request header
+   source/Assembly-CSharp/Net/NetHttpClient. cs:174-190 Request()
+     Content-Type: application/json
+     charset: UTF-8
+     Mai-Encoding: 1.55   (DefaultHttpHeaderEncryption)
+     Content-Encoding: deflate (hasrequest bodytime)
+     User-Agent: <obfuscationAfterofAPIFirst name>#<userId or clientId>
+             (source/Assembly-CSharp/Net/NetPacketUtil. cs:12-19)
+     number: <ping seconds>(non- Ping interface; Packet. cs:189)
 
-     ★ number ofsemantic:GameManager.PingMsec,Only by Ping Heartbeat Package Refresh
-       (PingChecker.cs:227 <- PacketPing.cs:34 of sw.ElapsedMilliseconds).
-       real machinegame 53 of business requests number Constant is the same value(Measured 63).
-       So the caller**You should run once first Ping()**,After that, the request will bring the real thing. number;
-       time number = 0,Consistent with the behavior of the first screen after the real machine is turned on.
+   - number semantics: GameManager. PingMsec, Only by Ping Heartbeat Package Refresh
+    (PingChecker. cs:227 <- PacketPing. cs:34 of sw. ElapsedMilliseconds).
+    real machinegame 53 of business requests number Constant is the same value(Measured 63).
+    So the caller**You should run once first Ping()**, After that, the request will bring the real thing. number;
+    time number = 0, Consistent with the behavior of the first screen after the real machine is turned on.
 
-     ★ Cookie:★ UserLoginApi ofResponseMeetingsIssue
-           Set-Cookie: JSESSIONID=FC9D0F122F7F24A522CD623BA3B76B74; Path=/Maimai2Servlet; HttpOnly
-       (Packet.cs:228-234 Only in UserLogin Respond by including it in the CookieContainer,
-        After Packet.cs:190-193 eachPieceBelt userId ofrequestalltimesGo).
-       Ping etcinterfaceofResponse headerinnone Set-Cookie,so you have to run through the login to get it..
-       this is**realofSession**,Must bring.
-       requests.Session will automatically take it off and take it with you,nocode ——
-       but only if**Reuse the same throughout MaimaiNetClient**(use get_default_client()).
-
---------------------------------------------------------------------------------
-Two,★ requestHeadMust be consistent with the real machine(2026-10-06 real machinepacketEmpirical)
---------------------------------------------------------------------------------
-     real machine(Unity Mono of HttpWebRequest)Actual emitted head**Only these few**:
-
-         number / Content-Type / User-Agent / charset / Mai-Encoding /
-         Content-Encoding / (+ loginAfterof Cookie)
-
-     **none Accept,Neither Connection.**
-
-     requests defaultMeetings Accept: * / Connection: keep-alive,
-     at MaimaiNetClient.__init__ inFrom session.headers Delete.
-
-     ★ Accept-Encoding isUniqueofExampleRequired**Exists and is empty**:
-
-         Measured(GetGameSettingApi,2026-10-06):
-             Accept-Encoding: ""                -> 200 + application/json
-             Do not send / "gzip, deflate" / "identity" -> 200 + application/octet-stream(0 Bytes)
-
-       Reverse:real machinecanto JSON Response body,description Mono The hair is also**emptyValue**of Accept-Encoding
-       (Headers.AllKeys innotoisPlusof).
-       So it's fixed here. Accept-Encoding: "".
+   - Cookie:- UserLoginApi ofResponseMeetingsIssue
+      Set-Cookie: JSESSIONID=FC9D0F122F7F24A522CD623BA3B76B74; Path=/Maimai2Servlet; HttpOnly
+    (Packet. cs:228-234 Only in UserLogin Respond by including it in the CookieContainer,
+    After Packet. cs:190-193 eachPieceBelt userId ofrequestalltimesGo).
+    Ping etcinterfaceofResponse headerinnone Set-Cookie, so you have to run through the login to get it..
+    this is**realofSession**, Must bring.
+    requests. Session will automatically take it off and take it with you, nocode —
+    but only if**Reuse the same throughout MaimaiNetClient**(use get_default_client()).
 
 --------------------------------------------------------------------------------
-Three,External Interface
+Two,- request headerMust be consistent with the real machine(2026-10-06 real-machine packet capture confirms)
 --------------------------------------------------------------------------------
-     MaimaiNetClient         Client Class(Multiplexing + Cookie )
-     get_default_client()    Take global default client
-     request(...)            Convenience functions:Make a request and return to the original JSON String
-     request_vo(...)         Convenience functions:Send a request and return the mapped dataclass
+   real machine(Unity Mono of HttpWebRequest)actual emitted head**Only these few**:
 
-     Encryption and decryption tools:aes_encrypt / aes_decrypt / deflate_compress / deflate_decompress
-     Protocol Tools  :obfuscate_api_name / build_api_url / adler32
+     number / Content-Type / User-Agent / charset / Mai-Encoding /
+     Content-Encoding / (+ loginAfterof Cookie)
+
+   **none Accept, Neither Connection.**
+
+   requests defaultMeetings Accept: * / Connection: keep-alive,
+   at MaimaiNetClient.__init__ inFrom session. headers Delete.
+
+   - Accept-Encoding isUniqueofExampleRequired**Exists and is empty**:
+
+     Measured(GetGameSettingApi,2026-10-06):
+       Accept-Encoding: ""        -> 200 + application/json
+       Do not send / "gzip, deflate" / "identity" -> 200 + application/octet-stream(0 Bytes)
+
+    Reverse: real machinecanto JSON Response body, description Mono The hair is also**emptyValue**of Accept-Encoding
+    (Headers. AllKeys incannot obtainisPlusof).
+    So it's fixed here. Accept-Encoding: "".
+
+--------------------------------------------------------------------------------
+Three, External Interface
+--------------------------------------------------------------------------------
+   MaimaiNetClient     Client Class(Multiplexing + Cookie )
+   get_default_client()  Take global default client
+   request(...)      Convenience functions: Make a request and return to the original JSON String
+   request_vo(...)     Convenience functions: Send a request and return the mapped dataclass
+
+   Encryption and decryption tools: aes_encrypt / aes_decrypt / deflate_compress / deflate_decompress
+   Protocol Tools: obfuscate_api_name / build_api_url / adler32
 """
 
 from __future__ import annotations
@@ -116,21 +116,21 @@ from Crypto.Util.Padding import pad, unpad
 from config import CLIENT_ID, MAI_ENCODING, TIMEOUT_LONG_MS, TIMEOUT_MS
 
 # =============================================================================
-# Protocol Constants(Originally at config.py,2026-10-06 sink to this module —— They only serve the network layer)
+# Protocol Constants(Originally at config. py,2026-10-06 sink to this module — They only serve the network layer)
 # =============================================================================
 
 #: server(Maimai2Servlet)
-#: Basis source/Assembly-CSharp/Manager/OperationManager.cs:225,338
-#:     _operationData.ServerUri = Auth.GameServerUri + MovieServerUri("mE2s3Jhd/")
-BASE_URL = "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/"
+#: Basis source/Assembly-CSharp/Manager/OperationManager. cs:225,338
+#:   _operationData. ServerUri = Auth. GameServerUri + MovieServerUri("mE2s3Jhd/")
+BASE_URL = "https://maimai-gm. wahlap. com:42081/Maimai2Servlet/mE2s3Jhd/"
 
-#: AES Parameter,Basis source/Assembly-CSharp/Net/CipherAES.cs:11-12
-#:   AesKey 32 Bytes -> AES-256;AesIV 16 Bytes
-AES_KEY = b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W"
+#: AES Parameter, Basis source/Assembly-CSharp/Net/CipherAES. cs:11-12
+#:  AesKey 32 Bytes -> AES-256; AesIV 16 Bytes
+AES_KEY = b"FKM2JX: VjZNK6hc: A0<JU: i5oR7LA]9W"
 AES_IV = b"F>;24DjU9W6ZsRH["
 
-#: API First name obfuscated salt,Basis source/Assembly-CSharp/Net.Packet/Packet.cs:44
-#: usage:URL Tail Segment = md5(interfaceFirst name + "MaimaiChn" + OBFUSCATE_PARAM) Lowercase hex
+#: API First name obfuscated salt, Basis source/Assembly-CSharp/Net. Packet/Packet. cs:44
+#: usage: URL Tail Segment = md5(interfaceFirst name + "MaimaiChn" + OBFUSCATE_PARAM) Lowercase hex
 OBFUSCATE_PARAM = "8bF76dE9"
 
 from .log_setup import log_debug, log_error, log_request, log_response
@@ -139,10 +139,10 @@ from .log_setup import log_debug, log_error, log_request, log_response
 # Protocol Constants
 # =============================================================================
 
-#: API First Name Suffix(NetQuery.cs:14  Api = api + "MaimaiChn")
+#: API First Name Suffix(NetQuery. cs:14 Api = api + "MaimaiChn")
 API_SUFFIX = "MaimaiChn"
 
-#: HTTP Head(NetHttpClient.cs:174-190)
+#: HTTP Head(NetHttpClient. cs:174-190)
 HEADER_CONTENT_TYPE = "application/json"
 HEADER_CHARSET = "UTF-8"
 HEADER_CONTENT_ENCODING = "deflate"
@@ -154,22 +154,22 @@ T = TypeVar("T")
 
 
 # =============================================================================
-# One,Protocol Tools
+# One, Protocol Tools
 # =============================================================================
 
 def obfuscate_api_name(api_name: str) -> str:
     """
-    Do the name of the logical interface MD5 obfuscation,Get URL Tail Segment(Corresponding Packet.Obfuscator).
+  Do the name of the logical interface MD5 obfuscation, Get URL Tail Segment(Corresponding Packet. Obfuscator).
 
-        first name "GetUserPreviewApi"  ->  "GetUserPreviewApiMaimaiChn"
-                                    ->  md5(Above + "8bF76dE9")
+    first name "GetUserPreviewApi" -> "GetUserPreviewApiMaimaiChn"
+                  -> md5(Above + "8bF76dE9")
 
-    Parameter:
-        api_name: interfaceFirst name,**Don't**Belt MaimaiChn Suffix
+  Parameter:
+    api_name: interfaceFirst name,**Don't**Belt MaimaiChn Suffix
 
-    Returns:
-        32 Bits Lowercase Hexadecimal String
-    """
+  Returns:
+    32 Bits Lowercase Hexadecimal String
+  """
     full_name = api_name if api_name.endswith(API_SUFFIX) else api_name + API_SUFFIX
     return hashlib.md5((full_name + OBFUSCATE_PARAM).encode("utf-8")).hexdigest()
 
@@ -181,22 +181,22 @@ def build_api_url(api_name: str) -> str:
 
 def build_user_agent(api_name: str, user_id: int = 0, client_id: str = CLIENT_ID) -> str:
     """
-    text User-Agent(Corresponding NetPacketUtil.GetUserAgent).
+  User-Agent(Corresponding NetPacketUtil. GetUserAgent).
 
-        userId != 0  ->  "<obfuscationAPIFirst name>#<userId>"
-        userId == 0  ->  "<obfuscationAPIFirst name>#<clientId>"
-    """
+    userId!= 0 -> "<obfuscationAPIFirst name>#<userId>"
+    userId == 0 -> "<obfuscationAPIFirst name>#<clientId>"
+  """
     tail = user_id if user_id else client_id
     return obfuscate_api_name(api_name) + "#" + str(tail)
 
 
 def adler32(data: bytes) -> int:
     """
-    countcalculate Adler-32 and(Corresponding NetHttpClient.Adler32:437-452).
+  countcalculate Adler-32 and(Corresponding NetHttpClient. Adler32:437-452).
 
-    ★ noteAnd zlib.adler32 ofC# iscurrentof,
-      returnsValue is (b << 16) + a,And zlib.adler32 Match,thisinHoldHaracurrentinControl.
-    """
+  - noteAnd zlib. adler32 ofC# iscurrentof,
+   returnsValue is (b << 16) + a, And zlib. adler32 Match, thisinHoldHaracurrentinControl.
+  """
     a = 1
     b = 0
     for byte in data:
@@ -206,34 +206,34 @@ def adler32(data: bytes) -> int:
 
 
 # =============================================================================
-# Two,Encryption and decryption / Compression
+# Two, Encryption and decryption / Compression
 # =============================================================================
 
 def aes_encrypt(data: bytes) -> bytes:
-    """AES-256-CBC Encryption(PKCS7 Fill).Corresponding CipherAES.Encrypt."""
+    """AES-256-CBC Encryption(PKCS7 Fill). Corresponding CipherAES. Encrypt."""
     cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
     return cipher.encrypt(pad(data, AES_BLOCK_SIZE))
 
 
 def aes_decrypt(data: bytes) -> bytes:
-    """AES-256-CBC decrypt(PKCS7 Unfill).Corresponding CipherAES.Decrypt."""
+    """AES-256-CBC decrypt(PKCS7 Unfill). Corresponding CipherAES. Decrypt."""
     cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
     return unpad(cipher.decrypt(data), AES_BLOCK_SIZE)
 
 
 def deflate_compress(data: bytes) -> bytes:
     """
-    Original deflate Compression + Spell it by hand zlib Head vs. Adler32.
+  Original deflate Compression + Spell it by hand zlib Head vs. Adler32.
 
-    Corresponding NetHttpClient.cs:262-300 RequestCallback:
-        memoryStream.WriteByte(120);      // 0x78
-        memoryStream.WriteByte(156);      // 0x9C
-        ... Original deflate data ...
-        ... Adler32 Big End 4 Bytes ...
+  Corresponding NetHttpClient. cs:262-300 RequestCallback:
+    memoryStream. WriteByte(120);   // 0x78
+    memoryStream. WriteByte(156);   // 0x9C
+... Original deflate data...
+... Adler32 Big End 4 Bytes...
 
-    ★ C# of DeflateStream The result is**Original deflate**(no zlib Head),
-      So Python Side to use compressobj(wbits=-zlib.MAX_WBITS).
-    """
+  - C# of DeflateStream The result is**Original deflate**(no zlib Head),
+   So Python Side to use compressobj(wbits=-zlib. MAX_WBITS).
+  """
     compressor = zlib.compressobj(wbits=-zlib.MAX_WBITS)
     compressed = compressor.compress(data) + compressor.flush()
     checksum = adler32(data)
@@ -242,19 +242,19 @@ def deflate_compress(data: bytes) -> bytes:
 
 def deflate_decompress(data: bytes) -> bytes:
     """
-    Remove zlib Head vs. Adler32 Post-primitive deflate
+  Remove zlib Head vs. Adler32 Post-primitive deflate
 
-    Corresponding NetHttpClient.cs:355-380 Decompress:
-        _temporaryStream.Position = 2;                          // skip 2 Byte header
-        _temporaryStream.SetLength(_temporaryStream.Length - 4); // Remove 4 Byte check
-    """
+  Corresponding NetHttpClient. cs:355-380 Decompress:
+    _temporaryStream. Position = 2;             // skip 2 Byte header
+    _temporaryStream. SetLength(_temporaryStream. Length - 4); // Remove 4 Byte check
+  """
     if len(data) < 6:
         return b""
     return zlib.decompress(data[2:-4], -zlib.MAX_WBITS)
 
 
 # =============================================================================
-# Three,real machinetime
+# Three, real machinetime
 # =============================================================================
 
 def local_utc_offset_seconds() -> int:
@@ -267,36 +267,36 @@ def local_utc_offset_seconds() -> int:
 
 def login_date_time_now() -> int:
     """
-    real machine UserLoginApi of loginDateTime.
+  real machine UserLoginApi of loginDateTime.
 
-    ★ real machinecalculate(source/Assembly-CSharp/MAI2/DateTime.cs + PacketUserLogin.cs:29):
-        MAI2.DateTime.Now returns DateTime.UtcNow + LocalOffset,Kind = Unspecified;
-        new DateTimeOffset(the Unspecified Value) will add another offset by local time zone,
-        Final ToUnixTimeSeconds() = standard Unix seconds + timeOffset.
+  - real machinecalculate(source/Assembly-CSharp/MAI2/DateTime. cs + PacketUserLogin. cs:29):
+    MAI2. DateTime. Now returns DateTime. UtcNow + LocalOffset, Kind = Unspecified;
+    new DateTimeOffset(the Unspecified Value) will add another offset by local time zone,
+    Final ToUnixTimeSeconds() = standard Unix seconds + timeOffset.
 
-      Eastern Eight Wards now + 28800.
+   Eastern Eight Wards now + 28800.
 
-    ★ Why it must be consistent:
-        PacketUserLogin.cs:43 will backfill the request value into the response,
-        PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 allMultiplexingtheValue,
-        Inconsistent with login will be rejected by the server.
-    """
+  - Why it must be consistent:
+    PacketUserLogin. cs:43 will backfill the request value into the response,
+    PacketUpsertUserAll. cs:31 / PacketUserLogout. cs:29 allMultiplexingtheValue,
+    Inconsistent with login will be rejected by the server.
+  """
     return int(time.time()) + local_utc_offset_seconds()
 
 
 # =============================================================================
-# Four,VO Serialization / Deserialization
+# Four, VO Serialization / Deserialization
 # =============================================================================
 
 def vo_to_json(obj: Any) -> str:
     """
-    putrequestObjectSerialization JSON(Corresponding VOSerializer.Serialize).
+  putrequestObjectSerialization JSON(Corresponding VOSerializer. Serialize).
 
-    Then:
-        - dataclass       -> pressFieldDeclarationorder,skipValuefor None ofField
-        - Belt __dict__ ofObject -> Ibid.
-        - dict / Other      -> directly json.dumps
-    """
+  Then:
+    - dataclass    -> pressFieldDeclarationorder, skipValuefor None ofField
+    - Belt __dict__ ofObject -> Ibid.
+    - dict / Other   -> directly json. dumps
+  """
     if obj is None:
         return "{}"
     if is_dataclass(obj) and not isinstance(obj, type):
@@ -312,7 +312,7 @@ def vo_to_json(obj: Any) -> str:
 
 
 def _json_default(value: Any) -> Any:
-    """json.dumps ofPocket backdataclass / Object -> dict."""
+    """json. dumps ofPocket backdataclass / Object -> dict."""
     if is_dataclass(value) and not isinstance(value, type):
         return {k: getattr(value, k) for k in value.__dataclass_fields__}
     if hasattr(value, "__dict__"):
@@ -344,10 +344,10 @@ def _convert_value(value: Any, target_type: Any) -> Any:
 
 def vo_from_json(cls: Type[T], json_str: str) -> T:
     """
-    putResponse JSON Deserialize to dataclass(Corresponding VOSerializer.Deserialize).
+  putResponse JSON Deserialize to dataclass(Corresponding VOSerializer. Deserialize).
 
-    ★ Populate only declared fields in the class —— serverofFieldMeetingsIgnore,No errors.
-    """
+  - Populate only declared fields in the class — server-sideFieldMeetingsIgnore, No errors.
+  """
     data = json.loads(json_str)
     if not isinstance(data, dict):
         return data  # type: ignore[return-value]
@@ -367,7 +367,7 @@ def vo_from_json(cls: Type[T], json_str: str) -> T:
 
 
 # =============================================================================
-# Five,networkClient
+# Five, networkClient
 # =============================================================================
 
 class MaimaiNetError(RuntimeError):
@@ -376,16 +376,16 @@ class MaimaiNetError(RuntimeError):
 
 class MaimaiNetClient:
     """
-    maimai DX serverClient.
+  maimai DX serverClient.
 
-    The process of a full request:
+  The process of a full request:
 
-        requesttowards:VO -> text JSON -> Original deflate -> 0x78 0x9C + Adler32 -> AES-256-CBC -> HTTP POST
-        Response Direction:HTTP Body -> AES decrypt -> Go 2 Byte header / 4 End of byte -> deflate text -> JSON -> VO
+    requesttowards: VO -> JSON -> Original deflate -> 0x78 0x9C + Adler32 -> AES-256-CBC -> HTTP POST
+    Response Direction: HTTP Body -> AES decrypt -> Go 2 Byte header / 4 End of byte -> deflate -> JSON -> VO
 
-    Cookie by requests.Session ;logininterfacereturnsof Set-Cookie will be saved,
-    Subsequent requests automatically bring(Corresponding C# of CookieContainer,Packet.cs:183-190).
-    """
+  Cookie by requests. Session; logininterfacereturnsof Set-Cookie will be saved,
+  Subsequent requests automatically bring(Corresponding C# of CookieContainer, Packet. cs:183-190).
+  """
 
     def __init__(
         self,
@@ -399,31 +399,31 @@ class MaimaiNetClient:
         self.session = requests.Session()
 
         # ---------------------------------------------------------------------
-        # ★ Align request header collection of the real machine(2026-10-06 real machinepacketEmpirical)
+        # - Align request header collection of the real machine(2026-10-06 real-machine packet capture confirms)
         # ---------------------------------------------------------------------
-        # real machine(Unity Mono of HttpWebRequest)at Headers.AllKeys in**Only**:
-        #     number / Content-Type / User-Agent / charset / Mai-Encoding /
-        #     Content-Encoding / (+ Cookie)
-        # none Accept,Neither Connection.
+        # real machine(Unity Mono of HttpWebRequest)at Headers. AllKeys in**Only**:
+        #   number / Content-Type / User-Agent / charset / Mai-Encoding /
+        #   Content-Encoding / (+ Cookie)
+        # none Accept, Neither Connection.
         #
         # and requests defaultMeetingsUp:
-        #     Accept: */*        <- Delete(real machineDo not send)
-        #     Connection: keep-alive <- Delete(real machineDo not send;HTTP/1.1 islong)
-        #     Accept-Encoding    <- Delete(real machineDo not send),changeby _build_headers explicitempty
+        #   Accept: */*    <- Delete(real machineDo not send)
+        #   Connection: keep-alive <- Delete(real machineDo not send; HTTP/1.1 islong)
+        #   Accept-Encoding  <- Delete(real machineDo not send), changeby _build_headers explicitempty
         #
-        # ★ Accept-Encoding Why it must be**Exists and is empty**:
-        #     Measured(GetGameSettingApi,2026-10-06):
-        #         Accept-Encoding: ""              -> 200 + application/json(384 B)
-        #         Don't hair the right hair / "gzip, deflate" / "identity"
-        #                                          -> 200 + application/octet-stream(0 B)
-        #   So here from Session defaultinDelete,Then by _build_headers explicithairOneemptyValue.
+        # - Accept-Encoding Why it must be**Exists and is empty**:
+        #   Measured(GetGameSettingApi,2026-10-06):
+        #     Accept-Encoding: ""       -> 200 + application/json(384 B)
+        #     Don't hair the right hair / "gzip, deflate" / "identity"
+        #                     -> 200 + application/octet-stream(0 B)
+        #  So here from Session defaultinDelete, Then by _build_headers explicithairOneemptyValue.
         self.session.headers.pop("Accept", None)
         self.session.headers.pop("Connection", None)
         self.session.headers.pop("Accept-Encoding", None)
 
-        #: ★ number Value of the header(Packet.cs:189 GameManager.PingMsec).
-        #:   Only by **Ping Heartbeat Packet**update(Corresponding PingChecker.cs:227 PingSuccess),
-        #:   requestNoMeetingschange —— real machinegame 53 of requests number Constantly 63.
+        #: - number Value of the header(Packet. cs:189 GameManager. PingMsec).
+        #:  Only by **Ping Heartbeat Packet**update(Corresponding PingChecker. cs:227 PingSuccess),
+        #:  requestNoMeetingschange — real machinegame 53 of requests number Constantly 63.
         self.ping_msec: int = 0
 
         if not verify_ssl:
@@ -446,58 +446,58 @@ class MaimaiNetClient:
         ping_msec: Optional[int] = None,
     ) -> Dict[str, str]:
         """
-        requestHead(Corresponding NetHttpClient.Request:174-190 + Packet.ProcImpl:166-176).
+    request header(Corresponding NetHttpClient. Request:174-190 + Packet. ProcImpl:166-176).
 
-        ★ About number Head:
-            source/Assembly-CSharp/Net.Packet/Packet.cs:187-194
+    - About number Head:
+      source/Assembly-CSharp/Net. Packet/Packet. cs:187-194
 
-                if (!IsPingPacket())
-                {
-                    Client.AddHeader("number", GameManager.PingMsec.ToString());
-                    if (Query.UserId != 0L) { Client.AddCookie(Query.UserId); }
-                }
+        if (! IsPingPacket())
+        {
+          Client. AddHeader("number", GameManager. PingMsec. ToString());
+          if (Query. UserId!= 0L) { Client. AddCookie(Query. UserId); }
+        }
 
-            i.e.**text Ping Per Interface Outside**allMeetingsBeltOne number Head,Value is native to server
-            ping secondsnumber(GameManager.PingMsec).
+      i. e.**Ping Per Interface Outside**allMeetingsBeltOne number Head, Value is native to server
+      ping secondsnumber(GameManager. PingMsec).
 
-        ★ number of(source codeitemcheck):
-            Main/PingChecker.cs:166   StartPacket(new PacketPing(PingSuccess, PingError))
-            Net.Packet.Mai2/PacketPing.cs:34
-                                      _onDone((int)sw.ElapsedMilliseconds)
-                                      → Value = **Ping Packet round trip in milliseconds**
-            Main/PingChecker.cs:227   GameManager.PingMsec = pingMsec
+    - number of(source codeitemcheck):
+      Main/PingChecker. cs:166  StartPacket(new PacketPing(PingSuccess, PingError))
+      Net. Packet. Mai2/PacketPing. cs:34
+                   _onDone((int)sw. ElapsedMilliseconds)
+                   → Value = **Ping Packet round trip in milliseconds**
+      Main/PingChecker. cs:227  GameManager. PingMsec = pingMsec
 
-            So number **Only by Ping Heartbeat Refresh**,requestNoMeetingschange
-            Measured(gamehook real machineOnegame 70 requests):
-                #1  ~ #10   number = 0     ← text Ping
-                #11 ~ #17   Ping Heartbeat(Without number Head)
-                #18 ~ #70   number = 63    ← Ping Round trip 63ms,afterHeng
-            at request() inpresent. Ping to do the same thing.:putRound tripseconds self.ping_msec.
+      So number **Only by Ping Heartbeat Refresh**, requestNoMeetingschange
+      Measured(gamehook one real-machine game 70 requests):
+        #1 ~ #10  number = 0   ← Ping
+        #11 ~ #17  Ping Heartbeat(Without number Head)
+        #18 ~ #70  number = 63  ← Ping Round trip 63ms, afterHeng
+      at request() inpresent. Ping to do the same thing.: putRound tripseconds self. ping_msec.
 
-        ★ About Cookie(Packet.cs:190-193 + 228-234):
-            Client.AddCookie(Query.UserId) put"logintimeserver Set-Cookie Saved
-            CookieContainer"torequestUp(NetHttpClient.cs:170-177).
+    - About Cookie(Packet. cs:190-193 + 228-234):
+      Client. AddCookie(Query. UserId) put"logintimeserver Set-Cookie Saved
+      CookieContainer"torequestUp(NetHttpClient. cs:170-177).
 
-            ★ Measured **UserLoginApi ofResponse headerinhas**:
-                Set-Cookie: JSESSIONID=FC9D0F122F7F24A522CD623BA3B76B74; Path=/Maimai2Servlet; HttpOnly
-              and Ping etcinterfaceofResponse headerinnone Set-Cookie(Only Date / Content-Type /
-              Content-Length / Connection / Pragma / Cache-Control).
-              So"loginagonone Cookie,loginAfterOneBelt JSESSIONID"currentisreal machinefor.
+      - Measured **UserLoginApi ofResponse headerinhas**:
+        Set-Cookie: JSESSIONID=FC9D0F122F7F24A522CD623BA3B76B74; Path=/Maimai2Servlet; HttpOnly
+       and Ping etcinterfaceofResponse headerinnone Set-Cookie(Only Date / Content-Type /
+       Content-Length / Connection / Pragma / Cache-Control).
+       So"loginagonone Cookie, loginAfterOneBelt JSESSIONID"currentisreal machinefor.
 
-            Cookie by requests.Session receiveto,Subsequent automatic tape —— nocode,
-            But**Must reuse the same throughout MaimaiNetClient**,Otherwise, it will be discarded. JSESSIONID.
-        """
+      Cookie by requests. Session receiveto, Subsequent automatic tape — nocode,
+      But**Must reuse the same throughout MaimaiNetClient**, Otherwise, it will be discarded. JSESSIONID.
+    """
         headers = {
             "Content-Type": HEADER_CONTENT_TYPE,
             "charset": HEADER_CHARSET,
             "Mai-Encoding": MAI_ENCODING,
             "User-Agent": build_user_agent(api_name, user_id, client_id),
-            # ★ Must be explicitly empty,text docstring numberTwo
+            # - Must be explicitly empty, docstring numberTwo
             "Accept-Encoding": "",
         }
         if has_body:
             headers["Content-Encoding"] = HEADER_CONTENT_ENCODING
-        # ★ number Head(Packet.cs:189):text Ping External interfaces must be
+        # - number Head(Packet. cs:189): Ping External interfaces must be
         if not api_name.startswith("Ping"):
             value = self.ping_msec if ping_msec is None else ping_msec
             headers["number"] = str(int(value))
@@ -505,7 +505,7 @@ class MaimaiNetClient:
 
     @property
     def last_ping_msec(self) -> int:
-        """number Current value of the header(= Last Ping ofRound tripseconds).Compatible with old field names."""
+        """number Current value of the header(= Last Ping ofRound tripseconds). Compatible with old field names."""
         return self.ping_msec
 
     def _encrypt_request(self, json_str: str) -> bytes:
@@ -531,22 +531,22 @@ class MaimaiNetClient:
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> str:
         """
-        Send a request once,returns**Original JSON Response string**.
+    Send a request once, returns**Original JSON Response string**.
 
-        Parameter:
-            api_name:      interfaceFirst name(As "GetUserPreviewApi",Do not bring MaimaiChn)
-            request_vo:    request bodyObject(dataclass / dict / None emptyObject {})
-            user_id:       user ID(0 notloginrequest;Impact User-Agent And Cookie)
-            client_id:     Client ID
-            timeout_ms:    timeoverwrite(seconds)
-            extra_headers: requestHead(As number)
+    Parameter:
+      api_name:   interfaceFirst name(As "GetUserPreviewApi", Do not bring MaimaiChn)
+      request_vo:  request bodyObject(dataclass / dict / None emptyObject {})
+      user_id:    user ID(0 notloginrequest; Impact User-Agent And Cookie)
+      client_id:   Client ID
+      timeout_ms:  timeoverwrite(seconds)
+      extra_headers: request header(As number)
 
-        Returns:
-            Response JSON String
+    Returns:
+      Response JSON String
 
-        Exceptions:
-            MaimaiNetError: networkExceptions / emptyResponse / decryptorFailed
-        """
+    Exceptions:
+      MaimaiNetError: networkExceptions / emptyResponse / decryptorFailed
+    """
         url = urljoin(self.base_url, obfuscate_api_name(api_name))
         timeout = (timeout_ms or self.timeout * 1000) / 1000.0
 
@@ -557,7 +557,7 @@ class MaimaiNetClient:
         if extra_headers:
             headers.update(extra_headers)
 
-        # ★ DEBUG mode:record"Towards api Data sent"
+        # - DEBUG mode: record"Towards api Data sent"
         log_request(url=url, body=request_json, headers=headers, api_name=api_name)
 
         t0 = time.monotonic()
@@ -574,21 +574,21 @@ class MaimaiNetClient:
             raise MaimaiNetError("interface " + api_name + " requestFailed:" + str(exc)) from exc
 
         elapsed_ms = int((time.monotonic() - t0) * 1000)
-        # ★ Only Ping Package will refresh number(Corresponding PingChecker.cs:224-229 PingSuccess).
-        #   packetimmovableOtherwise number will jitter with the time consuming of each packet,Does not match the real machine.
+        # - Only Ping Package will refresh number(Corresponding PingChecker. cs:224-229 PingSuccess).
+        #  packetimmovableOtherwise number will jitter with the time consuming of each packet, Does not match the real machine.
         if api_name.startswith("Ping"):
             self.ping_msec = elapsed_ms
         content = response.content
 
-        # 0 Byte response:requestnot
+        # 0 Byte response: requestnot
         if len(content) == 0:
             detail = (
                 "interface " + api_name + " returns HTTP " + str(response.status_code)
-                + ",Response body is 0 Bytes(emptyResponse).\n"
-                "  Meaning:servernonereturnsAnyContent,requestcannot\n"
-                "  check:userId/token isNohas,interfaceFirst nameAndrequest bodyFieldisNoAndsource codeMatch,"
+                + ", Response body is 0 Bytes(emptyResponse).\n"
+                " Meaning: servernonereturnsAnyContent, requestcannot\n"
+                " check: userId/token isNohas, interfaceFirst nameAndrequest bodyFieldisNoAndsource codeMatch,"
                 "Accept-Encoding isNoempty.\n"
-                "  Response header:" + repr(dict(response.headers))
+                " Response header:" + repr(dict(response.headers))
             )
             log_error(detail)
             raise MaimaiNetError(detail)
@@ -598,16 +598,16 @@ class MaimaiNetClient:
         except ValueError as exc:
             detail = (
                 "interface " + api_name + " Response decryption failed(HTTP " + str(response.status_code)
-                + ",body " + str(len(content)) + " Bytes):" + str(exc) + "\n"
-                "  Meaning:serverreturnsContent,But not legally. AES Cipheror length is not 16 oftimesnumber."
+                + ", body " + str(len(content)) + " Bytes):" + str(exc) + "\n"
+                " Meaning: serverreturnsContent, But not legally. AES Cipheror length is not 16 oftimesnumber."
             )
             log_error(detail)
             raise MaimaiNetError(detail) from exc
         except zlib.error as exc:
             detail = (
                 "interface " + api_name + " Response decompression failed(HTTP " + str(response.status_code)
-                + ",body " + str(len(content)) + " Bytes):" + str(exc) + "\n"
-                "  Meaning:AES decryptSuccessBut deflate Failed,Response is not in the expected compression format"
+                + ", body " + str(len(content)) + " Bytes):" + str(exc) + "\n"
+                " Meaning: AES decryptSuccessBut deflate Failed, Response is not in the expected compression format"
                 "(Probably a gateway/returnsof)."
             )
             log_error(detail)
@@ -616,14 +616,14 @@ class MaimaiNetClient:
         if not response_json:
             detail = (
                 "interface " + api_name + " returnsempty(HTTP " + str(response.status_code)
-                + ",Cipher " + str(len(content)) + " Bytes,decryptAfteris an empty string).\n"
-                "  Meaning:AndEncryptionallcurrentBut the server did not return any content.\n"
-                "  check:userId / token isNo,keychip Match with this card?,theisNocurrentat"
+                + ", Cipher " + str(len(content)) + " Bytes, decryptAfteris an empty string).\n"
+                " Meaning: AndEncryptionallcurrentBut the server did not return any content.\n"
+                " check: userId / token isNo, keychip Match with this card?, theisNocurrentat"
             )
             log_error(detail)
             raise MaimaiNetError(detail)
 
-        # ★ DEBUG mode:record"api returnsofdata"
+        # - DEBUG mode: record"api returnsofdata"
         try:
             shown_body: Any = json.loads(response_json)
         except Exception:
@@ -668,11 +668,11 @@ class MaimaiNetClient:
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
-        Send request and go back**Raw Response dict**.
+    Send request and go back**Raw Response dict**.
 
-        ★ Use this for all sampling scripts:upsertUserAll needResponse original
-          text dataclass Will lose the fields given by the server.
-        """
+    - Use this for all sampling scripts: upsertUserAll needResponse original
+     dataclass Will lose the fields given by the server.
+    """
         raw = self.request(
             api_name, request_vo,
             user_id=user_id, client_id=client_id,
@@ -696,14 +696,14 @@ class MaimaiNetClient:
 
 
 # =============================================================================
-# Sat,Global Default Client
+# Sat, Global Default Client
 # =============================================================================
 
 _default_client: Optional[MaimaiNetClient] = None
 
 
 def get_default_client() -> MaimaiNetClient:
-    """getTake(Create if necessary)Global Default Client —— And Cookie will be automatically reused."""
+    """getTake(Create if necessary)Global Default Client — And Cookie will be automatically reused."""
     global _default_client
     if _default_client is None:
         _default_client = MaimaiNetClient()
@@ -728,7 +728,7 @@ def request(
     client: Optional[MaimaiNetClient] = None,
     extra_headers: Optional[Dict[str, str]] = None,
 ) -> str:
-    """Convenience functions:usedefaultClientSend a request,returnsOriginal JSON String."""
+    """Convenience functions: usedefaultClientSend a request, returnsOriginal JSON String."""
     net = client or get_default_client()
     return net.request(
         api_name, request_vo,
@@ -747,7 +747,7 @@ def request_dict(
     client: Optional[MaimaiNetClient] = None,
     extra_headers: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
-    """Convenience functions:usedefaultClientSend a request,returnsRaw Response dict."""
+    """Convenience functions: usedefaultClientSend a request, returnsRaw Response dict."""
     net = client or get_default_client()
     return net.request_dict(
         api_name, request_vo,
@@ -767,7 +767,7 @@ def request_vo(
     client: Optional[MaimaiNetClient] = None,
     extra_headers: Optional[Dict[str, str]] = None,
 ) -> T:
-    """Convenience functions:usedefaultClientSend a request,returnsafterof dataclass."""
+    """Convenience functions: usedefaultClientSend a request, returnsafterof dataclass."""
     net = client or get_default_client()
     return net.request_vo(
         api_name, request_vo, response_cls,
@@ -777,12 +777,12 @@ def request_vo(
 
 
 # =============================================================================
-# Seven,userequest / Response VO
+# Seven, userequest / Response VO
 # =============================================================================
 
 @dataclass
 class EmptyRequestVO:
-    """emptyrequest body —— Corresponding C# innoneAnyField RequestVO(As PingRequestVO)."""
+    """emptyrequest body — Corresponding C# innoneAnyField RequestVO(As PingRequestVO)."""
 
 
 @dataclass
@@ -798,23 +798,23 @@ class ReturnCodeVO:
 
 
 # =============================================================================
-# Run separately:Protocol Self-Test(Do not send a business request)
+# Run separately: Protocol Self-Test(Do not send a business request)
 # =============================================================================
 
 if __name__ == "__main__":
     print("=== maimai_net Protocol Self-Test ===")
-    print("BASE_URL          :", BASE_URL)
-    print("GetGameSettingApi :", build_api_url("GetGameSettingApi"))
-    print("  Tail Segment         : 83a5d5a20b062c5c2ad817460b8f7f76")
-    print("User-Agent example   :", build_user_agent("UserLoginApi", 12345678))
+    print("BASE_URL:", BASE_URL)
+    print("GetGameSettingApi:", build_api_url("GetGameSettingApi"))
+    print(" Tail Segment: 83a5d5a20b062c5c2ad817460b8f7f76")
+    print("User-Agent example:", build_user_agent("UserLoginApi", 12345678))
 
     sample = '{"userId":12345678,"token":"abc"}'
     packed = deflate_compress(sample.encode("utf-8"))
-    print("deflate Head/Tail     :", packed[:2].hex(), packed[-4:].hex(),
+    print("deflate Head/Tail:", packed[:2].hex(), packed[-4:].hex(),
           " Adler32 =", hex(adler32(sample.encode("utf-8"))))
     assert deflate_decompress(packed).decode("utf-8") == sample
 
     enc = aes_encrypt(packed)
     assert aes_decrypt(enc) == packed
-    print("AES Round trip           : OK(Cipher", len(enc), "Bytes,16 oftimesnumber:", len(enc) % 16 == 0, ")")
+    print("AES Round trip: OK(Cipher", len(enc), "Bytes,16 oftimesnumber:", len(enc) % 16 == 0, ")")
     print("text")

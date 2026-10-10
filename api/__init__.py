@@ -1,82 +1,82 @@
 # -*- coding: utf-8 -*-
 """
-api Package —— systemOneExport
+api Package — systemOneExport
 ================================================================================
 
-The master script only needs from api import ... you get all the features..
+The master script only needs from api import... you get all the features..
 
-★ fileAt the time of importBelow _API_FUNCS inListofeachPieceFunctionUp"log",
-  So the main script has already got a logged version. —— callusetimeMeetingsoutput:
+- fileAt the time of importBelow _API_FUNCS inListofeachPieceFunctionUp"log",
+ So the main script has already got a logged version. — callusetimeMeetingsoutput:
 
-      === ParseQRCode Get started ===
-        [interfacedescription] parseQR Codefetch userId And token.
-        [Location Parameters] 'SGWCMAID2610022219463A297AF4CA...'
-        [result] Success tuple(2 item)(time 412 ms)
-      === ParseQRCode run completion ===
+   === ParseQRCode Get started ===
+    [interfacedescription] parseQR Codefetch userId And token.
+    [Location Parameters] 'SGWCMAID2610022219463A297AF4CA...'
+    [result] Success tuple(2 item)(time 412 ms)
+   === ParseQRCode run completion ===
 
-  Master Script**Not required**Write Decorator,You don't have to bury it yourself..
+ Master Script**Not required**Write Decorator, You don't have to bury it yourself..
 
 --------------------------------------------------------------------------------
 text(One api A script)
 --------------------------------------------------------------------------------
-  Infrastructure
-    log_setup.py             systemOnelog(INFO / DEBUG Dual Mode)
-    maimai_net.py            network(AES / deflate / URL obfuscation / Cookie)
-    user_getter_common.py    Taking the number of feet from the common base(request VO / _get / )
+ Infrastructure
+  log_setup. py       systemOnelog(INFO / DEBUG Dual Mode)
+  maimai_net. py      network(AES / deflate / URL obfuscation / Cookie)
+  user_getter_common. py  Taking the number of feet from the common base(request VO / _get / )
 
-  Session Link
-    chime.py                     QR login -> userId + token
-    get_game_settings.py         GetGameSettingApi()
-    ping.py                      Heartbeat Probe Alive
-    get_user_preview.py          GetUserPreviewApi(user)
-    userlogin.py                 UserLoginApi(currentlogin -> loginId + loginDateTime)
-    userlogout.py                UserLogoutApi(logout)
+ Session Link
+  chime. py           QR login -> userId + token
+  get_game_settings. py     GetGameSettingApi()
+  ping. py           Heartbeat Probe Alive
+  get_user_preview. py     GetUserPreviewApi(user)
+  userlogin. py         UserLoginApi(currentlogin -> loginId + loginDateTime)
+  userlogout. py        UserLogoutApi(logout)
 
-  Upload / settlement(hasSide effectsofinterface)
-    upsert_user_all.py           ★ UpsertUserAllApi(Upload Grades)
-    upsert_user_chargelog.py     UpsertUserChargelogApi(purchaseBuyFeature Tickets)
-    get_need_user_data.py        ★ settlementSnapshot orchestration(systemOnecalluseBelowofFetch Script),
-                                 and trail the results to <Engineering Root>/data/<userId>.json
+ Upload / settlement(hasSide effectsofinterface)
+  upsert_user_all. py      - UpsertUserAllApi(Upload Grades)
+  upsert_user_chargelog. py   UpsertUserChargelogApi(purchase tickets Tickets)
+  get_need_user_data. py    - settlement snapshot orchestration(systemOnecalluseBelowofFetch Script),
+                 and trail the results to <Engineering Root>/data/<userId>. json
 
-  ★ Naming conventions:server API Nameside Belt Get of,**scriptFirst nameAndFunction nameAlwaysBelt get / Get**
-    (Don't be ambiguous).So the following documents are all get_ Beginning.
+ - Naming conventions: server API Nameside Belt Get of,**scriptFirst nameAndFunction nameAlwaysBelt get / Get**
+  (Don't be ambiguous). So the following documents are all get_ Beginning.
 
-  Take number —— GetUser*(One interface, one script)
-    get_user_data.py             GetUserDataApi
-    get_user_extend.py           GetUserExtendApi
-    get_user_option.py           GetUserOptionApi
-    get_user_character.py        GetUserCharacterApi
-    get_user_ghost.py            GetUserGhostApi
-    get_user_map.py              GetUserMapApi
-    get_user_login_bonus.py      GetUserLoginBonusApi
-    get_user_rating.py           GetUserRatingApi
-    get_user_item.py             GetUserItemApi
-    get_user_music.py            GetUserMusicApi
-    get_user_course.py           GetUserCourseApi
-    get_user_charge.py           GetUserChargeApi
-    get_user_favorite.py         GetUserFavoriteApi
-    get_user_activity.py         GetUserActivityApi
-    get_user_mission.py          GetUserMissionDataApi
-    get_user_intimate.py         GetUserIntimateApi
-    get_user_shop_stock.py       GetUserShopStockApi
-    get_user_favorite_item.py    GetUserFavoriteItemApi
-    get_user_rival.py            GetUserRivalDataApi / GetUserRivalMusicApi
-    get_user_friend_bonus.py     GetUserFriendBonusApi
-    get_user_kaleidx_scope.py    GetUserKaleidxScopeApi / GetGameKaleidxScopeApi
-    get_user_region.py           GetUserRegionApi
-    get_user_recommend_music.py  GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi
-    get_user_new_item.py         GetUserNewItemListApi
+ Take number — GetUser*(one interface, one script)
+  get_user_data. py       GetUserDataApi
+  get_user_extend. py      GetUserExtendApi
+  get_user_option. py      GetUserOptionApi
+  get_user_character. py    GetUserCharacterApi
+  get_user_ghost. py      GetUserGhostApi
+  get_user_map. py       GetUserMapApi
+  get_user_login_bonus. py   GetUserLoginBonusApi
+  get_user_rating. py      GetUserRatingApi
+  get_user_item. py       GetUserItemApi
+  get_user_music. py      GetUserMusicApi
+  get_user_course. py      GetUserCourseApi
+  get_user_charge. py      GetUserChargeApi
+  get_user_favorite. py     GetUserFavoriteApi
+  get_user_activity. py     GetUserActivityApi
+  get_user_mission. py     GetUserMissionDataApi
+  get_user_intimate. py     GetUserIntimateApi
+  get_user_shop_stock. py    GetUserShopStockApi
+  get_user_favorite_item. py  GetUserFavoriteItemApi
+  get_user_rival. py      GetUserRivalDataApi / GetUserRivalMusicApi
+  get_user_friend_bonus. py   GetUserFriendBonusApi
+  get_user_kaleidx_scope. py  GetUserKaleidxScopeApi / GetGameKaleidxScopeApi
+  get_user_region. py      GetUserRegionApi
+  get_user_recommend_music. py GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi
+  get_user_new_item. py     GetUserNewItemListApi
 
-  Take number —— GetGame*
-    get_game_settings.py         GetGameSettingApi
-    get_game_charge.py           GetGameChargeApi
+ Take number — GetGame*
+  get_game_settings. py     GetGameSettingApi
+  get_game_charge. py      GetGameChargeApi
 """
 
 from .log_setup import (
     # Session
     setup_logging,
     teardown_logging,
-    # text
+    #
     autowrap,
     get_called_apis,
     # mode
@@ -85,7 +85,7 @@ from .log_setup import (
     is_debug,
     LEVEL_INFO,
     LEVEL_DEBUG,
-    # text / Compatible
+    # / Compatible
     api_log,
     get_logger,
     # log(INFO Visible)
@@ -108,7 +108,7 @@ from .log_setup import (
 # ---------------------------------------------------------------------------
 
 from .maimai_net import (
-    # Protocol Constants(Originally at config.py,Dropped to maimai_net.py)
+    # Protocol Constants(Originally at config. py, moved to maimai_net. py)
     BASE_URL,
     AES_KEY,
     AES_IV,
@@ -143,7 +143,7 @@ from .maimai_net import (
 
 from .chime import (
     ParseQRCode,
-    # aimedb / QR Constant(Originally at config.py,Dropped to chime.py)
+    # aimedb / QR Constant(Originally at config. py, moved to chime. py)
     AIMEDB_HOST,
     AIMEDB_PORT,
     AIMEDB_PATH,
@@ -218,7 +218,7 @@ from .upsert_user_all import (
     DIFF_PRIMARY_KEYS,
     MAY_BE_EMPTY_NODES,
     DEFAULT_EMPTY_NODES,
-    # groupPackage
+    # batch packets
     empty_node,
     empty_user_all,
     coerce_node_value,
@@ -232,7 +232,7 @@ from .upsert_user_all import (
     validate_user_playlog,
     validate_before_send,
     apply_play_effects,
-    # ★ text JSON Merge / fallLibrarytimescheck
+    # - JSON Merge / post-upload validation
     load_extra_data,
     merge_extra_data,
     verify_upsert_landing,
@@ -261,7 +261,7 @@ from .get_need_user_data import (
     load_snapshot,
     summarize_snapshot,
     DEFAULT_SNAPSHOT_NODES,
-    # ★ userdatafall(<Engineering Root>/data/<userId>.json)
+    # - userdatafall(<Engineering Root>/data/<userId>. json)
     PROJECT_ROOT,
     DATA_DIR,
     user_data_path,
@@ -271,7 +271,7 @@ from .get_need_user_data import (
 )
 
 from .upsert_user_chargelog import (
-    # Master Data(Originally at config.py,Dropped to upsert_user_chargelog.py)
+    # Master Data(Originally at config. py, moved to upsert_user_chargelog. py)
     TICKET_CREDIT_NUM,
     TICKET_NAMES,
     PAID_TICKET_IDS,
@@ -315,7 +315,7 @@ from .user_getter_common import (
 )
 
 # ---------------------------------------------------------------------------
-# 5) Fetch Script(One interface, one script)
+# 5) Fetch Script(one interface, one script)
 # ---------------------------------------------------------------------------
 
 from .get_user_data import GetUserData
@@ -369,7 +369,7 @@ _API_FUNCS = (
     "merge_extra_data",
     "verify_upsert_landing",
     "build_user_all",
-    # --- purchaseBuyFeature Tickets ---
+    # --- purchase tickets Tickets ---
     "UpsertUserChargelog",
     "ticket_name",
     "ticket_price",
@@ -386,7 +386,7 @@ _API_FUNCS = (
     "GetNeedUserData",
     "summarize_snapshot",
     "GetUserNewItemList",
-    # --- Take number:Single Interface ---
+    # --- Take number: Single Interface ---
     "GetUserData",              # GetUserDataApi
     "GetUserExtend",            # GetUserExtendApi
     "GetUserOption",            # GetUserOptionApi
@@ -422,12 +422,12 @@ _API_FUNCS = (
     "GetUserRecommendRateMusic",     # GetUserRecommendRateMusicApi
     "GetUserRecommendSelectMusic",   # GetUserRecommendSelectMusicApi
     "GetUserNewItemList",       # GetUserNewItemListApi
-    # --- Take number:Side ---
+    # --- Take number: Side ---
     "GetGameCharge",         # GetGameChargeApi
 )
 
 # ---------------------------------------------------------------------------
-# 7) Import and Wrap:Warranty from api import X toofisBeltlogof
+# 7) Import and Wrap: Warranty from api import X toofisBeltlogof
 # ---------------------------------------------------------------------------
 
 autowrap(globals(), _API_FUNCS)
@@ -437,18 +437,18 @@ autowrap(globals(), _API_FUNCS)
 # ---------------------------------------------------------------------------
 
 __all__ = [
-    # ---- log:Session ----
+    # ---- log: Session ----
     "setup_logging", "teardown_logging",
-    # ---- log:text ----
+    # ---- log:----
     "autowrap", "get_called_apis",
-    # ---- log:mode ----
+    # ---- log: mode ----
     "get_level", "set_level", "is_debug", "LEVEL_INFO", "LEVEL_DEBUG",
-    # ---- log:text / Compatible ----
+    # ---- log:/ Compatible ----
     "api_log", "get_logger",
-    # ---- log:text ----
+    # ---- log:----
     "log_info", "log_step", "log_result", "log_warning", "log_error",
     "log_section", "log_field",
-    # ---- log:receivehairdata ----
+    # ---- log: receivehairdata ----
     "log_debug", "log_request", "log_response", "log_payload",
     # ---- network ----
     "MaimaiNetClient", "MaimaiNetError", "get_default_client", "close_default_client",
@@ -471,7 +471,7 @@ __all__ = [
     # ---- Upload Grades ----
     "UpsertUserAll", "PlayData", "build_play_from_config", "derive_play_characters",
     "load_extra_data", "merge_extra_data", "verify_upsert_landing",
-    # ---- purchaseBuyFeature Tickets ----
+    # ---- purchase tickets Tickets ----
     "UpsertUserChargelog", "ChargelogConfirmError", "ChargelogGuardError",
     "UserChargeVO", "UserChargelogVO", "UserChargelogRequestVO",
     "ticket_name", "ticket_price", "calc_valid_date", "parse_wall_time", "now_cst",
@@ -521,7 +521,7 @@ __all__ = [
     "GetUserRecommendRateMusic", "GetUserRecommendSelectMusic",
     "GetUserNewItemList", "UserNewItemListRequestVO",
     "GetGameCharge", "GameChargeRequestVO",
-    # --- Protocol Constants(Originally at config.py,Dropped to each api )---
+    # --- Protocol Constants(Originally at config. py, moved to each api )---
     "BASE_URL", "AES_KEY", "AES_IV", "OBFUSCATE_PARAM",
     "AIMEDB_HOST", "AIMEDB_PORT", "AIMEDB_PATH",
     "QR_SIGN_KEY", "QR_OPEN_GAME_ID", "QR_TITLE_KEY", "QR_USER_AGENT",

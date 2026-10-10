@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-get_user_extend.py —— Take User Extended Settings(GetUserExtendApi)
+get_user_extend. py — Take User Extended Settings(GetUserExtendApi)
 ================================================================================
 
 Take player's last selection / Categories / Expansion status of card slot etc..
 
-Corresponding interface:GetUserExtendApi
-request body  :UserIdRequestVO
+Corresponding interface: GetUserExtendApi
+request body: UserIdRequestVO
 Response:{userId, userExtend:{...}}
-Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserExtendRequestVO.cs
+Basis: source/Assembly-CSharp/Net. VO. Mai2/UserExtendRequestVO. cs
 
-    ★ where categoryIndex()And userPlaylog of extNum4 Must be consistent
-      (real machineBoth 2022),groupPackagetimemustnote.
+  - where categoryIndex()And userPlaylog of extNum4 Must be consistent
+   (real machineBoth 2022), batch packetstimemustnote.
 
 Example:
-    from api import GetUserExtend
+  from api import GetUserExtend
 """
 
 from __future__ import annotations
@@ -36,11 +36,11 @@ def GetUserExtend(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Take User Extended Settings(Corresponding GetUserExtendApi).
+  Take User Extended Settings(Corresponding GetUserExtendApi).
 
-    Returns:
-        Raw Response dict,Contains userExtend Child Objects
-    """
-    log_info("Take User Extended Settings:user_id=" + str(user_id))
+  Returns:
+    Raw Response dict, Contains userExtend Child Objects
+  """
+    log_info("Take User Extended Settings: user_id=" + str(user_id))
     return _get("GetUserExtendApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

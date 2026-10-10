@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-get_need_user_data.py —— settlementSnapshot orchestration(systemOnecalluseScripts for each fetch)
+get_need_user_data. py — settlement snapshot orchestration(systemOnecalluseScripts for each fetch)
 ================================================================================
 
-Features:One-click grab UpsertUserAll needofAllBaselinedata,text"nodesDictionary".
+Features: One-click grab UpsertUserAll needofAllBaselinedata, text"nodesDictionary".
 
-★ text**Choreography only**,The fetching logic is all in their own api scriptin(get_user_data.py / get_user_map.py …).
+-**Choreography only**, The fetching logic is all in their own api scriptin(get_user_data. py / get_user_map. py …).
 
 --------------------------------------------------------------------------------
 Why snapshots are needed
 --------------------------------------------------------------------------------
-serverpresent. userData is**overwrite**semantic,Pair differential nodes are**Only return variations**semantic.
+server response. userData is**overwrite**semantic, Pair differential nodes are**Only return variations**semantic.
 mustputthis gameofVariationcurrentoutMust have one first"logintimeofserver"As baseline,
-and then superimpose the impact of the game on the baseline. —— thisisSnapshotofuse.
+and then superimpose the impact of the game on the baseline. — thisisSnapshotofuse.
 
-real machineControl(source/2026-10-05.log):
+real machineControl(source/2026-10-05. log):
 
-    | nodes                | Get Side(Baseline)    | Upsert Side(this gameAfter)  |
-    |---------------------|-------------------|----------------------|
-    | userData.playCount  | 1257              | 1258        (+1)     |
-    | userMapList         | 104 item            | Only 1 item(distance Change)|
-    | userMusicDetailList | 739 group            | Only 1 item(playCount+1)|
-    | userItemList        | 1070 item           | [](noVariation)         |
+  | nodes        | Get Side(Baseline)  | Upsert Side(this gameAfter) |
+  |---------------------|-------------------|----------------------|
+  | userData. playCount | 1257       | 1258    (+1)   |
+  | userMapList     | 104 item      | Only 1 item(distance Change)|
+  | userMusicDetailList | 739 group      | Only 1 item(playCount+1)|
+  | userItemList    | 1070 item      | [](noVariation)     |
 
 --------------------------------------------------------------------------------
 call exampleExample
 --------------------------------------------------------------------------------
-    from api import GetNeedUserData
+  from api import GetNeedUserData
 
-    snapshot = GetNeedUserData(user_id, token=token)
-    # Then pass it directly to UpsertUserAll(snapshot=snapshot, ...)
+  snapshot = GetNeedUserData(user_id, token=token)
+  # Then pass it directly to UpsertUserAll(snapshot=snapshot,...)
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ from config import CLIENT_ID, PLACE_ID, PLAY_SHOP_ITEM_IDS, REGION_ID, TIMEOUT_M
 from .log_setup import log_debug, log_info, log_warning
 from .maimai_net import MaimaiNetClient
 
-# Scripts for each fetch(One interface, one script)
+# Scripts for each fetch(one interface, one script)
 from .get_user_data import GetUserData
 from .get_user_extend import GetUserExtend
 from .get_user_option import GetUserOption
@@ -67,7 +67,7 @@ from .get_user_kaleidx_scope import GetUserKaleidxScope
 
 
 # =============================================================================
-# fall<Engineering Root>/data/<userId>.json
+# fall<Engineering Root>/data/<userId>. json
 # =============================================================================
 
 #: Engineering Root Directory(fileat <root>/api/ Down)
@@ -78,25 +78,25 @@ DATA_DIR: Path = PROJECT_ROOT / "data"
 
 
 def user_data_path(user_id: int) -> Path:
-    """userdataoffall<Engineering Root>/data/<userId>.json"""
-    return DATA_DIR / (str(int(user_id)) + ".json")
+    """userdataoffall<Engineering Root>/data/<userId>. json"""
+    return DATA_DIR / (str(int(user_id)) + ". json")
 
 
 def save_user_data(snapshot: Dict[str, Any], user_id: int,
                    path: Optional[str] = None) -> str:
     """
-    put GetNeedUserData toofdatato <Engineering Root>/data/<userId>.json.
+  put GetNeedUserData toofdatato <Engineering Root>/data/<userId>. json.
 
-    ★ **dataisoverwritedata**(Not Append,It's not a merger).
-    ★ AbsentMeetings
+  - **dataisoverwritedata**(Not Append, It's not a merger).
+  - AbsentMeetings
 
-    Parameter:
-        snapshot: GetNeedUserData ofreturnsValue
-        user_id:  user ID(Decide file name)
-        path:     text(Optional,default data/<userId>.json)
+  Parameter:
+    snapshot: GetNeedUserData ofreturnsValue
+    user_id: user ID(Decide file name)
+    path:  (Optional, default data/<userId>. json)
 
-    Returns:File path actually written
-    """
+  Returns: File path actually written
+  """
     target = Path(path) if path else user_data_path(user_id)
     try:
         os.makedirs(str(target.parent), exist_ok=True)
@@ -110,16 +110,16 @@ def save_user_data(snapshot: Dict[str, Any], user_id: int,
         size = os.path.getsize(str(target))
     except Exception:
         pass
-    log_info("userdataAlready(overwrite):" + str(target) + "  " + str(size) + " Bytes")
+    log_info("userdataAlready(overwrite):" + str(target) + " " + str(size) + " Bytes")
     return str(target)
 
 
 def load_user_data(user_id: int, path: Optional[str] = None) -> Dict[str, Any]:
     """
-    readtimes <Engineering Root>/data/<userId>.json.
+  readtimes <Engineering Root>/data/<userId>. json.
 
-    findNotofiletimeraise FileNotFoundError(calluseDecisionmustDon'tFallback tofetch).
-    """
+  findNotofiletimeraise FileNotFoundError(calluseDecisionmustDon'tFallback tofetch).
+  """
     target = Path(path) if path else user_data_path(user_id)
     if not target.exists():
         raise FileNotFoundError("userdatafileAbsent:" + str(target))
@@ -130,12 +130,12 @@ def load_user_data(user_id: int, path: Optional[str] = None) -> Dict[str, Any]:
 
 
 def list_saved_user_ids() -> List[int]:
-    """List data/ All saved under userId(pressfileFirst nameparse,skipparseFailedof)."""
+    """List data/ All saved under userId(pressfileFirst nameparse, skipparseFailedof)."""
     if not DATA_DIR.exists():
         return []
     out: List[int] = []
     for name in os.listdir(str(DATA_DIR)):
-        if not name.endswith(".json"):
+        if not name.endswith(". json"):
             continue
         try:
             out.append(int(name[:-5]))
@@ -144,8 +144,8 @@ def list_saved_user_ids() -> List[int]:
     return sorted(out)
 
 
-#: defaultmustofnodes(orderi.e.fetchorder)
-#: ★ Columns only UpsertUserAll currentneedof;Showcaseinterface(text/text/Competition…)Not in this column.
+#: defaultmustofnodes(orderi. e. fetchorder)
+#: - Columns only UpsertUserAll currentneedof; Showcaseinterface(text/text/Competition…)Not in this column.
 DEFAULT_SNAPSHOT_NODES: tuple = (
     "userData",
     "userExtend",
@@ -185,37 +185,37 @@ def GetNeedUserData(
     save_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    fetchsettlementallBaselinedata.
+  fetchsettlementallBaselinedata.
 
-    Parameter:
-        user_id:       user ID(Required)
-        token:         Session Token(Optional,Most fetch interfaces do not require)
-        client_id:     machine stateshortValue
-        place_id:      Store ID
-        region_id:     Area ID
-        shop_item_ids: Store Product List(Optional,default config.PLAY_SHOP_ITEM_IDS)
-        nodes:         mustofnodes(Optional,default DEFAULT_SNAPSHOT_NODES)
-        timeout_ms:    timeout milliseconds
-        client:        Reusable MaimaiNetClient
-        strict:        True = Exception thrown if either interface fails;
-                       False(default)= recordFailedskip,Ensure that the link does not collapse
-        save:          True(default)= fallto <Engineering Root>/data/<userId>.json
-                       (★ dataisoverwritedata)
-        save_path:     fall(Optional,Ignore save ofdefaultThen)
+  Parameter:
+    user_id:    user ID(Required)
+    token:     Session Token(Optional, Most fetch interfaces do not require)
+    client_id:   machine stateshortValue
+    place_id:   Store ID
+    region_id:   Area ID
+    shop_item_ids: Store Product List(Optional, default config. PLAY_SHOP_ITEM_IDS)
+    nodes:     mustofnodes(Optional, default DEFAULT_SNAPSHOT_NODES)
+    timeout_ms:  timeout milliseconds
+    client:    Reusable MaimaiNetClient
+    strict:    True = Exception thrown if either interface fails;
+            False(default)= recordFailedskip, Ensure that the link does not collapse
+    save:     True(default)= fallto <Engineering Root>/data/<userId>. json
+            (- dataisoverwritedata)
+    save_path:   fall(Optional, Ignore save ofdefaultThen)
 
-    Returns:
-        {
-          "userData":       <GetUserDataApi Raw Response>,
-          "userExtend":     <GetUserExtendApi Raw Response>,
-          "userMapList":    {"userMapList": [...]},       # Flattened/text
-          "userMusicDetailList": {"userMusicList": [...]},# Flattened into single strips
-          ...
-          "_failed": [ {"node":.., "error":..}, ... ]
-        }
-        thisPieceYesdirectlyPass to UpsertUserAll(snapshot=...),Alternatively json fall
-    """
+  Returns:
+    {
+     "userData":    <GetUserDataApi Raw Response>,
+     "userExtend":   <GetUserExtendApi Raw Response>,
+     "userMapList":  {"userMapList": [...]},    # Flattened/text
+     "userMusicDetailList": {"userMusicList": [...]},# Flattened into single strips
+...
+     "_failed": [ {"node":.., "error":..},... ]
+    }
+    thisPieceYesdirectlyPass to UpsertUserAll(snapshot=...), Alternatively json fall
+  """
     wanted = list(nodes) if nodes else list(DEFAULT_SNAPSHOT_NODES)
-    log_info("fetchsettlementSnapshot:user_id=" + str(user_id) + " nodesnumber=" + str(len(wanted)))
+    log_info("fetchsettlement snapshot: user_id=" + str(user_id) + " nodesnumber=" + str(len(wanted)))
 
     raw: Dict[str, Any] = {}
     failed: List[Dict[str, str]] = []
@@ -269,9 +269,9 @@ def GetNeedUserData(
         _call("userChargeList", GetUserCharge, user_id, **common)
 
     if "userFavoriteList" in wanted:
-        # ★ theinterfaceBeltOne**Original** itemKind Copy(_raw),
-        #   For UpsertUserAll text isNewFavoriteList For bit strings
-        #   —— real machine itemKind=10 back is null,currentisGenerateIn the bit string "1".
+        # - theinterfaceBeltOne**Original** itemKind Copy(_raw),
+        #  For UpsertUserAll isNewFavoriteList For bit strings
+        #  — real machine itemKind=10 back is null, currentisGenerateIn the bit string "1".
         if _call("userFavoriteList", GetUserFavoriteAll, user_id, **common):
             fav_raw = (raw.get("userFavoriteList") or {}).get("_raw")
             if fav_raw:
@@ -281,8 +281,8 @@ def GetNeedUserData(
         _call("userActivityList", GetUserActivity, user_id, **common)
 
     if "userMissionDataList" in wanted:
-        # ★ theinterfaceofResponding toSametimeBelt userWeeklyData(Perimeter),
-        #   It is Upsert Side userWeeklyData nodesofwill be automatically extracted.
+        # - theinterfaceofResponding toSametimeBelt userWeeklyData(Perimeter),
+        #  It is Upsert Side userWeeklyData nodesofwill be automatically extracted.
         _call("userMissionDataList", GetUserMissionData, user_id, **common)
 
     if "userIntimateList" in wanted:
@@ -294,7 +294,7 @@ def GetNeedUserData(
             _call("userShopItemStockList", GetUserShopStock, user_id,
                   shop_item_id_list=ids, **common)
         else:
-            log_debug("not PLAY_SHOP_ITEM_IDS,skipInventorynodes")
+            log_debug("not PLAY_SHOP_ITEM_IDS, skipInventorynodes")
 
     if "userFavoritemusicList" in wanted:
         _call("userFavoritemusicList", GetUserFavoriteItemAll, user_id, 1, **common)
@@ -307,10 +307,10 @@ def GetNeedUserData(
 
     raw["_failed"] = failed
     raw["_userId"] = int(user_id)
-    log_info("settlementSnapshotfetchDone:Success " + str(len(raw) - 2) + " nodes,Failed "
+    log_info("settlement snapshotfetchDone: Success " + str(len(raw) - 2) + " nodes, Failed "
              + str(len(failed)) + " Piece")
 
-    # ★ fall<Engineering Root>/data/<userId>.json(overwrite)
+    # - fall<Engineering Root>/data/<userId>. json(overwrite)
     if save or save_path:
         try:
             save_user_data(raw, user_id, path=save_path)
@@ -338,12 +338,12 @@ def load_snapshot(path: str) -> Dict[str, Any]:
 
 def summarize_snapshot(snapshot: Dict[str, Any]) -> Dict[str, int]:
     """
-    systemcountSnapshotEachnodesofitemnumber,Convenient for quick checks(returns {nodesFirst name: itemnumber}).
+  systemcountSnapshotEachnodesofitemnumber, Convenient for quick checks(returns {nodesFirst name: itemnumber}).
 
-    itemnumberMeaning:
-        userData thisArray of elements -> 1
-        userMusicDetailList thislist -> afterofitemnumber
-    """
+  itemnumberMeaning:
+    userData thisArray of elements -> 1
+    userMusicDetailList thislist -> afterofitemnumber
+  """
     out: Dict[str, int] = {}
     for node, value in (snapshot or {}).items():
         if node.startswith("_"):
@@ -378,7 +378,7 @@ if __name__ == "__main__":
         setup_logging("get_need_user_data_test")
         try:
             if len(sys.argv) < 2:
-                print("usage: python -m api.get_need_user_data <user_id> [--token TOKEN] [--save text]")
+                print("usage: python -m api. get_need_user_data <user_id> [--token TOKEN] [--save]")
                 return 1
 
             user_id = int(sys.argv[1])
@@ -400,7 +400,7 @@ if __name__ == "__main__":
             summary = summarize_snapshot(snap)
             print("")
             for node, count in summary.items():
-                print("   " + node.ljust(28) + "= " + str(count) + " item")
+                print("  " + node.ljust(28) + "= " + str(count) + " item")
             if save_path:
                 save_snapshot(snap, save_path)
             return 0

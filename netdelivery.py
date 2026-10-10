@@ -1,56 +1,56 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-netdelivery.py —— ALL.Net DLI(Download Instruction):check / Down .app And .opt updatePackage
+netdelivery. py — ALL. Net DLI(Download Instruction): check / Down. app And. opt updatePackage
 ================================================================================
 
 [DLI is]
-    DLI = **Download Instruction**().
-    machine state ALL.Net after,AMDaemon Will ask again"What bag should I order?":
+  DLI = **Download Instruction**().
+  machine state ALL. Net after, AMDaemon Will ask again"What bag should I order?":
 
-        POST http://at.sys-allnet.cn/net/delivery/instruction
-        body = title_id=SDGB&title_ver=<text>&client_id=<Keychip shortValue>
+    POST http://at. sys-allnet. cn/net/delivery/instruction
+    body = title_id=SDGB&title_ver=<text>&client_id=<Keychip shortValue>
 
-    servertimes:
+  servertimes:
 
-        result=1&uri=<patch text URL>|<option text URL>
+    result=1&uri=<patch URL>|<option URL>
 
-    isPiece INI(),currentmustDownofPackageat INSTALLn= in:
+  isPiece INI(), currentmustDownofPackageat INSTALLn= in:
 
-        [COMMON]    INSTALL1=https://.../SDGB_1.56.00_..._1_1.55.01.app
-        [OPTIONAL]  INSTALL1=https://.../SDGB_A031_..._0.opt
-                    INSTALL2=https://.../SDGB_A005_..._0.opt
+    [COMMON]  INSTALL1=https://.../SDGB_1.56.00_..._1_1.55.01. app
+    [OPTIONAL] INSTALL1=https://.../SDGB_A031_..._0. opt
+          INSTALL2=https://.../SDGB_A005_..._0. opt
 
-    ★ Only INSTALLn= It is.**mustDownloadedPackage**;EXISTn= is"machineShouldAlreadyhasoffile",
-      Just the filename,Not a download.
+  - Only INSTALLn= It is.**mustDownloadedPackage**; EXISTn= is"machineShouldAlreadyhasoffile",
+   Just the filename, Not a download.
 
-[Protocol Origin]—— source/amdaemon.exe String(numberisfileOffset)
-    text      http://at.sys-all.cn/net/delivery/instruction      @0x788198
-    Library        alw_lite/src/system39/alw_api_netdeliver.c        @0x63bf80
-    stage      ALWE_NETDELIVER_PHASE_GET_DLINST_INFO             @0x63bde0
-              ALWE_NETDELIVER_PHASE_APP_IMAGE_INFO              @0x63be08
-              ALWE_NETDELIVER_PHASE_OPT_IMAGE_INFO              @0x63be30
-    log      "Net deliver param - dli uri : %s."                @0x63c3f8
-    text      ALE_ABEX_STAT_DLINSTR_OK / _ERR_DLINSTR_NG ...     @0x638600
+[Protocol Origin]— source/amdaemon. exe String(numberisfileOffset)
+     http://at. sys-all. cn/net/delivery/instruction   @0x788198
+  Library    alw_lite/src/system39/alw_api_netdeliver. c    @0x63bf80
+  stage   ALWE_NETDELIVER_PHASE_GET_DLINST_INFO       @0x63bde0
+       ALWE_NETDELIVER_PHASE_APP_IMAGE_INFO       @0x63be08
+       ALWE_NETDELIVER_PHASE_OPT_IMAGE_INFO       @0x63be30
+  log   "Net deliver param - dli uri: %s."        @0x63c3f8
+     ALE_ABEX_STAT_DLINSTR_OK / _ERR_DLINSTR_NG...   @0x638600
 
 [Observed Conclusions](2026-10-06)
-    title_ver=1.55  -> uri = patch(SDGB_patch_1.56...info) | option(SDGB_option_1.55...A005.info)
-    title_ver=1.56  -> uri = | option(A031)      (patch Is Empty = already)
-    title_ver<=1.54 -> uri = null                (serverNothisPiece)
-    inof INSTALL YesBelt Range continuePassing on(returns 206 + Content-Range).
-    ★ History pack that has been suspended,Meetingstimes 504 —— this isserverIssue that is not scripted.
+  title_ver=1.55 -> uri = patch(SDGB_patch_1.56... info) | option(SDGB_option_1.55... A005. info)
+  title_ver=1.56 -> uri = | option(A031)   (patch Is Empty = already)
+  title_ver<=1.54 -> uri = null        (serverNothisPiece)
+  inof INSTALL YesBelt Range continuePassing on(returns 206 + Content-Range).
+  - History pack that has been suspended, Meetingstimes 504 — this isserver-issued that is not scripted.
 
 [usage]
-    python netdelivery.py                       # use config.py inof Keychip check,after**Multi-select download**
-    python netdelivery.py A63E01E9580           # specified Keychip
-    python netdelivery.py --list                # List only,Don't download
-    python netdelivery.py --all                 # Full Bottom(No interaction)
-    python netdelivery.py --only 1,3            # Only the next 1,3 item(No interaction)
-    python netdelivery.py --ver 1.55            # specifiedEscalations(default config.MAI_ENCODING)
-    python netdelivery.py --out D:\SDGB2026\update
-    python netdelivery.py --insecure            # Turn off TLS text(CDN hastimeuse)
+  python netdelivery. py            # use config. py inof Keychip check, after**Multi-select download**
+  python netdelivery. py A63E01E9580      # specified Keychip
+  python netdelivery. py --list        # List only, Don't download
+  python netdelivery. py --all         # Full Bottom(No interaction)
+  python netdelivery. py --only 1,3      # Only the next 1,3 item(No interaction)
+  python netdelivery. py --ver 1.55      # specifiedEscalations(default config. MAI_ENCODING)
+  python netdelivery. py --out D:\SDGB2026\update
+  python netdelivery. py --insecure      # Turn off TLS(CDN hastimeuse)
 
-    ★ Interactive Selection Support:text/emptyMinutes,Interval(As 1-3),a=Select all,n=Select none,q=out.
+  - Interactive Selection Support: text/emptyMinutes, Interval(As 1-3), a=Select all, n=Select none, q=out.
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ from authv1 import (
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # For Downloaders UA(Measured Effective)
-DOWNLOAD_HEADERS = {"User-Agent": "SDGB;Windows/Lite"}
+DOWNLOAD_HEADERS = {"User-Agent": "SDGB; Windows/Lite"}
 
 DEFAULT_OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "download")
 CHUNK = 1 << 16
@@ -84,9 +84,9 @@ DOWNLOAD_TIMEOUT = 60
 
 # Package Type Determination(pressfirst name)
 KIND_BY_EXT = {
-    ".app": "app",
-    ".opt": "opt",
-    ".pack": "pack",
+    ". app": "app",
+    ". opt": "opt",
+    ". pack": "pack",
 }
 
 KIND_TEXT = {
@@ -103,11 +103,11 @@ KIND_TEXT = {
 
 def http_get(url, *, headers=None, stream=False, timeout=PROBE_TIMEOUT, insecure=False):
     """
-    GET,BeltProcess CDN
+  GET, BeltProcess CDN
 
-    First, calibrate and issue according to normal;If the certificate fails,Automatically bounce again verify=False hairOnce
-    (Affects only once request,Don't change global settings).
-    """
+  First, calibrate and issue according to normal; If the certificate fails, Automatically bounce again verify=False hairOnce
+  (Affects only once request, Don't change global settings).
+  """
     merged = dict(DOWNLOAD_HEADERS)
     if headers:
         merged.update(headers)
@@ -127,12 +127,12 @@ def http_get(url, *, headers=None, stream=False, timeout=PROBE_TIMEOUT, insecure
 
 def parse_instruction(text):
     """
-    parse INI.
+  parse INI.
 
-    returns (common, installs):
-        common   = {GAME_DESC: ..., DOWNLOAD_ID: ..., ...}([COMMON] )
-        installs = [{"section": "COMMON"/"OPTIONAL", "key": "INSTALL1", "url": ...}, ...]
-    """
+  returns (common, installs):
+    common  = {GAME_DESC:..., DOWNLOAD_ID:...,...}([COMMON] )
+    installs = [{"section": "COMMON"/"OPTIONAL", "key": "INSTALL1", "url":...},...]
+  """
     common = {}
     installs = []
     section = ""
@@ -178,11 +178,11 @@ def human_size(num):
 
 
 # =============================================================================
-# DLI -> text -> Package manifest
+# DLI -> -> Package manifest
 # =============================================================================
 
 def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
-    """text DLI,returns (patch_info_url, option_info_url, raw_text)."""
+    """DLI, returns (patch_info_url, option_info_url, raw_text)."""
     text = delivery_instruction(client_id, title_ver=title_ver, host=host, timeout=timeout)
     kv = {}
     for part in text.strip().split("&"):
@@ -195,8 +195,8 @@ def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
 
     uri = kv.get("uri", "").strip()
     if uri in ("", "null"):
-        raise AllnetError("DLI returns uri=%s:thisPiece title_ver none"
-                          "(text --ver Example 1.55)" % (uri or "(empty)"))
+        raise AllnetError("DLI returns uri=%s: thisPiece title_ver none"
+                          "(--ver Example 1.55)" % (uri or "(empty)"))
 
     parts = uri.split("|")
     patch_url = parts[0].strip() if len(parts) > 0 else ""
@@ -211,12 +211,12 @@ def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
 
 def collect_packages(client_id, *, title_ver, host, timeout, insecure=False):
     """
-    fullitemreturns (items, meta).
+  fullitemreturns (items, meta).
 
-    items eachOneitem:
-        {"idx":1, "kind":"app", "section":"COMMON", "key":"INSTALL1",
-         "url":..., "name":..., "size":int|None, "note":"", "info_name":...}
-    """
+  items eachOneitem:
+    {"idx":1, "kind":"app", "section":"COMMON", "key":"INSTALL1",
+     "url":..., "name":..., "size": int|None, "note":"", "info_name":...}
+  """
     patch_url, option_url, dli_raw = fetch_instruction_urls(
         client_id, title_ver=title_ver, host=host, timeout=timeout)
 
@@ -307,30 +307,30 @@ def probe_all(items, *, timeout=PROBE_TIMEOUT, insecure=False):
 
 def print_packages(items):
     if not items:
-        print("  (innoneAny INSTALL item)")
+        print(" (innoneAny INSTALL item)")
         return
     print("")
-    print("  none.  text  Size          text/key              fileFirst name")
-    print("  " + "-" * 92)
+    print(" none.  Size     /key       fileFirst name")
+    print(" " + "-" * 92)
     for item in items:
         size = human_size(item["size"]) if item["size"] is not None else (item["note"] or "?")
-        print("  [%2d]  %-4s  %-12s  %-20s  %s" % (
+        print(" [%2d] %-4s %-12s %-20s %s" % (
             item["idx"], item["kind"], size,
             item["section"] + "/" + item["key"], item["name"]))
         if item["note"] and item["size"] is None:
-            print("        %s" % item["note"])
+            print("    %s" % item["note"])
 
 
 def prompt_selection(items):
     """
-    Interactive Multiple Choice.returnsin 0 Base subscript list;user q outtimereturns None.
-    """
+  Interactive Multiple Choice. returnsin 0 Base subscript list; user q outtimereturns None.
+  """
     print("")
-    print("  Multiple choices available:no.,useoremptyMinutes;Interval(As 1-3).")
-    print("          a = Select all    n = allNo    q = out")
+    print(" Multiple choices available: no., useoremptyMinutes; Interval(As 1-3).")
+    print("     a = Select all  n = allNo  q = out")
     while True:
         try:
-            raw = input("  pleasemustDownloadedPackage > ").strip()
+            raw = input(" pleasemustDownloadedPackage > ").strip()
         except (EOFError, KeyboardInterrupt):
             print("")
             return None
@@ -367,7 +367,7 @@ def prompt_selection(items):
                 bad.append(token)
 
         if bad:
-            print("  [x] no%s(is 1-%d)" % (", ".join(bad), len(items)))
+            print(" [x] no%s(is 1-%d)" % (", ".join(bad), len(items)))
             continue
 
         ordered, seen = [], set()
@@ -376,7 +376,7 @@ def prompt_selection(items):
                 seen.add(i)
                 ordered.append(i)
         if not ordered:
-            print("  [x] noneAnyitem")
+            print(" [x] noneAnyitem")
             continue
         return ordered
 
@@ -387,11 +387,11 @@ def prompt_selection(items):
 
 def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=False):
     """
-    Download with breakpoint continuation.returns (ok, description).
+  Download with breakpoint continuation. returns (ok, description).
 
-    ★ Write first dest + ".part",Rename after —— interrupted the next time you can go on to the next.
-    """
-    part = dest + ".part"
+  - Write first dest + ". part", Rename after — interrupted the next time you can go on to the next.
+  """
+    part = dest + ". part"
     total = None
 
     for attempt in range(1, retries + 1):
@@ -463,7 +463,7 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
 
         if total is not None and written != total:
             if attempt == retries:
-                return False, "lengthNo %d Bytes,Actual %d Bytes" % (total, written)
+                return False, "lengthNo %d Bytes, actual %d Bytes" % (total, written)
             time.sleep(2)
             continue
 
@@ -472,17 +472,17 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
         os.replace(part, dest)
         return True, "%s(%s)" % (human_size(written), dest)
 
-    return False, "text %d Failed" % retries
+    return False, "%d Failed" % retries
 
 
 def show_progress(done, total, elapsed, final=False):
     speed = done / elapsed if elapsed > 0 else 0
     if total:
         percent = done * 100.0 / total
-        line = "    %6.2f%%  %s / %s  %s/s" % (percent, human_size(done),
+        line = "  %6.2f%% %s / %s %s/s" % (percent, human_size(done),
                                               human_size(total), human_size(speed))
     else:
-        line = "    %s  %s/s" % (human_size(done), human_size(speed))
+        line = "  %s %s/s" % (human_size(done), human_size(speed))
     sys.stdout.write("\r" + line + ("\n" if final else ""))
     sys.stdout.flush()
 
@@ -493,32 +493,32 @@ def show_progress(done, total, elapsed, final=False):
 
 def build_parser():
     p = argparse.ArgumentParser(
-        prog="netdelivery.py",
-        description="ALL.Net DLI:check / Down .app And .opt updatePackage",
+        prog="netdelivery. py",
+        description="ALL. Net DLI: check / Down. app And. opt updatePackage",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "example:\n"
-            "  python netdelivery.py                 # check\n"
-            "  python netdelivery.py --list          # List only\n"
-            "  python netdelivery.py --all           # Full Bottom\n"
-            "  python netdelivery.py --only 1,3      # Only the next 1,3 item\n"
-            "  python netdelivery.py --ver 1.55      # specifiedEscalations\n"
+            " python netdelivery. py         # check\n"
+            " python netdelivery. py --list     # List only\n"
+            " python netdelivery. py --all      # Full Bottom\n"
+            " python netdelivery. py --only 1,3   # Only the next 1,3 item\n"
+            " python netdelivery. py --ver 1.55   # specifiedEscalations\n"
         ),
     )
     p.add_argument("keychip", nargs="?",
-                   help="Keychip(defaultTake config.py of KEYCHIP_ID)")
+                   help="Keychip(defaultTake config. py of KEYCHIP_ID)")
     p.add_argument("--ver", default=None,
-                   help="Escalate to ALL.Net of(defaultTake config.MAI_ENCODING)")
+                   help="Escalate to ALL. Net of(defaultTake config. MAI_ENCODING)")
     p.add_argument("--host", default=DEFAULT_HOST,
-                   help="ALL.Net server(default %s)" % DEFAULT_HOST)
+                   help="ALL. Net server(default %s)" % DEFAULT_HOST)
     p.add_argument("--out", default=DEFAULT_OUT_DIR,
                    help="Download catalog(default <script>/download)")
     p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="interfacetimesecondsnumber")
-    p.add_argument("--list", action="store_true", help="Column Only List with Straight Chain,Don't download")
+    p.add_argument("--list", action="store_true", help="Column Only List with Straight Chain, Don't download")
     p.add_argument("--all", action="store_true", help="Select all(No interaction)")
-    p.add_argument("--only", default=None, help="Specify only the serial number,As 1,3 or 1-3(No interaction)")
+    p.add_argument("--only", default=None, help="Specify only the serial number, As 1,3 or 1-3(No interaction)")
     p.add_argument("--no-probe", action="store_true", help="skipPackageSize()")
-    p.add_argument("--insecure", action="store_true", help="Turn off TLS text")
+    p.add_argument("--insecure", action="store_true", help="Turn off TLS")
     return p
 
 
@@ -591,8 +591,8 @@ def main(argv=None):
 
     raw_keychip = resolve_keychip(args.keychip)
     if not raw_keychip:
-        print("error:text Keychip,config.py inof KEYCHIP_ID is also empty.")
-        print("      Run once first python authv1.py <YourKeychip> put config.py Fill in.")
+        print("error: Keychip, config. py inof KEYCHIP_ID is also empty.")
+        print("   Run once first python authv1. py <YourKeychip> put config. py Fill in.")
         return 2
     try:
         client_id = parse_keychip(raw_keychip)
@@ -600,11 +600,11 @@ def main(argv=None):
         print("Keychip parseFailed:%s" % exc)
         return 2
 
-    print("=== netdelivery (ALL.Net DLI) ===")
-    print("  clientId   : %s" % client_id)
-    print("  title_ver  : %s" % title_ver)
-    print("  server     : %s" % args.host)
-    print("  currentatcheck ...")
+    print("=== netdelivery (ALL. Net DLI) ===")
+    print(" clientId: %s" % client_id)
+    print(" title_ver: %s" % title_ver)
+    print(" server: %s" % args.host)
+    print(" currentatcheck...")
 
     try:
         items, meta = collect_packages(client_id, title_ver=title_ver, host=args.host,
@@ -616,29 +616,29 @@ def main(argv=None):
     for entry in meta["instructions"]:
         if entry.get("status") == 200:
             common = entry.get("common", {})
-            print("  text %s" % entry["name"])
+            print(" %s" % entry["name"])
             for key in ("GAME_DESC", "DLFORMAT", "GAME_ID", "DOWNLOAD_ID",
                         "RELEASE_TIME", "RELEASE_TYPE"):
                 if key in common:
-                    print("      %-14s %s" % (key + ":", common[key]))
+                    print("   %-14s %s" % (key + ":", common[key]))
         else:
-            print("  text %s -> %s" % (entry["url"], entry.get("error", "?")))
+            print(" %s -> %s" % (entry["url"], entry.get("error", "?")))
 
     if not items:
         print("noneDownloadedPackage.")
         return 0
 
     if not args.no_probe:
-        print("  currentatpacketSize ...")
+        print(" currentatpacketSize...")
         probe_all(items, insecure=args.insecure)
 
     print_packages(items)
 
     if args.list:
         print("")
-        print("  ")
+        print(" ")
         for item in items:
-            print("    [%2d] %s" % (item["idx"], item["url"]))
+            print("  [%2d] %s" % (item["idx"], item["url"]))
         return 0
 
     # ---- Decide which ----
@@ -652,50 +652,50 @@ def main(argv=None):
         chosen = list(range(len(items)))
     elif not sys.stdin or not sys.stdin.isatty():
         print("")
-        print("  Currently not an interactive terminal,notspecified --all / --only,Listed only.")
+        print(" Currently not an interactive terminal, notspecified --all / --only, Listed only.")
         return 0
     else:
         chosen = prompt_selection(items)
         if chosen is None:
-            print("  Canceled.")
+            print(" Canceled.")
             return 0
         if not chosen:
-            print("  noneAnyitem,out.")
+            print(" noneAnyitem, out.")
             return 0
 
     out_dir = args.out
     os.makedirs(out_dir, exist_ok=True)
     for path in save_instructions(meta, out_dir):
-        print("  [text] %s" % path)
+        print(" [text] %s" % path)
 
     print("")
-    print("  Download catalog:%s" % out_dir)
+    print(" Download catalog:%s" % out_dir)
     failed = []
     for index in chosen:
         item = items[index]
         dest = os.path.join(out_dir, item["name"])
         print("")
-        print("  [%d/%d] %s(%s)" % (chosen.index(index) + 1, len(chosen),
+        print(" [%d/%d] %s(%s)" % (chosen.index(index) + 1, len(chosen),
                                       item["name"], KIND_TEXT.get(item["kind"], "?")))
         if item["size"] is None and item["note"]:
-            print("      skip:%s" % item["note"])
+            print("   skip:%s" % item["note"])
             failed.append((item, item["note"]))
             continue
         started = time.time()
         ok, message = download_file(item["url"], dest, insecure=args.insecure)
         if ok:
-            print("      Done,usetime %.1f seconds -> %s" % (time.time() - started, message))
+            print("   Done, usetime %.1f seconds -> %s" % (time.time() - started, message))
         else:
-            print("      Failed:%s" % message)
+            print("   Failed:%s" % message)
             failed.append((item, message))
 
     print("")
     if failed:
-        print("  --- %d successes,%d failures ---" % (len(chosen) - len(failed), len(failed)))
+        print(" --- %d successes,%d failures ---" % (len(chosen) - len(failed), len(failed)))
         for item, message in failed:
-            print("      [%2d] %s -> %s" % (item["idx"], item["name"], message))
+            print("   [%2d] %s -> %s" % (item["idx"], item["name"], message))
         return 1
-    print("  --- %d All succeeded ---" % len(chosen))
+    print(" --- %d All succeeded ---" % len(chosen))
     return 0
 
 

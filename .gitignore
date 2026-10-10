@@ -1,40 +1,40 @@
-# ---- text ----
-# eachoneuserdataSnapshot(<userId>.json)
+# ---- ----
+# eachoneuserdataSnapshot(<userId>. json)
 data/
 logs/
 __pycache__/
-*.pyc
-*.pyo
+*. pyc
+*. pyo
 
-# ---- checkuse(Contains SEGA Binary / Decompile code / real machinelog,not tracked)----
+# ---- checkuse(Contains SEGA Binary / Decompile code / real-machine log, not tracked)----
 source/
 
-# ---- hasSubmit only config.py.example,Don't Submit config.py ----
-config.py
+# ---- hasSubmit only config. py. example, Don't Submit config. py ----
+config. py
 
-# ---- file docs Branch,Main branch does not contain ----
+# ---- file docs Branch, Main branch does not contain ----
 docs/
 
-# ---- .NET text ----
+# ----. NET ----
 gamehook/bin/
 gamehook/obj/
 
-# ---- netdelivery Download catalog(.app / .opt updatePackagenot tracked)----
+# ---- netdelivery Download catalog(. app /. opt updatePackagenot tracked)----
 download/
 
-# ---- get_auth_list:clientId scriptAnd(defaultnot tracked,Don't push)----
-#   Product defaults to data/ Down(data/ alreadyIgnore);
-#   authentication.* Pull another layer,use --csv/--state toplace
-get_auth_list.py
+# ---- get_auth_list: clientId scriptAnd(defaultnot tracked, Don't push)----
+#  Product defaults to data/ Down(data/ alreadyIgnore);
+#  authentication.* Pull another layer, use --csv/--state toplace
+get_auth_list. py
 authentication.*
 
-# ---- extra_data useofnodes JSON(Includes account data,not tracked)----
-extra*.json
+# ---- extra_data useofnodes JSON(Includes account data, not tracked)----
+extra*. json
 
-# ---- text / system ----
-.vs/
-.vscode/
-.idea/
-*.user
-Thumbs.db
-Desktop.ini
+# ---- / system ----
+. vs/
+. vscode/
+. idea/
+*. user
+Thumbs. db
+Desktop. ini

@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-userlogout.py —— userlogout(UserLogoutApi)
+userlogout. py — userlogout(UserLogoutApi)
 ================================================================================
 
-Features:loginSession,Optionally escalate network statistics for this session(delayLog).
+Features: loginSession, Optionally escalate network statistics for this session(delayLog).
 
-Corresponding interface:UserLogoutApi
-request body  :Two Forms,text source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogout.cs:22-63
-            type == 1 (Logout) -> UserLogoutRequest2VO(Contains delayLog)
-            Other type          -> UserLogoutRequestVO (Excluding delayLog)
+Corresponding interface: UserLogoutApi
+request body: Two Forms, source/Assembly-CSharp/Net. Packet. Mai2/PacketUserLogout. cs:22-63
+      type == 1 (Logout) -> UserLogoutRequest2VO(Contains delayLog)
+      Other type     -> UserLogoutRequestVO (Excluding delayLog)
 
 --------------------------------------------------------------------------------
-logout(source/Assembly-CSharp/Net.VO.Mai2/LogoutType.cs)
+logout(source/Assembly-CSharp/Net. VO. Mai2/LogoutType. cs)
 --------------------------------------------------------------------------------
-    None   = 0
-    Logout = 1   currentlogout(Belt delayLog systemcount)
-    Cancel = 2   Cancel / Force Logout of Assigned Agents(NetPacketUtil.cs:47)
-    Error  = 3   errorForce Logout(GameMain.cs:91)
-    TestIn = 4   text / text(GameMain.cs:104)
-    Quit   = 5   outtimeForce Logout,Releasable Residual Sessions(GameMainObject.cs:200)
+  None  = 0
+  Logout = 1  currentlogout(Belt delayLog systemcount)
+  Cancel = 2  Cancel / Force Logout of Assigned Agents(NetPacketUtil. cs:47)
+  Error = 3  errorForce Logout(GameMain. cs:91)
+  TestIn = 4  /(GameMain. cs:104)
+  Quit  = 5  outtimeForce Logout, Releasable Residual Sessions(GameMainObject. cs:200)
 
-★ real machineSessiontimeuseofis type=4(TestIn),text source/2026-10-05.log:125.
+- real machineSessiontimeuseofis type=4(TestIn), source/2026-10-05. log:125.
 
-★ delayLog text(source/Assembly-CSharp/Net.VO.Mai2/DelayLog.cs)
-    request islong 26 ofnumbergroup(DelayLog.cs:17  new RequestAPI[26]),
-    eachPieceElement {count, size, msec, retry}.
+- delayLog(source/Assembly-CSharp/Net. VO. Mai2/DelayLog. cs)
+  request islong 26 ofnumbergroup(DelayLog. cs:17 new RequestAPI[26]),
+  eachPieceElement {count, size, msec, retry}.
 
 Example:
-    from api import UserLogout, LogoutType
-    UserLogout(12345678, token, login.loginDateTime,
-               logout_type=LogoutType.TestIn, region_id=1, place_id=1000)
+  from api import UserLogout, LogoutType
+  UserLogout(12345678, token, login. loginDateTime,
+        logout_type=LogoutType. TestIn, region_id=1, place_id=1000)
 """
 
 from __future__ import annotations
@@ -42,23 +42,23 @@ from config import CLIENT_ID, PLACE_ID, REGION_ID, TIMEOUT_MS
 from .log_setup import log_debug, log_error, log_info
 from .maimai_net import MaimaiNetClient, request_dict
 
-#: DelayLog.request oflong(DelayLog.cs:17)
+#: DelayLog. request oflong(DelayLog. cs:17)
 DELAY_LOG_SLOTS = 26
 
 
 class LogoutType:
-    """logout(Corresponding Net.VO.Mai2.LogoutType)."""
+    """logout(Corresponding Net. VO. Mai2. LogoutType)."""
     None_ = 0
     Logout = 1      # currentlogout(Belt delayLog)
     Cancel = 2      # Cancel / Force Logout
     Error = 3       # errorForce Logout
-    TestIn = 4      # text / text(real machineSessionusethisPiece)
+    TestIn = 4      # /(real machineSessionusethisPiece)
     Quit = 5        # outForce Logout
 
 
 @dataclass
 class RequestAPI:
-    """Statistics for a single interface(Corresponding Net.VO.Mai2/RequestAPI.cs)."""
+    """Statistics for a single interface(Corresponding Net. VO. Mai2/RequestAPI. cs)."""
     count: int = 0
     size: int = 0
     msec: int = 0
@@ -67,7 +67,7 @@ class RequestAPI:
 
 @dataclass
 class DelayLog:
-    """Session Network Statistics(Corresponding Net.VO.Mai2/DelayLog.cs)."""
+    """Session Network Statistics(Corresponding Net. VO. Mai2/DelayLog. cs)."""
     dlRequests: int = 0
     dlSize: int = 0
     dlRetry: int = 0
@@ -94,7 +94,7 @@ class UserLogoutRequestVO:
 
 @dataclass
 class UserLogoutRequest2VO:
-    """Full Logout Request VO(Corresponding UserLogoutRequest2VO,Contains delayLog)."""
+    """Full Logout Request VO(Corresponding UserLogoutRequest2VO, Contains delayLog)."""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -128,13 +128,13 @@ def create_delay_log_from_stats(
     reduction_item: int = 0,
 ) -> DelayLog:
     """
-    usesystemcountdataconstruct DelayLog.
+  usesystemcountdataconstruct DelayLog.
 
-    Parameter:
-        requests_stats: eachPieceinterfaceofsystemcountList,Elements are shaped like
-                        {"count":1,"size":2090,"msec":73,"retry":0}
-                        press DelayLog.request ofBitorderFill(Max. 26 Piece)
-    """
+  Parameter:
+    requests_stats: eachPieceinterfaceofsystemcountList, Elements are shaped like
+            {"count":1,"size":2090,"msec":73,"retry":0}
+            press DelayLog. request ofBitorderFill(Max. 26 Piece)
+  """
     dl = DelayLog(
         dlRequests=dl_requests, dlSize=dl_size, dlRetry=dl_retry,
         loginMsec=login_msec, saveMsec=save_msec,
@@ -167,29 +167,29 @@ def UserLogout(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserLogoutResponseVO:
     """
-    userlogout.
+  userlogout.
 
-    Parameter:
-        user_id:         user ID(Required)
-        token:           Session Token(Required)
-        login_date_time: logintime(Required,Retrieved from UserLogin of loginDateTime)
-        logout_type:     logout(Optional,default 4=TestIn,Consistent with the real machine)
-        access_code:     text(Optional)
-        region_id:       Area ID(Optional)
-        place_id:        Store ID(Optional)
-        client_id:       machine stateshortValue(Optional)
-        delay_log:       Session Stats(Optional;Only logout_type=1 timepackethairout)
-        timeout_ms:      timeout milliseconds(Optional)
-        client:          Reusable MaimaiNetClient(Optional)
+  Parameter:
+    user_id:     user ID(Required)
+    token:      Session Token(Required)
+    login_date_time: logintime(Required, Retrieved from UserLogin of loginDateTime)
+    logout_type:   logout(Optional, default 4=TestIn, Consistent with the real machine)
+    access_code:  (Optional)
+    region_id:    Area ID(Optional)
+    place_id:    Store ID(Optional)
+    client_id:    machine stateshortValue(Optional)
+    delay_log:    Session Stats(Optional; Only logout_type=1 timepackethairout)
+    timeout_ms:   timeout milliseconds(Optional)
+    client:     Reusable MaimaiNetClient(Optional)
 
-    Returns:
-        UserLogoutResponseVO
+  Returns:
+    UserLogoutResponseVO
 
-    Exceptions:
-        RuntimeError: returnCode != 1
-    """
+  Exceptions:
+    RuntimeError: returnCode!= 1
+  """
     log_info(
-        "userlogout:user_id=" + str(user_id) + " logout_type=" + str(logout_type)
+        "userlogout: user_id=" + str(user_id) + " logout_type=" + str(logout_type)
         + " loginDateTime=" + str(login_date_time)
     )
 
@@ -217,11 +217,11 @@ def UserLogout(
 
     resp = UserLogoutResponseVO(returnCode=int(raw.get("returnCode", 0) or 0))
     if resp.returnCode != 1:
-        msg = "logoutFailed:returnCode=" + str(resp.returnCode)
+        msg = "logoutFailed: returnCode=" + str(resp.returnCode)
         log_error(msg)
         raise RuntimeError(msg)
 
-    log_info("userlogoutSuccess:returnCode=" + str(resp.returnCode))
+    log_info("userlogoutSuccess: returnCode=" + str(resp.returnCode))
     return resp
 
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         setup_logging("userlogout_test")
         try:
             if len(sys.argv) < 4:
-                print("usage: python -m api.userlogout <user_id> <token> <loginDateTime> "
+                print("usage: python -m api. userlogout <user_id> <token> <loginDateTime> "
                       "[logout_type] [region_id] [place_id]")
                 return 1
             lt = int(sys.argv[4]) if len(sys.argv) > 4 else LogoutType.TestIn

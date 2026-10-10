@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-get_user_favorite_item.py —— Fetching user favorite tracks/Opponent(GetUserFavoriteItemApi)
+get_user_favorite_item. py — Fetching user favorite tracks/Opponent(GetUserFavoriteItemApi)
 ================================================================================
 
 Take the player's favorite songs(kind=1)or Collected Opponents(kind=2).
 
-Corresponding interface:GetUserFavoriteItemApi
-request body  :UserFavoriteItemRequestVO(userId + kind + nextIndex + maxCount=100
-                                    + isAllFavoriteItem)
-Response:{userId, kind, length, nextIndex, userFavoriteItemList:[{orderId,id}]}
-Basis    :source/Assembly-CSharp/Net.VO.Mai2/UserFavoriteItemRequestVO.cs
-          source/2026-10-05.log:93,107  real machine kind=2 And kind=1 Once each
+Corresponding interface: GetUserFavoriteItemApi
+request body: UserFavoriteItemRequestVO(userId + kind + nextIndex + maxCount=100
+                  + isAllFavoriteItem)
+Response:{userId, kind, length, nextIndex, userFavoriteItemList:[{orderId, id}]}
+Basis: source/Assembly-CSharp/Net. VO. Mai2/UserFavoriteItemRequestVO. cs
+     source/2026-10-05. log:93,107 real machine kind=2 And kind=1 Once each
 
-★ Field name is kind(No itemKind),Don't misspell.
+- Field name is kind(No itemKind), Don't misspell.
 
 Example:
-    from api import GetUserFavoriteItem, GetUserFavoriteItemAll
+  from api import GetUserFavoriteItem, GetUserFavoriteItemAll
 """
 
 from __future__ import annotations
@@ -44,16 +44,16 @@ def GetUserFavoriteItem(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Fetch user favorites(Single Page,Corresponding GetUserFavoriteItemApi).
+  Fetch user favorites(Single Page, Corresponding GetUserFavoriteItemApi).
 
-    Parameter:
-        user_id: user ID(Required)
-        kind:    1=receivemusic 2=receiveOpponent(default 1)
+  Parameter:
+    user_id: user ID(Required)
+    kind:  1=receivemusic 2=receiveOpponent(default 1)
 
-    Returns:
-        Raw Response dict,Contains userFavoriteItemList
-    """
-    log_info("Fetch user favorites:user_id=" + str(user_id) + " kind=" + str(kind)
+  Returns:
+    Raw Response dict, Contains userFavoriteItemList
+  """
+    log_info("Fetch user favorites: user_id=" + str(user_id) + " kind=" + str(kind)
              + " next_index=" + str(next_index))
     return _get(
         "GetUserFavoriteItemApi",
@@ -75,12 +75,12 @@ def GetUserFavoriteItemAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    Fetch user favorites(auto-pagingTakeFull).
+  Fetch user favorites(auto-pagingTakeFull).
 
-    Returns:
-        {"userFavoriteItemList": [...]}
-    """
-    log_info("Fetch user favorites(Full Amount):user_id=" + str(user_id) + " kind=" + str(kind))
+  Returns:
+    {"userFavoriteItemList": [...]}
+  """
+    log_info("Fetch user favorites(Full Amount): user_id=" + str(user_id) + " kind=" + str(kind))
     items = get_all_pages(
         "GetUserFavoriteItemApi", user_id, "userFavoriteItemList",
         body_factory=lambda ni: UserFavoriteItemRequestVO(
@@ -88,5 +88,5 @@ def GetUserFavoriteItemAll(
             maxCount=100, isAllFavoriteItem=is_all_favorite_item),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("receiveitemgetTakeDone:" + str(len(items)) + " item")
+    log_info("receiveitemfetch complete:" + str(len(items)) + " item")
     return {"userFavoriteItemList": items}

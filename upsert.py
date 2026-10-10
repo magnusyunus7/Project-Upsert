@@ -1,98 +1,98 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-upsert.py —— Master Script:QR login → Upload Grades → logout
+upsert. py — Master Script: QR login → Upload Grades → logout
 ================================================================================
 
-itemonlyFourandAnd**You don't have to write your own logs** ——
+itemonlyFourandAnd**You don't have to write your own logs** —
 eachPiece api Function is automatically printed when called:
 
-    === UserLogin Get started ===
-      [interfacedescription] usercurrentlogin(Open this login session).
-      [Location Parameters] 12345678, 'iUfgRmjr...'
-      [Keyword Parameters] region_id=1, place_id=1000
-    === UserLogin run completion ===
+  === UserLogin Get started ===
+   [interfacedescription] usercurrentlogin(Open this login session).
+   [Location Parameters] 12345678, 'iUfgRmjr...'
+   [Keyword Parameters] region_id=1, place_id=1000
+  === UserLogin run completion ===
 
-logmodechange config.py One Row:
+logmodechange config. py One Row:
 
-    LOG_LEVEL = "info"     Show only api scriptofandresult
-    LOG_LEVEL = "debug"    ShowcaseTowards api Data sent vs. api returnsofdata
+  LOG_LEVEL = "info"   Show only api scriptofandresult
+  LOG_LEVEL = "debug"  ShowcaseTowards api Data sent vs. api returnsofdata
 
 logfile(Two types of writing at the same time):
 
-    logs/latest.log        Contains only**Current time**Master Script Run(Next override)
-    logs/YYYY-MM-DD.log    Storage**Same day**All generated logs(Plus)
+  logs/latest. log    Contains only**Current time**Master Script Run(Next override)
+  logs/YYYY-MM-DD. log  Storage**Same day**All generated logs(Plus)
 
 --------------------------------------------------------------------------------
 usage
 --------------------------------------------------------------------------------
-    python upsert.py <QR Code>                       # login + Snapshot + groupPackage,no packet is sent
-    python upsert.py <QR Code> --send                # realUpload Grades(★ hasSide effects,Irrevocable)
-    python upsert.py <QR Code> --send --debug        # Ibid.,loginBeltFullreceivehairpacket
-    python upsert.py <QR Code> --send --cooldown 0   # skipPackagingagoof 60 secondsCooling
-    python upsert.py <QR Code> --send --no-verify    # skipUploadAfteroffallLibrarytimescheck
+  python upsert. py <QR Code>            # login + Snapshot + batch packets, no packet is sent
+  python upsert. py <QR Code> --send        # realUpload Grades(- hasSide effects, Irrevocable)
+  python upsert. py <QR Code> --send --debug    # Ibid., login and receive the complete packet
+  python upsert. py <QR Code> --send --cooldown 0  # skip the 60-second cooldown before packagingof 60 secondsCooling
+  python upsert. py <QR Code> --send --no-verify  # skipUploadAfterofpost-upload validation
 
-    # ★ nodes(--extra-data,Repeatable,Later given overlay given first)
-    python upsert.py <QR Code> --send --extra-data extra.json
-    python upsert.py <QR Code> --send --extra-data '{"isNewMapList":"1"}'
-    python upsert.py <QR Code> --send --extra-data a.json --extra-data b.json
-
---------------------------------------------------------------------------------
-★ UpsertUserAll One function completes the entire settlement link
---------------------------------------------------------------------------------
-    1. Baseline Snapshot(Passing on snapshot timeuse token)
-    2. Push Local from Snapshot 5 Roles only(playagolevel)
-    3. constructthis gameResultsdetails userPlaylogList
-    4. callFront connector GetUserNewItemListApi
-    5. group upsertUserAll of 36 nodes(Snapshot Baseline + this gamecalculate + Differential)
-    6. Merge extra_data inofExternal JSON
-    7. Self-inspection before contract issuance
-    8. Cooling -> realPackaging
-    9. fallLibrarytimescheck(serverdata,ofGo)
+  # - nodes(--extra-data, Repeatable, Later given overlay given first)
+  python upsert. py <QR Code> --send --extra-data extra. json
+  python upsert. py <QR Code> --send --extra-data '{"isNewMapList":"1"}'
+  python upsert. py <QR Code> --send --extra-data a. json --extra-data b. json
 
 --------------------------------------------------------------------------------
-★ --extra-data:nodes
+- UpsertUserAll One function completes the entire settlement link
 --------------------------------------------------------------------------------
-    Want to overwrite manually / Upnodes(Asthis gametoof KaleidxScope )timeuse:
+  1. Baseline Snapshot(Passing on snapshot timeuse token)
+  2. Push Local from Snapshot 5 Roles only(playagolevel)
+  3. constructthis gameResultsdetails userPlaylogList
+  4. callFront connector GetUserNewItemListApi
+  5. group upsertUserAll of 36 nodes(Snapshot Baseline + this gamecalculate + Differential)
+  6. Merge extra_data inofExternal JSON
+  7. Self-inspection before contract issuance
+  8. Cooling -> realPackaging
+  9. post-upload validation(serverdata, ofGo)
 
-        # ① Read from file(★ No need to follow shell Quotation mark wrestling)
-        python upsert.py <QR Code> --send --extra-data extra.json
+--------------------------------------------------------------------------------
+- --extra-data: nodes
+--------------------------------------------------------------------------------
+  Want to overwrite manually / Upnodes(Asthis gametoof KaleidxScope )timeuse:
 
-        # ② directly JSON String
-        python upsert.py <QR Code> --send --extra-data '{"isNewMapList":"1"}'
+    # ① Read from file(- No need to follow shell Quotation mark wrestling)
+    python upsert. py <QR Code> --send --extra-data extra. json
 
-        # ③ Multiple sources,Later given overlay given first
-        python upsert.py <QR Code> --send --extra-data base.json --extra-data patch.json
+    # ② directly JSON String
+    python upsert. py <QR Code> --send --extra-data '{"isNewMapList":"1"}'
 
-    extra.json longthis
+    # ③ Multiple sources, Later given overlay given first
+    python upsert. py <QR Code> --send --extra-data base. json --extra-data patch. json
 
-        {
-          "userKaleidxScopeList": [
-            {"gateId": 1, "isGateFound": true, "isKeyFound": true, "isClear": false,
-             "totalRestLife": 0, "totalAchievement": 0, "totalDeluxscore": 0,
-             "bestAchievement": 0, "bestDeluxscore": 0,
-             "bestAchievementDate": "", "bestDeluxscoreDate": "",
-             "playCount": 0, "clearDate": "", "lastPlayDate": "", "isInfoWatched": false}
-          ],
-          "isNewKaleidxScopeList": "1"
-        }
+  extra. json longthis
 
-    ★ keyMust be upsertUserAll of 36 One of nodes(Contains 11 item isNew* Bitstring),
-      A typo will explicitly report the error and list the available node names.
-    ★ correspondingBitstringtimeMeetingspressnumbergrouplength "0" and prompt ——
-      addeditempleaseexplicitPassing on "1","0" Inventory update.
-    ★ JSON at**before**Just check,Wrongly Write Directly Exit,No QR code wasted.
+    {
+     "userKaleidxScopeList": [
+      {"gateId": 1, "isGateFound": true, "isKeyFound": true, "isClear": false,
+       "totalRestLife": 0, "totalAchievement": 0, "totalDeluxscore": 0,
+       "bestAchievement": 0, "bestDeluxscore": 0,
+       "bestAchievementDate": "", "bestDeluxscoreDate": "",
+       "playCount": 0, "clearDate": "", "lastPlayDate": "", "isInfoWatched": false}
+     ],
+     "isNewKaleidxScopeList": "1"
+    }
 
-  ── Call directly from within the code api ofetc ──
+  - keyMust be upsertUserAll of 36 One of nodes(Contains 11 item isNew* Bitstring),
+   A typo will explicitly report the error and list the available node names.
+  - correspondingBitstringtimeMeetingspressnumbergrouplength "0" and prompt —
+   addeditempleaseexplicitPassing on "1","0" Inventory update.
+  - JSON at**before**Just check, Wrongly Write Directly Exit, No QR code wasted.
 
-    UpsertUserAll(
-        user_id, login.loginId,
-        login_date_time=login.loginDateTime,
-        auth_date_time=login.dateTime,
-        token=token,
-        extra_data={"userKaleidxScopeList": [...], "isNewKaleidxScopeList": "1"},
-        confirm=True,
-    )
+ ── Call directly from within the code api ofetc ──
+
+  UpsertUserAll(
+    user_id, login. loginId,
+    login_date_time=login. loginDateTime,
+    auth_date_time=login. dateTime,
+    token=token,
+    extra_data={"userKaleidxScopeList": [...], "isNewKaleidxScopeList": "1"},
+    confirm=True,
+  )
 """
 
 from __future__ import annotations
@@ -121,7 +121,7 @@ from config import PLACE_ID, REGION_ID
 
 
 def parse_args(argv):
-    """parse:numberOnenon- -- The parameters at the beginning are QR codes."""
+    """parse: numberOnenon- -- The parameters at the beginning are QR codes."""
     opts = {"qr": "", "send": False, "debug": False, "no_verify": False,
             "cooldown": None, "extra_data": []}
     i = 0
@@ -134,7 +134,7 @@ def parse_args(argv):
         elif a == "--no-verify":
             opts["no_verify"] = True
         elif a == "--extra-data" and i + 1 < len(argv):
-            # Repeatable;Value is JSON String or JSON file path
+            # Repeatable; Value is JSON String or JSON file path
             opts["extra_data"].append(argv[i + 1])
             i += 1
         elif a == "--cooldown" and i + 1 < len(argv):
@@ -152,15 +152,15 @@ def main() -> int:
         print(__doc__)
         return 1
 
-    # --debug Only affect this run,No change config.py
+    # --debug Only affect this run, No change config. py
     if opts["debug"]:
         import config as _cfg
         _cfg.LOG_LEVEL = "debug"
 
-    # logSession:Beginning sentence.Every time thereafter api calluseallMeetingsrecord,The main script no longer logs
+    # logSession: Beginning sentence. Every time thereafter api calluseallMeetingsrecord, The main script no longer logs
     setup_logging("upsert")
 
-    # ---- ★ Parsing first --extra-data(atbefore:JSON Don't waste the QR code if you make a mistake)----
+    # ---- - Parsing first --extra-data(atbefore: JSON Don't waste the QR code if you make a mistake)----
     extra = None
     if opts["extra_data"]:
         merged = {}
@@ -173,37 +173,37 @@ def main() -> int:
             log_error("--extra-data parseFailed:" + str(exc))
             return 6
 
-        # nodesFirst nameAlsoherecheck(Otherwise, you will have to wait until you are logged in to package before reporting an error.,one)
+        # nodesFirst nameAlsoherecheck(Otherwise, you will have to wait until you are logged in to package before reporting an error., one)
         unknown = [k for k in merged if k not in NODE_TYPES]
         if unknown:
             log_error("--extra-data inhasnotnodesFirst name:" + ", ".join(unknown))
-            log_error("  Available Nodes(" + str(len(NODE_ORDER)) + " Piece):" + ", ".join(NODE_ORDER))
+            log_error(" Available Nodes(" + str(len(NODE_ORDER)) + " Piece):" + ", ".join(NODE_ORDER))
             return 6
 
         if not merged:
-            log_warning("--extra-data parseoutisemptyof,Ignore")
+            log_warning("--extra-data parseoutisemptyof, Ignore")
         else:
             extra = merged
             log_info("--extra-data Total " + str(len(extra)) + " nodes:" + ", ".join(extra))
 
-    # Session Status:Guaranteed to log out in case of abnormalities(Otherwise, your account will be stuck on isLogin=True,Next Login returnCode=100)
+    # Session Status: Guaranteed to log out in case of abnormalities(Otherwise, your account will be stuck on isLogin=True, Next Login returnCode=100)
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
     try:
         # ---- QR Code -> userId + token ----
         user_id, token = ParseQRCode(opts["qr"])
         session.update(user_id=user_id, token=token)
 
-        # ---- text"at"of ----
+        # ----"at"of ----
         preview = GetUserPreview(user_id, token)
         if preview.isLogin:
             log_error("placeinAlreadyloginpleaseFirstatmachine statelogoutorwaitSessiontime")
             return 2
 
-        # ---- login:to playlogId And loginDateTime(settlementEscalationsmustuse)----
+        # ---- login: to playlogId And loginDateTime(settlementEscalationsmustuse)----
         login = UserLogin(user_id, token, region_id=REGION_ID, place_id=PLACE_ID)
         session.update(login_dt=login.loginDateTime, logged_in=True)
 
-        # ---- settlement:★ A function takes care of the construction + Packaging + fallLibrarytimescheck ----
+        # ---- settlement:- A function takes care of the construction + Packaging + post-upload validation ----
         UpsertUserAll(
             user_id, login.loginId,
             login_date_time=login.loginDateTime,
@@ -224,7 +224,7 @@ def main() -> int:
         log_error(type(exc).__name__ + ": " + str(exc))
         return 1
     finally:
-        # Log out from the bottom of the pocket:loginAndlogoutSession,Otherwise, the account card will be isLogin=True
+        # Log out from the bottom of the pocket: loginAndlogoutSession, Otherwise, the account card will be isLogin=True
         if session["logged_in"]:
             try:
                 UserLogout(session["user_id"], session["token"], session["login_dt"],

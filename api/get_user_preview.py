@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-get_user_preview.py —— user(GetUserPreviewApi)
+get_user_preview. py — user(GetUserPreviewApi)
 ================================================================================
 
-Features:Data of the welcome screen after swiping the card(,Rating,isNoAlreadylogin,Ghosting Status…).
+Features: Data of the welcome screen after swiping the card(, Rating, isNoAlreadylogin, Ghosting Status…).
 
-Corresponding interface:GetUserPreviewApi
-request body  :{"userId":.., "segaIdAuthKey":"", "token":"..", "clientId":".."}
-          source/Assembly-CSharp/Net.VO.Mai2/UserPreviewRequestVO.cs
-          source/Assembly-CSharp/Net.Packet.Mai2/PacketGetUserPreview.cs:20-25
-Response:text UserPreviewResponseVO(23 Field,Contains errorId)
+Corresponding interface: GetUserPreviewApi
+request body:{"userId":.., "segaIdAuthKey":"", "token":"..", "clientId":".."}
+     source/Assembly-CSharp/Net. VO. Mai2/UserPreviewRequestVO. cs
+     source/Assembly-CSharp/Net. Packet. Mai2/PacketGetUserPreview. cs:20-25
+Response: UserPreviewResponseVO(23 Field, Contains errorId)
 
-★ real machinecallusetimemachine:to userId/token After,UserLoginApi Before
-   (source/2026-10-05.log:23).
-★ Client Behavior:isLogin=True timecontinuelogin,text
-   (source/Assembly-CSharp/Process.Entry.State/ConfirmPlay.cs:151).
+- real machinecallusetimemachine: to userId/token After, UserLoginApi Before
+  (source/2026-10-05. log:23).
+- Client Behavior: isLogin=True timecontinuelogin, text
+  (source/Assembly-CSharp/Process. Entry. State/ConfirmPlay. cs:151).
 
 Example:
-    from api import GetUserPreview
-    pv = GetUserPreview(12345678, "TESTTOKEN0000000000")
-    print(pv.userName, pv.playerRating)
+  from api import GetUserPreview
+  pv = GetUserPreview(12345678, "TESTTOKEN0000000000")
+  print(pv. userName, pv. playerRating)
 """
 
 from __future__ import annotations
@@ -45,11 +45,11 @@ class UserPreviewRequestVO:
 @dataclass
 class UserPreviewResponseVO:
     """
-    Response VO(Corresponding UserPreviewResponseVO + real machineResponse Fields).
+  Response VO(Corresponding UserPreviewResponseVO + real machineResponse Fields).
 
-    ★ Field order by source/Assembly-CSharp/Net.VO.Mai2/UserPreviewResponseVO.cs
-      And source/2026-10-05.log:24 ofreal machineResponseMerge.
-    """
+  - Field order by source/Assembly-CSharp/Net. VO. Mai2/UserPreviewResponseVO. cs
+   And source/2026-10-05. log:24 ofreal machineResponseMerge.
+  """
     userId: int = 0
     userName: str = ""
     isLogin: bool = False
@@ -84,19 +84,19 @@ def GetUserPreview(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserPreviewResponseVO:
     """
-    getFetch Users
+  getFetch Users
 
-    Parameter:
-        user_id:          user ID(Required)
-        token:            Session Token(Required,text ParseQRCode)
-        client_id:        machine stateshortValue(Optional)
-        sega_id_auth_key: SEGA ID text key(Optional,Is Empty)
-        timeout_ms:       timeout milliseconds(Optional)
-        client:           Reusable MaimaiNetClient(Optional)
+  Parameter:
+    user_id:     user ID(Required)
+    token:      Session Token(Required, ParseQRCode)
+    client_id:    machine stateshortValue(Optional)
+    sega_id_auth_key: SEGA ID key(Optional, Is Empty)
+    timeout_ms:    timeout milliseconds(Optional)
+    client:      Reusable MaimaiNetClient(Optional)
 
-    Returns:
-        UserPreviewResponseVO
-    """
+  Returns:
+    UserPreviewResponseVO
+  """
     log_info("getFetch Usersuser_id=" + str(user_id) + " client_id=" + client_id)
 
     raw = request_dict(
@@ -119,10 +119,10 @@ def GetUserPreview(
     if resp.banState != 0:
         log_warning("canbanState=" + str(resp.banState))
     if resp.isLogin:
-        log_warning("placeinAlreadylogin(isLogin=True),continueloginMeetings")
+        log_warning("placeinAlreadylogin(isLogin=True), continueloginMeetings")
 
     log_info(
-        "usergetTakeDone:userName=" + resp.userName
+        "userfetch complete: userName=" + resp.userName
         + " playerRating=" + str(resp.playerRating)
         + " isLogin=" + str(resp.isLogin)
         + " isNetMember=" + str(resp.isNetMember)
@@ -139,13 +139,13 @@ if __name__ == "__main__":
         setup_logging("userpreview_test")
         try:
             if len(sys.argv) < 3:
-                print("usage: python -m api.get_user_preview <user_id> <token> [client_id]")
+                print("usage: python -m api. get_user_preview <user_id> <token> [client_id]")
                 return 1
             cid = sys.argv[3] if len(sys.argv) > 3 else CLIENT_ID
             pv = GetUserPreview(int(sys.argv[1]), sys.argv[2], client_id=cid)
             print("")
             for name in UserPreviewResponseVO.__dataclass_fields__:
-                print("   " + name.ljust(18) + "= " + str(getattr(pv, name)))
+                print("  " + name.ljust(18) + "= " + str(getattr(pv, name)))
             return 0
         except Exception as exc:
             log_error("getFetch UsersFailed:" + str(exc))

@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-selftest.py —— network
+selftest. py — network
 ================================================================================
 
-Unconnected,no packet is sent,Only verify that the protocol implementation is compatible with the source/ The decompiled source code is consistent with the real machine log.
+Unconnected, no packet is sent, Only verify that the protocol implementation is compatible with the source/ The decompiled source code is consistent with the real machine log.
 
 Criteria Source:
-    source/Assembly-CSharp/Net.Packet/Packet.cs        URL obfuscation
-    source/Assembly-CSharp/Net/NetHttpClient.cs        packet
-    source/Assembly-CSharp/Net/CipherAES.cs            AES Parameter
-    source/Assembly-CSharp/Net.VO.Mai2/UserPlaylog.cs  110 Field
-    source/Assembly-CSharp/Net.VO.Mai2/UserAll.cs      36 nodes
-    source/2026-10-05.log:123                          real machine UpsertUserAll packet
+  source/Assembly-CSharp/Net. Packet/Packet. cs    URL obfuscation
+  source/Assembly-CSharp/Net/NetHttpClient. cs    packet
+  source/Assembly-CSharp/Net/CipherAES. cs      AES Parameter
+  source/Assembly-CSharp/Net. VO. Mai2/UserPlaylog. cs 110 Field
+  source/Assembly-CSharp/Net. VO. Mai2/UserAll. cs   36 nodes
+  source/2026-10-05. log:123             real machine UpsertUserAll packet
 
 usage:
-    python selftest.py
+  python selftest. py
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ from api.upsert_user_all import (
 )
 from api.upsert_user_chargelog import _now_string
 
-# ★ thisConstantOriginally in config.py,2026-10-06 Dropped to each api text —— From api Take.
+# - thisConstantOriginally in config. py,2026-10-06 moved to each api — From api Take.
 from api import (
     PLAY_SPECIAL_NUM as CONFIG_PLAY_SPECIAL_NUM,
     PAID_TICKET_IDS as CONFIG_PAID_TICKET_IDS,
@@ -87,12 +87,12 @@ from api import (
 )
 
 # =============================================================================
-# ★ PLAY_CHARACTERS —— Originally in config.py,currenttoscriptinAs**data**
+# - PLAY_CHARACTERS — Originally in config. py, currenttoscriptinAs**data**
 # =============================================================================
 #
-# description:PlayData.characters currentatdefaultis**emptyList**,valueby
-#       derive_play_characters() Push from server snapshot(config inofvalueMeetings).
-#       thisinKeep a copyreal-machine sample,For self-testing"groupPackage"useExample.
+# description: PlayData. characters currentatdefaultis**emptyList**, valueby
+#    derive_play_characters() Push from server snapshot(config inofvalueMeetings).
+#    thisinKeep a copyreal-machine sample, For self-testing"batch packets"useExample.
 #
 # Value = real machine charaSlot [395, 101, 400402, 400401, 200401] ofplayagolevel
 PLAY_CHARACTERS = [
@@ -112,11 +112,11 @@ def check(name: str, condition: bool, detail: str = "") -> None:
     global _PASS, _FAIL
     if condition:
         _PASS += 1
-        print("  [OK]   " + name)
+        print(" [OK]  " + name)
     else:
         _FAIL += 1
         _FAILED_NAMES.append(name)
-        print("  [FAIL] " + name + ("  -> " + detail if detail else ""))
+        print(" [FAIL] " + name + (" -> " + detail if detail else ""))
 
 
 def section(title: str) -> None:
@@ -130,7 +130,7 @@ def section(title: str) -> None:
 # 1. URL obfuscation
 # =============================================================================
 
-section("1. URL obfuscation(Packet.Obfuscator + NetQuery Suffix)")
+section("1. URL obfuscation(Packet. Obfuscator + NetQuery Suffix)")
 
 check(
     "md5(GetGameSettingApiMaimaiChn + 8bF76dE9) Consistent with real machine logs",
@@ -143,7 +143,7 @@ check(
     == obfuscate_api_name("GetGameSettingApi"),
 )
 check(
-    "Ping offirst nameis Ping(PacketPing.cs:22 Passing on 'Ping',NetQuery text MaimaiChn)",
+    "Ping offirst nameis Ping(PacketPing. cs:22 Passing on 'Ping', NetQuery MaimaiChn)",
     obfuscate_api_name("Ping")
     == __import__("hashlib").md5(b"PingMaimaiChn8bF76dE9").hexdigest()
     == "3bae8c1162b3148abcfc38a89c03e3e7",
@@ -161,14 +161,14 @@ sample = '{"userId":12345678,"token":"abc"}'.encode("utf-8")
 packed = deflate_compress(sample)
 
 check("deflate The head is 0x78 0x9C", packed[:2] == b"\x78\x9c", packed[:2].hex())
-check("Adler32 And zlib.adler32 Match", adler32(sample) == __import__("zlib").adler32(sample))
+check("Adler32 And zlib. adler32 Match", adler32(sample) == __import__("zlib").adler32(sample))
 check("Adler32 Write at the end with a large end", packed[-4:] == adler32(sample).to_bytes(4, "big"))
 check("deflate Consistent round-trip", deflate_decompress(packed) == sample)
 
 enc = aes_encrypt(packed)
 check("AES The cipher length is 16 oftimesnumber", len(enc) % 16 == 0, str(len(enc)))
 check("AES Consistent round-trip", aes_decrypt(enc) == packed)
-check("AES is 256 Bit Key(api.AES_KEY 32 Bytes)",
+check("AES is 256 Bit Key(api. AES_KEY 32 Bytes)",
       len(api.AES_KEY) == 32)
 check("AES IV is 16 Bytes", len(api.AES_IV) == 16)
 
@@ -185,19 +185,19 @@ from config import CLIENT_ID as _CID
 _cli_a = get_default_client()
 _cli_b = get_default_client()
 check("get_default_client returnsSameOneExample(Cookie / requiredMultiplexing)", _cli_a is _cli_b)
-check("client.session is requests.Session(Belt Cookie Container)",
+check("client. session is requests. Session(Belt Cookie Container)",
       hasattr(_cli_a.session, "cookies"))
-check("text client of ping_msec Initially as 0", _cli_a.ping_msec == 0, str(_cli_a.ping_msec))
+check("client of ping_msec Initially as 0", _cli_a.ping_msec == 0, str(_cli_a.ping_msec))
 check("last_ping_msec is ping_msec ofCompatiblefirst name",
       _cli_a.last_ping_msec == _cli_a.ping_msec)
 
-# ★ number Head:Only Ping Without;interfaceTake self.ping_msec
+# - number Head: Only Ping Without; interfaceTake self. ping_msec
 _h_up = _cli_a._build_headers("UpsertUserAllApi", 12345678, _CID)
 check("UpsertUserAll Headband number", "number" in _h_up)
-check("number Retrieved from client.ping_msec(not Ping timefor '0')",
+check("number Retrieved from client. ping_msec(not Ping timefor '0')",
       _h_up["number"] == str(_cli_a.ping_msec), _h_up["number"])
 _h_ping = _cli_a._build_headers("Ping", 0, _CID)
-check("Ping ofrequestHead**Without** number(Packet.cs:187)", "number" not in _h_ping)
+check("Ping ofrequest header**Without** number(Packet. cs:187)", "number" not in _h_ping)
 check("explicitPassing on ping_msec Overrideable",
       _cli_a._build_headers("XxxApi", 1, _CID, ping_msec=63)["number"] == "63")
 check("Accept-Encoding Must be an empty string(Otherwise, the server is empty body)",
@@ -248,7 +248,7 @@ check("Bitstring 11 Piece", len(bits) == 11, str(len(bits)))
 check("numbergroup 19 Piece", len(arrays) == 19, str(len(arrays)))
 check("4 + 2 + 11 + 19 = 36", len(singleton) + len(objects) + len(bits) + len(arrays) == 36)
 
-# real machinepacketinof 36 Node Names(source/2026-10-05.log:123)
+# real-machine in one packet 36 Node Names(source/2026-10-05. log:123)
 REAL_NODES = [
     "userData", "userExtend", "userOption", "userCharacterList", "userGhost",
     "userMapList", "userLoginBonusList", "userRatingList", "userItemList",
@@ -262,7 +262,7 @@ REAL_NODES = [
     "isNewFriendSeasonRankingList", "isNewUserIntimateList",
     "isNewFavoritemusicList", "isNewKaleidxScopeList",
 ]
-check("nodesFirst nameAndreal machinepacketExact match", set(NODE_ORDER) == set(REAL_NODES),
+check("nodesFirst nameAndreal-machine packetExact match", set(NODE_ORDER) == set(REAL_NODES),
       "Differential Set:" + str(set(NODE_ORDER) ^ set(REAL_NODES)))
 
 
@@ -312,7 +312,7 @@ sync_bits_to_arrays(ua)
 check("Bitstring completion by array length", ua["isNewMapList"] == "000", ua["isNewMapList"])
 
 ua["userCharacterList"] = [{"characterId": 1}]
-ua["isNewCharacterList"] = "111"      # Existing value,lengthNotimeTruncation
+ua["isNewCharacterList"] = "111"      # Existing value, lengthNotimeTruncation
 sync_bits_to_arrays(ua)
 check("Truncate when bit string is too long", ua["isNewCharacterList"] == "1", ua["isNewCharacterList"])
 
@@ -338,11 +338,11 @@ check("New entry -> Bitstring 1", flags2 == "1", flags2)
 delta3, flags3 = build_delta(local, server, None)
 check("nokeytimeBitstringFull 1", flags3 == "1", flags3)
 
-# receiveexample(Duplicate engraving machine source/2026-10-05.log:123 of "22212")
+# receiveexample(Duplicate engraving machine source/2026-10-05. log:123 of "22212")
 fav_local = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 fav_server = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 fav_delta, fav_flags = build_favorite_delta(fav_local, fav_server)
-check("receiveDo not cull,Constantly return all 5 item", len(fav_delta) == 5, str(len(fav_delta)))
+check("receiveDo not cull, Constantly return all 5 item", len(fav_delta) == 5, str(len(fav_delta)))
 check("serverhasCorresponding itemKind -> 2", fav_flags == "22222", fav_flags)
 
 # real machineitemKind=10 of Get The response is {"itemKind": null}
@@ -351,8 +351,8 @@ fav_server_raw.append({"itemKind": None, "itemIdList": []})
 _, fav_flags_raw = build_favorite_delta(fav_local, fav_server_raw)
 check("itemKind=null ofthatitem -> 1(Duplicate engraving machine 22212)", fav_flags_raw == "22212", fav_flags_raw)
 
-# Normalized Pocket Bottom:Baseline is get_user_favorite.py text itemKind After,serverListin 5 Piece kind full,
-# I can't see it when I look at the list alone itemKind=10 Originally null,Must rely on assume_missing explicitDeclaration.
+# Normalized Pocket Bottom: Baseline is get_user_favorite. py itemKind After, serverListin 5 Piece kind full,
+# I can't see it when I look at the list alone itemKind=10 Originally null, Must rely on assume_missing explicitDeclaration.
 fav_server_norm = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 _, fav_flags_norm = build_favorite_delta(fav_local, fav_server_norm, (10,))
 check("Normalized Baseline + assume_missing=(10,) -> 22212", fav_flags_norm == "22212", fav_flags_norm)
@@ -366,7 +366,7 @@ section("8. userPlaylog Field Integrity(110 Field)")
 
 check("PLAYLOG_FIELDS of 110 Piece", len(PLAYLOG_FIELDS) == 110, str(len(PLAYLOG_FIELDS)))
 
-# ★ explicitPassing onvalue,**Do not rely on config.py** —— Otherwise, the user changed config thisin
+# - explicitPassing onvalue,**Do not rely on config. py** — Otherwise, the user changed config thisin
 pl = build_user_playlog(7692848101484135861, 1791159576,
                         PlayData(before_rating=15000, after_rating=15000,
                                  characters=PLAY_CHARACTERS),
@@ -377,10 +377,10 @@ check("nofield", all(k in PLAYLOG_FIELDS for k in pl))
 
 check("userId Constantly 0", pl["userId"] == 0)
 check("playlogId current", pl["playlogId"] == 7692848101484135861)
-# ★ loginDate is**standard Unix seconds**(VOExtensions.cs:1290 GetUnixTime ofreturnsValue),
-#   No loginDateTime.Eastern Eight Wards loginDateTime - 28800.
-#   real machine 1791159576-28800=1791130776,packetinis ...777(Bad 1 seconds,
-#   inreal machine is"time -> secondsString -> Resolve"ofTruncation,noActualImpact).
+# - loginDate is**standard Unix seconds**(VOExtensions. cs:1290 GetUnixTime ofreturnsValue),
+#  No loginDateTime. Eastern Eight Wards loginDateTime - 28800.
+#  real machine 1791159576-28800=1791130776, in the packetis...777(Bad 1 seconds,
+#  inreal machine is"time -> secondsString -> Resolve"ofTruncation, noactualImpact).
 check("loginDate isstandard Unix seconds(loginDateTime - timeOffset)",
       abs(pl["loginDate"] - (1791159576 - 28800)) <= 1,
       str(pl["loginDate"]))
@@ -391,7 +391,7 @@ check("extNum4 == categoryIndex", pl["extNum4"] == __import__("config").PLAY_CAT
 
 # bool Field type
 bad_bool = [f for f in PLAYLOG_BOOL_FIELDS if not isinstance(pl[f], bool)]
-check("All bool Fields are bool text", not bad_bool, str(bad_bool))
+check("All bool Fields are bool", not bad_bool, str(bad_bool))
 check("extBool1/2/3 is bool(Name without is Prefix)",
       all(isinstance(pl[f], bool) for f in ("extBool1", "extBool2", "extBool3")))
 
@@ -403,10 +403,10 @@ check("Sum of the judgments == totalCombo", total == pl["totalCombo"],
 # Compare with real machine message by field(Key Fields)
 REAL_PLAYLOG = {
     "version": 1056000, "placeId": 1000, "type": 0, "musicId": 143, "level": 4,
-    # ★ characterLevelN = playagolevel(= Get Side userCharacterList of level).
-    #   real machine source/2026-10-05.log:123 Empirical:
-    #     playlog.characterLevel1..5 = 3800/4455/134/134/134
-    #     of the same message userCharacterList = 3801/4456/135/135/135(playAfter +1)
+    # - characterLevelN = playagolevel(= Get Side userCharacterList of level).
+    #  real machine source/2026-10-05. log:123 Empirical:
+    #   playlog. characterLevel1..5 = 3800/4455/134/134/134
+    #   of the same message userCharacterList = 3801/4456/135/135/135(playAfter +1)
     "trackNo": 1, "playerNum": 1, "characterId1": 395, "characterLevel1": 3800,
     "characterAwakening1": 5, "characterId2": 101, "characterLevel2": 4455,
     "characterId5": 200401, "characterLevel5": 134,
@@ -426,7 +426,7 @@ check("Key fields are consistent with real machine messages(" + str(len(REAL_PLA
 
 # Function
 problems = validate_user_playlog(pl)
-check("validate_user_playlog text(real-machine sample)", not problems, str(problems))
+check("validate_user_playlog(real-machine sample)", not problems, str(problems))
 
 bad = dict(pl)
 bad["totalCombo"] = 999
@@ -435,7 +435,7 @@ check("validate_user_playlog canDiscover totalCombo Inconsistent",
 
 bad2 = dict(pl)
 bad2["isClear"] = True
-check("validate_user_playlog canDiscover isClear/achievement text",
+check("validate_user_playlog canDiscover isClear/achievement",
       any("isClear" in p for p in validate_user_playlog(bad2)))
 
 # Banquet Recipe
@@ -457,13 +457,13 @@ REAL_GP = {
     "playlogId": 7692848101484135861, "version": "1.56.00",
     "playMode": 0, "useTicketId": -1, "playCredit": 1, "playTrack": 1,
     "clientId": "TESTCLIENT1", "isPlayTutorial": False, "isEventMode": False,
-    # ★ PLAY_LOCAL_PLAY_COUNT currentConstantly 2(Hara config Value 8 Deprecated)
+    # - PLAY_LOCAL_PLAY_COUNT currentConstantly 2(Hara config Value 8 Deprecated)
     "isNewFree": False, "playCount": 2, "playOtherUserId": 0,
 }
 gp_mismatch = {k: (gp.get(k), v) for k, v in REAL_GP.items() if gp.get(k) != v}
 check("Fields are consistent with real machine messages", not gp_mismatch, json.dumps(gp_mismatch, ensure_ascii=False))
 check("playSpecial non- 0(machineBit)", gp["playSpecial"] != 0, str(gp["playSpecial"]))
-check("playSpecial is int32 text",
+check("playSpecial is int32",
       -2 ** 31 <= gp["playSpecial"] < 2 ** 31, str(gp["playSpecial"]))
 
 vals = {calc_play_special() for _ in range(20)}
@@ -471,7 +471,7 @@ check("playSpecial eachdifferent(machine)", len(vals) > 1, str(len(vals)))
 
 
 def _rev32(n: int) -> int:
-    """32 Bit inversion(Reprint VOExtensions.cs:850-855 ofBitLoop,pressnoProcess)."""
+    """32 Bit inversion(Reprint VOExtensions. cs:850-855 ofBitLoop, pressnoProcess)."""
     n &= 0xFFFFFFFF
     out = 0
     for _ in range(32):
@@ -480,13 +480,13 @@ def _rev32(n: int) -> int:
     return out
 
 
-# ★ usereal machine playSpecial Reverse CalcSpecialNum:
-#     real machine playSpecial = 892014272(gamehook toSameOncecalluse CalcSpecialNum() = 1024)
-#     Bit inversion32(892014272) = 27900 * 2069 + 1024  -> The remainder is exactly 1024
+# - usereal machine playSpecial Reverse CalcSpecialNum:
+#   real machine playSpecial = 892014272(gamehook toSameOncecalluse CalcSpecialNum() = 1024)
+#   Bit inversion32(892014272) = 27900 * 2069 + 1024 -> The remainder is exactly 1024
 check("real machine playSpecial Back Launch CalcSpecialNum=1024",
       _rev32(892014272) % 2069 == CONFIG_PLAY_SPECIAL_NUM,
       str(_rev32(892014272) % 2069))
-check("api.PLAY_SPECIAL_NUM default 1024",
+check("api. PLAY_SPECIAL_NUM default 1024",
       CONFIG_PLAY_SPECIAL_NUM == 1024, str(CONFIG_PLAY_SPECIAL_NUM))
 check("calc_play_special put CalcSpecialNum superimposed in",
       all(_rev32(calc_play_special()) % 2069 == CONFIG_PLAY_SPECIAL_NUM
@@ -516,10 +516,10 @@ check("user2pPlaylog keyConsistent with the real machine",
 
 
 # =============================================================================
-# 11. groupPackage
+# 11. batch packets
 # =============================================================================
 
-section("11. build_user_all groupPackage")
+section("11. build_user_all batch packets")
 
 # usereal machine Get Side data constructs a minimum baseline
 baseline = {
@@ -534,7 +534,7 @@ baseline = {
     "userMapList": {"userMapList": [
         {"mapId": 550003, "distance": 1424000, "isLock": False,
          "isClear": False, "isComplete": False, "unlockFlag": 0}]},
-    # ★ interfaceRaw ResponseisTwo layers of nesting(UserMusic.cs),thisinuseNestedMorphology
+    # - interfaceRaw ResponseisTwo layers of nesting(UserMusic. cs), thisinuseNestedMorphology
     "userMusicDetailList": {"userMusicList": [
         {"userMusicDetailList": [
             {"musicId": 143, "level": 4, "playCount": 7, "achievement": 0,
@@ -550,9 +550,9 @@ baseline = {
 ua2 = build_user_all(baseline, login_date_time=1791159576,
                      auth_date_time=1791134329, playlog_id=7692848101484135861)
 
-# ★ default config.PLAY_MAP_DISTANCE_GAIN = 0 / PLAY_CHARACTER_EXP_GAIN = 0,
-#   So ua2 in userMapList / userCharacterList allisemptyof(for).
-#   ua2b explicitputIncrementcalltimesreal machineValue(Map +11000 / text +1 ),usecalculate
+# - default config. PLAY_MAP_DISTANCE_GAIN = 0 / PLAY_CHARACTER_EXP_GAIN = 0,
+#  So ua2 in userMapList / userCharacterList allisemptyof(for).
+#  ua2b explicitputIncrementcalltimesreal machineValue(Map +11000 / +1 ), usecalculate
 ua2b = build_user_all(baseline, login_date_time=1791159576,
                       auth_date_time=1791134329, playlog_id=7692848101484135861,
                       play=PlayData(map_distance_gain=11000, character_exp_gain=1,
@@ -563,7 +563,7 @@ check("nodesorderAnd NODE_ORDER Match", list(ua2.keys()) == list(NODE_ORDER))
 
 # userData calculate
 ud = ua2["userData"][0]
-# ★ default PLAY_USER_PLAY_COUNT_GAIN = 0 -> Total number of times**Stay the same**
+# - default PLAY_USER_PLAY_COUNT_GAIN = 0 -> Total number of times**Stay the same**
 check("playCount Unchanged(defaultIncrement 0)", ud["playCount"] == 1257, str(ud["playCount"]))
 check("currentPlayCount Unchanged(defaultIncrement 0)", ud["currentPlayCount"] == 185,
       str(ud["currentPlayCount"]))
@@ -577,8 +577,8 @@ check("explicit user_play_count_gain=1 time currentPlayCount +1",
       _ud_gain["currentPlayCount"] == 186, str(_ud_gain["currentPlayCount"]))
 check("lastGameId The back of the pocket is SDGB", ud["lastGameId"] == "SDGB")
 check("accessCode The back of the pocket is empty string", ud["accessCode"] == "")
-check("lastPlaceId = config.PLACE_ID", ud["lastPlaceId"] == __import__("config").PLACE_ID)
-check("lastRegionId = config.REGION_ID", ud["lastRegionId"] == __import__("config").REGION_ID)
+check("lastPlaceId = config. PLACE_ID", ud["lastPlaceId"] == __import__("config").PLACE_ID)
+check("lastRegionId = config. REGION_ID", ud["lastRegionId"] == __import__("config").REGION_ID)
 check("lastPlaceName = Store Name", ud["lastPlaceName"] == __import__("config").PLACE_NAME)
 check("lastPlayMode Returned 0", ud["lastPlayMode"] == 0)
 check("dateTime = loginrequestof dateTime", ud["dateTime"] == 1791134329, str(ud["dateTime"]))
@@ -586,57 +586,57 @@ check("nameplateId Censored(Upsert Side No)", "nameplateId" not in ud)
 check("trophyId Censored", "trophyId" not in ud)
 check("friendCode Censored", "friendCode" not in ud)
 check("banState Moved in userData Internal", ud.get("banState") == 0)
-# ★ point Maintain baseline values(leave blank userGetPointList => Do not issue credits)
-check("userData.point Keep baseline value unchanged(Do not issue credits)",
+# - point Maintain baseline values(leave blank userGetPointList => Do not issue credits)
+check("userData. point Keep baseline value unchanged(Do not issue credits)",
       ud["point"] == 4110, "point=" + str(ud["point"]))
-# ★ characterLevel is**playago**level;userCharacterList Only after playing(+1).
-#   real machineEmpirical:playlog 3800/4455/134  <->  userCharacterList 3801/4456/135
+# - characterLevel is**playago**level; userCharacterList Only after playing(+1).
+#  real machineEmpirical: playlog 3800/4455/134 <-> userCharacterList 3801/4456/135
 _clv = {c["characterId"]: c["level"] for c in ua2b["userCharacterList"]}
 check("userCharacterList isplayAfterlevel(395: 3800->3801)",
       _clv.get(395) == 3801, str(_clv))
 check("userCharacterList isplayAfterlevel(101: 4455->4456)",
       _clv.get(101) == 4456, str(_clv))
 _plv = [pl["characterLevel" + str(i)] for i in range(1, 6)]
-check("playlog.characterLevelN isplayagolevel(3800/4455/134/134/134)",
+check("playlog. characterLevelN isplayagolevel(3800/4455/134/134/134)",
       _plv == [3800, 4455, 134, 134, 134], str(_plv))
-check("playlog.characterLevelN itemetcin PLAY_CHARACTERS of level",
+check("playlog. characterLevelN itemetcin PLAY_CHARACTERS of level",
       _plv == [int(c["level"]) for c in PLAY_CHARACTERS], str(_plv))
-check("playlog And userCharacterList oflevelBadJust in timeetcinthis gameIncrement",
+check("playlog And userCharacterList oflevelBadexactlyetcinthis gameIncrement",
       all(pl["characterLevel" + str(i)] + 1 == _clv[pl["characterId" + str(i)]]
           for i in range(1, 6) if pl["characterId" + str(i)] in _clv),
       str(_plv) + " vs " + str(_clv))
 check("userData no null Field", not [k for k, v in ud.items() if v is None])
 
 # ---- logintime vs playtime(real machinedifferent:00:19:37 login / 00:20:57 Escalations)----
-_ua_default = ua2          # The previous paragraph did not pass play_date_time,used fortimesfor
-#   real machine source/2026-10-05.log: loginDateTime=1791159576 -> On the wall 00:19:37
-#                             When to escalate = 00:20:57,i.e. 1791159576 + 80 = 1791159656
+_ua_default = ua2          # The previous paragraph did not pass play_date_time, used fortimesfor
+#  real machine source/2026-10-05. log: loginDateTime=1791159576 -> On the wall 00:19:37
+#               When to escalate = 00:20:57, i. e. 1791159576 + 80 = 1791159656
 _ua_t = build_user_all(baseline, login_date_time=1791159576,
                        auth_date_time=1791134329, playlog_id=7692848101484135861,
                        play_date_time=1791159656)
 _ud_t = _ua_t["userData"][0]
-#   ★ machineMeasuredis 00:19:37(text loginDateTime text 1 seconds,Because the client finished processing the login response
-#     thatOneonly lastLoginDate);networkscriptOnly loginDateTime,thisinis 00:19:36.
+#  - machineMeasuredis 00:19:37(loginDateTime 1 seconds, Because the client finished processing the login response
+#   thatOneonly lastLoginDate); network scriptOnly loginDateTime, thisinis 00:19:36.
 check("lastLoginDate use**login**time",
       _ud_t["lastLoginDate"] == "2026-10-05 00:19:36.0", _ud_t["lastLoginDate"])
 check("eventWatchedDate And lastLoginDate Same value",
       _ud_t["eventWatchedDate"] == _ud_t["lastLoginDate"], _ud_t["eventWatchedDate"])
 check("lastPlayDate use**Escalations**time(It's no longer the time to log in)",
       _ud_t["lastPlayDate"] == "2026-10-05 00:20:56.0", _ud_t["lastPlayDate"])
-check("userGamePlaylogList.playDate use**Escalations**time",
+check("userGamePlaylogList. playDate use**Escalations**time",
       _ua_t["userGamePlaylogList"][0]["playDate"] == "2026-10-05 00:20:56.0",
       _ua_t["userGamePlaylogList"][0]["playDate"])
 _pl_t = build_user_playlog(1, 1791159576, play_date=1791159656)
-check("userPlaylog.playDate(log)use**play**time(00:20 -> Previous day 10-04)",
+check("userPlaylog. playDate(log)use**play**time(00:20 -> Previous day 10-04)",
       _pl_t["playDate"] == "2026-10-04", _pl_t["playDate"])
-check("userPlaylog.userPlayDate use**play**time(It's no longer the time to log in)",
+check("userPlaylog. userPlayDate use**play**time(It's no longer the time to log in)",
       _pl_t["userPlayDate"] == "2026-10-05 00:20:56.0", _pl_t["userPlayDate"])
-check("Do not pass play_date_time timeAlltimes login_date_time(present.current)",
+check("Do not pass play_date_time timeAlltimes login_date_time(present. current)",
       _ua_default["userData"][0]["lastPlayDate"] == "2026-10-05 00:19:36.0"
       and _ua_default["userGamePlaylogList"][0]["playDate"] == "2026-10-05 00:19:36.0",
       _ua_default["userData"][0]["lastPlayDate"])
 
-# ---- derive_play_characters:Push Pre-Play Characters from Snapshots(Avoid filling in by hand config )----
+# ---- derive_play_characters: Push Pre-Play Characters from Snapshots(Avoid filling in by hand config )----
 _snap_chars = {
     "userData": [{"charaSlot": [395, 101, 400402, 400401, 200401]}],
     "userCharacterList": [
@@ -649,10 +649,10 @@ _snap_chars = {
 }
 _dpc = derive_play_characters(_snap_chars)
 check("derive_play_characters returns 5 item", len(_dpc) == 5, str(len(_dpc)))
-check("orderpress userData.charaSlot(395/101/400402/400401/200401)",
+check("orderpress userData. charaSlot(395/101/400402/400401/200401)",
       [c["characterId"] for c in _dpc] == [395, 101, 400402, 400401, 200401],
       str([c["characterId"] for c in _dpc]))
-check("levelTakeSnapshot(playago)Value,Inexperienced",
+check("levelTakeSnapshot(playago)Value, Inexperienced",
       [c["level"] for c in _dpc] == [3802, 4457, 136, 136, 136],
       str([c["level"] for c in _dpc]))
 check("awakening Take it out with you",
@@ -662,7 +662,7 @@ check("Pass to build_user_playlog After characterLevelN Consistent with snapshot
       [build_user_playlog(1, 1791159576,
                           PlayData(characters=_dpc))["characterLevel" + str(i)]
        for i in range(1, 6)] == [3802, 4457, 136, 136, 136])
-# ★ PlayData.characters currentatdefaultIs Empty(valuebySnapshot),So to explicitly pass on PLAY_CHARACTERS
+# - PlayData. characters currentatdefaultIs Empty(valuebySnapshot), So to explicitly pass on PLAY_CHARACTERS
 _FALLBACK_PLAY = PlayData(characters=PLAY_CHARACTERS)
 check("Fallback to when snapshot is missing role PLAY_CHARACTERS Same location",
       [c["level"] for c in derive_play_characters(
@@ -676,8 +676,8 @@ check("Return as is when snapshot is empty PLAY_CHARACTERS of 5 item",
           for c in PLAY_CHARACTERS])
 
 # Differential Node
-# ★ default PLAY_MUSIC_PLAY_COUNT_GAIN = 0 -> **itemPassing on,countUnchanged**(Can't be blank!)
-check("defaultcallback 1 item userMusicDetailList(leave blankMeetingslead topacketNo)",
+# - default PLAY_MUSIC_PLAY_COUNT_GAIN = 0 -> **itemPassing on, countUnchanged**(Can't be blank!)
+check("defaultcallback 1 item userMusicDetailList(leaving it blank causeslead topacketNo)",
       len(ua2["userMusicDetailList"]) == 1, json.dumps(ua2["userMusicDetailList"]))
 check("defaultNo changetrackcount(7 -> 7)",
       ua2["userMusicDetailList"][0]["playCount"] == 7,
@@ -686,7 +686,7 @@ check("config defaulttrackcountIncrementis 0",
       __import__("config").PLAY_MUSIC_PLAY_COUNT_GAIN == 0)
 check("extNum2 Censored", "extNum2" not in ua2["userMusicDetailList"][0])
 
-# explicitputIncrementcalltimes 1,calculate
+# explicitputIncrementcalltimes 1, calculate
 ua2m = build_user_all(baseline, login_date_time=1791159576,
                       auth_date_time=1791134329, playlog_id=7692848101484135861,
                       play=PlayData(music_play_count_gain=1))
@@ -696,8 +696,8 @@ check("this gametrack playCount +1(7 -> 8)",
       ua2m["userMusicDetailList"][0]["playCount"] == 8,
       str(ua2m["userMusicDetailList"][0]["playCount"]))
 
-# ★ default config.PLAY_MAP_DISTANCE_GAIN = 0 / PLAY_CHARACTER_EXP_GAIN = 0
-#   -> this gameNomap,Do not add experience to the character -> thisTwoDifferential NodeReturns an empty array(for)
+# - default config. PLAY_MAP_DISTANCE_GAIN = 0 / PLAY_CHARACTER_EXP_GAIN = 0
+#  -> this gameNomap, Do not add experience to the character -> thisTwoDifferential NodeReturns an empty array(for)
 check("defaultNomap -> userMapList Is Empty", ua2["userMapList"] == [],
       json.dumps(ua2["userMapList"], ensure_ascii=False))
 check("defaultNoPlus -> userCharacterList Is Empty", ua2["userCharacterList"] == [],
@@ -714,7 +714,7 @@ check("Map distance +11000(1424000 -> 1435000)",
 check("Increment=1 time userCharacterList Return to Team Roles",
       len(ua2b["userCharacterList"]) == 2, str(len(ua2b["userCharacterList"])))
 levels = {c["characterId"]: c["level"] for c in ua2b["userCharacterList"]}
-check("groupeach +1 text(101: 4455->4456, 395: 3800->3801)",
+check("groupeach +1(101: 4455->4456, 395: 3800->3801)",
       levels.get(101) == 4456 and levels.get(395) == 3801, json.dumps(levels))
 check("onlyHold 4 fields",
       all(set(c) == {"characterId", "level", "awakening", "useCount"}
@@ -743,7 +743,7 @@ check("All 11 itemBit String Lengthallpresent.",
 check("userGhost Is Empty", ua2["userGhost"] == [])
 check("userItemList Is Empty(No at baseline)", ua2["userItemList"] == [])
 
-# ★ userGetPointList / userLoginBonusList is**loginRewards**Produced by,settlementleave blank
+# - userGetPointList / userLoginBonusList is**loginRewards**Produced by, settlementleave blank
 check("userGetPointList Is Empty(loginRewardsonlyGenerate)",
       ua2["userGetPointList"] == [], str(ua2["userGetPointList"]))
 check("userLoginBonusList Is Empty(loginRewardsonlyGenerate)",
@@ -761,9 +761,9 @@ section("12. Snapshot Normalization")
 check("None -> emptyDictionary", normalize_snapshot(None) == {})
 check("Idempotent when already a node dictionary",
       set(normalize_snapshot(ua2)) == set(NODE_ORDER))
-check("text {'upsertUserAll': {...}} Packaging",
+check("{'upsertUserAll': {...}} Packaging",
       len(normalize_snapshot({"upsertUserAll": ua2})) == 36)
-check("text {'_responses': {...}} Packaging",
+check("{'_responses': {...}} Packaging",
       len(normalize_snapshot({"_responses": baseline})) > 0)
 check("original Get Response collection", "userData" in normalize_snapshot(baseline))
 
@@ -793,7 +793,7 @@ check("Bad bags can catch multiple problems", len(bad_problems) >= 4, str(len(ba
 check("can capture playlogId for 0", any("playlogId" in p for p in bad_problems))
 check("can capture loginDateTime for 0", any("loginDateTime" in p for p in bad_problems))
 check("can capture userPlaylogList Is Empty", any("userPlaylogList" in p for p in bad_problems))
-# ★ userMusicDetailList leave blankRequiredout(The whole package does not take effect as measured)
+# - userMusicDetailList leave blankRequiredout(The whole package does not take effect as measured)
 _bad_music = build_user_all(baseline, login_date_time=1791159576, playlog_id=1)
 _bad_music["userMusicDetailList"] = []
 check("can capture userMusicDetailList Is Empty",
@@ -802,7 +802,7 @@ check("can capture userMusicDetailList Is Empty",
               userId=1, playlogId=1, loginDateTime=1791159576,
               userPlaylogList=[pl], upsertUserAll=_bad_music))))
 
-# ★ Pit 1:userData isoverwritesemantic,thisfieldsetcin"Nothing happened"
+# - Pit 1: userData isoverwritesemantic, thisfieldsetcin"Nothing happened"
 _zero_ud = build_user_all(baseline, login_date_time=1791159576,
                           auth_date_time=1791134329, playlog_id=7692848101484135861)
 _zero_ud["userData"][0]["playCount"] = 0
@@ -819,7 +819,7 @@ check("can capture dateTime for 0", any("dateTime" in p for p in _zp))
 check("can capture lastPlayDate Is Empty", any("lastPlayDate" in p for p in _zp))
 check("can capture lastLoginDate Is Empty", any("lastLoginDate" in p for p in _zp))
 
-# ★ Pit 5:userWeeklyData / user2pPlaylog isObjectNot an array,Pass the array to be thrown PatchError
+# - Pit 5: userWeeklyData / user2pPlaylog isObjectNot an array, Pass the array to be thrown PatchError
 try:
     build_user_all(baseline, login_date_time=1791159576, playlog_id=1,
                    patch={"userWeeklyData": [{"lastLoginWeek": "x"}]})
@@ -827,17 +827,17 @@ try:
 except PatchError:
     check("userWeeklyData Transmutation array throwing PatchError(Object Node Freeze)", True)
 
-# ★ Pit 12:receiveBitstringis 1/2 andNo 0/1
+# - Pit 12: receiveBitstringis 1/2 andNo 0/1
 _fav_local = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 _fav_raw = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 11)]
 _fav_raw.append({"itemKind": None, "itemIdList": []})
 _, _fav_bits = build_favorite_delta(_fav_local, _fav_raw)
-check("receiveBitstringUse only 1/2,Doesn't show up 0", set(_fav_bits) <= {"1", "2"}, _fav_bits)
+check("receiveBitstringUse only 1/2, Doesn't show up 0", set(_fav_bits) <= {"1", "2"}, _fav_bits)
 check("Raw Baseline(itemKind=null)get 22212", _fav_bits == "22212", _fav_bits)
 
 
 # =============================================================================
-# 13.5 extra_data:External JSON text
+# 13.5 extra_data: External JSON
 # =============================================================================
 
 section("13.5 extra_data Merge")
@@ -847,12 +847,12 @@ check("None -> {}", load_extra_data(None) == {})
 check("dict -> As is", load_extra_data({"a": 1}) == {"a": 1})
 check("JSON String -> parse", load_extra_data('{"a": 1}') == {"a": 1})
 _extra_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "_tmp_extra_test.json")
+                           "_tmp_extra_test. json")
 with open(_extra_path, "w", encoding="utf-8") as _fh:
     json.dump({"b": 2}, _fh)
 check("file path -> readfile", load_extra_data(_extra_path) == {"b": 2})
 os.remove(_extra_path)
-check("emptyString -> {}", load_extra_data("   ") == {})
+check("emptyString -> {}", load_extra_data("  ") == {})
 try:
     load_extra_data("[1,2,3]")
     check("top-levelNot an objecttimeshouldraise PatchError", False, "not raisedExceptions")
@@ -871,13 +871,13 @@ _ua_x = build_user_all(baseline, login_date_time=1791159576,
                        auth_date_time=1791134329, playlog_id=7692848101484135861,
                        extra_data={"userKaleidxScopeList": _kaleidx,
                                    "isNewKaleidxScopeList": "1"})
-check("extra_data text userKaleidxScopeList",
+check("extra_data userKaleidxScopeList",
       _ua_x["userKaleidxScopeList"] == _kaleidx, json.dumps(_ua_x["userKaleidxScopeList"]))
 check("extra_data correspondingBitstring",
       _ua_x["isNewKaleidxScopeList"] == "1", _ua_x["isNewKaleidxScopeList"])
 check("After merging, it is still 36 nodes in the same order",
       list(_ua_x.keys()) == list(NODE_ORDER), str(len(_ua_x)))
-check("Merge did not destroy other nodes(userData.playCount Still baseline value)",
+check("Merge did not destroy other nodes(userData. playCount Still baseline value)",
       _ua_x["userData"][0]["playCount"] == 1257, str(_ua_x["userData"][0]["playCount"]))
 
 # Do not give bit strings to arrays only -> presslength "0" and prompted in the description
@@ -913,7 +913,7 @@ check("extra_data overwriteSnapshotcalculateresult",
       _ua_p["userData"][0]["playCount"] == 9999, str(_ua_p["userData"][0]["playCount"]))
 
 # empty extra_data Doesn't affect anything
-#   (playlog_id=0 Certainly not with userGamePlaylogList,Otherwise playSpecial ismachineof)
+#  (playlog_id=0 Certainly not with userGamePlaylogList, Otherwise playSpecial ismachineof)
 check("extra_data=None timenodeswith or withouttimeMatch",
       build_user_all(baseline, login_date_time=1791159576, playlog_id=0)
       == build_user_all(baseline, login_date_time=1791159576, playlog_id=0,
@@ -921,10 +921,10 @@ check("extra_data=None timenodeswith or withouttimeMatch",
 
 
 # =============================================================================
-# 13.6 purchaseBuyFeature Tickets(UpsertUserChargelogApi)
+# 13.6 purchase tickets Tickets(UpsertUserChargelogApi)
 # =============================================================================
 
-section("13.6 purchaseBuyFeature Tickets")
+section("13.6 purchase tickets Tickets")
 
 import datetime as _dt
 
@@ -932,14 +932,14 @@ import datetime as _dt
 _shop = [{"orderId": 1, "chargeId": 2, "price": 1},
          {"orderId": 2, "chargeId": 3, "price": 2}]
 
-# ---- validDate calculate(TicketManager.cs:564)----
-#   real machineEmpirical:chargeId=5 of purchaseDate="2026-10-04 18:22:10"
-#             -> validDate="2027-01-02 04:00:00"
+# ---- validDate calculate(TicketManager. cs:564)----
+#  real machineEmpirical: chargeId=5 of purchaseDate="2026-10-04 18:22:10"
+#       -> validDate="2027-01-02 04:00:00"
 check("calc_valid_date Duplicate engraving machine(2026-10-04 18:22:10 -> 2027-01-02 04:00:00)",
       calc_valid_date(_dt.datetime(2026, 10, 4, 18, 22, 10)) == "2027-01-02 04:00:00",
       calc_valid_date(_dt.datetime(2026, 10, 4, 18, 22, 10)))
-#   real machineEmpirical:chargeId=3 of purchaseDate="2026-10-02 10:49:23"
-#             -> validDate="2026-12-31 04:00:00"
+#  real machineEmpirical: chargeId=3 of purchaseDate="2026-10-02 10:49:23"
+#       -> validDate="2026-12-31 04:00:00"
 check("calc_valid_date numberTwoExample(2026-10-02 10:49:23 -> 2026-12-31 04:00:00)",
       calc_valid_date(_dt.datetime(2026, 10, 2, 10, 49, 23)) == "2026-12-31 04:00:00",
       calc_valid_date(_dt.datetime(2026, 10, 2, 10, 49, 23)))
@@ -948,28 +948,28 @@ check("validDate Hengyi 04:00:00 Tail",
 check("config ofOffset/The number of days matches the source code(-4h / +90d)",
       CONFIG_TICKET_HOUR_OFFSET == -4 and CONFIG_TICKET_DAYS == 90)
 
-# ---- price = ticket.creditNum(VOExtensions.cs:410)----
+# ---- price = ticket. creditNum(VOExtensions. cs:410)----
 check("Paid tickets creditNum:2->1 3->2 4->3 5->4 6->5",
       [ticket_price(i) for i in (2, 3, 4, 5, 6)] == [1, 2, 3, 4, 5],
       str([ticket_price(i) for i in (2, 3, 4, 5, 6)]))
 check("non-Paid tickets creditNum for 0", ticket_price(11001) == 0)
 check("price Explicit override", ticket_price(2, 99) == 99)
 check("ticket_name canchecktofirst name", ticket_name(2) == "2timesチケット", ticket_name(2))
-check("api.PAID_TICKET_IDS = (2,3,4,5,6)", tuple(CONFIG_PAID_TICKET_IDS) == (2, 3, 4, 5, 6))
+check("api. PAID_TICKET_IDS = (2,3,4,5,6)", tuple(CONFIG_PAID_TICKET_IDS) == (2, 3, 4, 5, 6))
 
-# ---- ★ purchaseDate of .f text(TimeManager.cs:7 DateTimeFormat = "yyyy-MM-dd HH:mm:ss.f")----
-check("_now_string with one decimal place(.f)",
+# ---- - purchaseDate of. f(TimeManager. cs:7 DateTimeFormat = "yyyy-MM-dd HH: mm: ss. f")----
+check("_now_string with one decimal place(. f)",
       _now_string().split(".")[-1].isdigit() and len(_now_string().split(".")[-1]) == 1,
       _now_string())
 check("_now_string Shape like 2026-10-06 13:20:10.0",
       len(_now_string()) == len("2026-10-06 13:20:10.0"), _now_string())
-check("parse_wall_time Compatible tape .f with or without .f Two",
+check("parse_wall_time Compatible tape. f with or without. f Two",
       parse_wall_time("2026-10-06 13:20:10.0") == _dt.datetime(2026, 10, 6, 13, 20, 10)
       and parse_wall_time("2026-10-06 13:20:10") == _dt.datetime(2026, 10, 6, 13, 20, 10))
 check("parse_wall_time parseNotimereturns None", parse_wall_time("Scrambled") is None)
 
-# ---- ★★ Byte-by-by-byte alignment with real machine grab(2026-10-06 13:20 real machineBuy 2 Ticket multiplier message)----
-#   hook: MaimaiNetSpy raw/061_UpsertUserChargelogApiMaimaiChn_request.json(328 Bytes)
+# ---- -- Byte-by-by-byte alignment with real machine grab(2026-10-06 13:20 real machineBuy 2 Ticket multiplier message)----
+#  hook: MaimaiNetSpy raw/061_UpsertUserChargelogApiMaimaiChn_request. json(328 Bytes)
 REAL_CHARGELOG = (
     '{"userId":12345678,"userChargelog":{"chargeId":2,"price":1,'
     '"purchaseDate":"2026-10-06 13:20:10.0","playCount":1262,"playerRating":15000,'
@@ -993,14 +993,14 @@ _mine_cl = json.dumps(
                for kk in getattr(_real_req, k).__dataclass_fields__})
      for k in _real_req.__dataclass_fields__},
     ensure_ascii=False, separators=(",", ":"))
-check("★ The ticket purchase message is consistent with the real machine grabbing bytes(328 Bytes)",
+check("- The ticket purchase message is consistent with the real machine grabbing bytes(328 Bytes)",
       _mine_cl == REAL_CHARGELOG,
-      "\n  real machine=" + REAL_CHARGELOG + "\n  My=" + _mine_cl)
-check("real machinepacketlength 328 Bytes", len(REAL_CHARGELOG.encode()) == 328,
+      "\n real machine=" + REAL_CHARGELOG + "\n My=" + _mine_cl)
+check("real-machine packetlength 328 Bytes", len(REAL_CHARGELOG.encode()) == 328,
       str(len(REAL_CHARGELOG.encode())))
 
 # ---- packet(Field order photo C# Declaration)----
-# ★ thisin charge_list inhas stock=3(text"Held"),So the guards have to be explicitly switched off.
+# - thisin charge_list inhas stock=3(text"Held"), So the guards have to be explicitly switched off.
 _creq = UpsertUserChargelog(
     12345678, 2, 1791159576,
     charge_list=[{"chargeId": 2, "stock": 3, "purchaseDate": "x", "validDate": "y"}],
@@ -1037,7 +1037,7 @@ check("5 Ticket multiplier price = 4(creditNum)", _creq2.userChargelog.price == 
 check("validDate calculate(2027-01-02 04:00:00)",
       _creq2.userCharge.validDate == "2027-01-02 04:00:00", _creq2.userCharge.validDate)
 
-# ---- ★ Security check:Must be hard blocked when already in possession of a feature ticket ----
+# ---- - Security check: Must be hard blocked when already in possession of a feature ticket ----
 _held = [{"chargeId": 5, "stock": 1, "purchaseDate": "x", "validDate": "y"}]
 try:
     UpsertUserChargelog(12345678, 2, 1791159576,
@@ -1054,8 +1054,8 @@ try:
 except Exception as exc:
     check("Guardian anomaly is RuntimeError Subcategory(Convenient for unified capture)", isinstance(exc, RuntimeError))
 
-# ---- ★ Security check:Tickets not on the buyable list must be hard blocked ----
-#   Basis TicketManager.cs:137-150(real machineFirstat GetGameChargeDataList() infindonlyBuy)
+# ---- - Security check: Tickets not on the buyable list must be hard blocked ----
+#  Basis TicketManager. cs:137-150(real machineFirstat GetGameChargeDataList() infindonlyBuy)
 try:
     UpsertUserChargelog(12345678, 5, 1791159576,
                         charge_list=[], game_charge_list=_shop,
@@ -1086,13 +1086,13 @@ check("stock=0 ofnocalculatehas(Can be bought normally)",
                           game_charge_list=_shop,
                           user_data={}, dry_run=True).userCharge.stock == 1)
 
-# guard_no_stock=False Can force skip(_held inOnly chargeId=5,Buy 2 Ticket Inventory From 0 -> 1)
+# guard_no_stock=False Can force skip(_held inOnly chargeId=5, Buy 2 Ticket Inventory From 0 -> 1)
 check("guard_no_stock=False Skippable Guardians",
       UpsertUserChargelog(12345678, 2, 1791159576,
                           charge_list=_held, game_charge_list=_shop, user_data={},
                           guard_no_stock=False, dry_run=True).userCharge.stock == 1)
 
-# ---- text ----
+# ---- ----
 try:
     UpsertUserChargelog(12345678, 2, 1791159576,
                         charge_list=[], game_charge_list=_shop,
@@ -1125,22 +1125,22 @@ check("dry_run top-level 7 fields",
       set(vars(req2)) == {"userId", "playlogId", "isEventMode", "isFreePlay",
                           "loginDateTime", "userPlaylogList", "upsertUserAll"},
       str(sorted(vars(req2))))
-check("dry_run not(cancurrentreturnsi.e.)", req2.playlogId == 7692848101484135861)
+check("dry_run not(cancurrentreturnsi. e.)", req2.playlogId == 7692848101484135861)
 
 
 # =============================================================================
-# 15. text
+# 15.
 # =============================================================================
 
 section("15. config and source code constants")
 
 import config
-check("AES_KEY text CipherAES.cs", api.AES_KEY == b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W")
-check("AES_IV text CipherAES.cs", api.AES_IV == b"F>;24DjU9W6ZsRH[")
-check("obfuscation Packet.cs", api.OBFUSCATE_PARAM == "8bF76dE9")
-check("Mai-Encoding text NetHttpClient.cs", config.MAI_ENCODING == "1.55")
+check("AES_KEY CipherAES. cs", api.AES_KEY == b"FKM2JX: VjZNK6hc: A0<JU: i5oR7LA]9W")
+check("AES_IV CipherAES. cs", api.AES_IV == b"F>;24DjU9W6ZsRH[")
+check("obfuscation Packet. cs", api.OBFUSCATE_PARAM == "8bF76dE9")
+check("Mai-Encoding NetHttpClient. cs", config.MAI_ENCODING == "1.55")
 check("BASE_URL towards Maimai2Servlet",
-      api.BASE_URL == "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/")
+      api.BASE_URL == "https://maimai-gm. wahlap. com:42081/Maimai2Servlet/mE2s3Jhd/")
 check("first nameKey 32 Character", len(api.QR_SIGN_KEY) == 32)
 check("LOG_LEVEL Legal", config.LOG_LEVEL in ("info", "debug"), config.LOG_LEVEL)
 check("UPSERT_CONFIRM default False(Safety)", config.UPSERT_CONFIRM is False)
@@ -1166,7 +1166,7 @@ check("Session Link 6 functions in",
 
 
 # =============================================================================
-# 19. reincarnate Batch splitter(★ eachPackageJust in time 2 firstwill be rejected by the server)
+# 19. reincarnate Batch splitter(- each packetexactly two will be rejected by the server)
 # =============================================================================
 
 section("19. reincarnate Batch splitter")
@@ -1186,27 +1186,27 @@ for _t in range(1, 300):
         _g = _split(_t, _p)
         if sum(_g) != _t or 2 in _g or any(x > _p or x < 1 for x in _g):
             _bad.append((_t, _p, _g))
-check("1..299 first × per∈{1,3,4} allNoGenerate 2 firstPackage", not _bad, str(_bad[:3]))
+check("1..299 first × per∈{1,3,4} allNoGenerate two tracksPackage", not _bad, str(_bad[:3]))
 
 check("--per-packet Allowed Values = (1, 3, 4)",
       __import__("reincarnate").ALLOWED_PER_PACKET == (1, 3, 4))
 
 
 # =============================================================================
-# text
+#
 # =============================================================================
 
 print("")
 print("=" * 70)
-print("  text")
+print(" ")
 print("=" * 70)
-print("  text : " + str(_PASS))
-print("  Failed : " + str(_FAIL))
+print(": " + str(_PASS))
+print(" Failed: " + str(_FAIL))
 if _FAILED_NAMES:
     print("")
-    print("  Failed Items:")
+    print(" Failed Items:")
     for name in _FAILED_NAMES:
-        print("    - " + name)
+        print("  - " + name)
 print("=" * 70)
 
 sys.exit(1 if _FAIL else 0)

@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-get_game_settings.py —— getTake(GetGameSettingApi)
+get_game_settings. py — getTake(GetGameSettingApi)
 ================================================================================
 
-Features:Get the runtime configuration sent by the server(,Heartbeat Interval,Package timeout,Various upper limits).
+Features: Get the runtime configuration sent by the server(, Heartbeat Interval, Package timeout, Various upper limits).
 
-Corresponding interface:GetGameSettingApi
-request body  :{"placeId": <StoreID>, "clientId": "<machine stateshortValue>"}
-          source/Assembly-CSharp/Net.VO.Mai2/GameSettingRequestVO.cs
-          source/Assembly-CSharp/Net.Packet.Mai2/PacketGetGameSetting.cs:21-24
+Corresponding interface: GetGameSettingApi
+request body:{"placeId": <StoreID>, "clientId": "<machine stateshortValue>"}
+     source/Assembly-CSharp/Net. VO. Mai2/GameSettingRequestVO. cs
+     source/Assembly-CSharp/Net. Packet. Mai2/PacketGetGameSetting. cs:21-24
 
-★ real machinecallusetimemachine:Session Start,Ping Before(source/2026-10-05.log:1).
+- real machinecallusetimemachine: Session Start, Ping Before(source/2026-10-05. log:1).
 
 Example:
-    from api import GetGameSettings
-    resp = GetGameSettings()
-    print(resp.gameSetting.isMaintenance, resp.gameSetting.requestInterval)
+  from api import GetGameSettings
+  resp = GetGameSettings()
+  print(resp. gameSetting. isMaintenance, resp. gameSetting. requestInterval)
 """
 
 from __future__ import annotations
@@ -30,12 +30,12 @@ from .maimai_net import MaimaiNetClient, request_dict
 
 
 # =============================================================================
-# VO(Field Comparison source/Assembly-CSharp/Net.VO.Mai2/GameSetting.cs Response to real machine)
+# VO(Field Comparison source/Assembly-CSharp/Net. VO. Mai2/GameSetting. cs Response to real machine)
 # =============================================================================
 
 @dataclass
 class GameSetting:
-    """time(Corresponding Net.VO.Mai2.GameSetting)."""
+    """time(Corresponding Net. VO. Mai2. GameSetting)."""
     isMaintenance: bool = False
     requestInterval: int = 0
     rebootStartTime: str = ""
@@ -96,17 +96,17 @@ def GetGameSettings(
     client: Optional[MaimaiNetClient] = None,
 ) -> GameSettingResponseVO:
     """
-    getTake(serverIssueoftime).
+  getTake(server-issuedoftime).
 
-    Parameter:
-        place_id:  Store ID(Optional,default config.PLACE_ID)
-        client_id: machine stateshortValue(Optional,default config.CLIENT_ID)
-        timeout_ms: timeout milliseconds(Optional)
-        client:    Reusable MaimaiNetClient(Optional)
+  Parameter:
+    place_id: Store ID(Optional, default config. PLACE_ID)
+    client_id: machine stateshortValue(Optional, default config. CLIENT_ID)
+    timeout_ms: timeout milliseconds(Optional)
+    client:  Reusable MaimaiNetClient(Optional)
 
-    Returns:
-        GameSettingResponseVO
-    """
+  Returns:
+    GameSettingResponseVO
+  """
     log_info("getTakeplace_id=" + str(place_id) + " client_id=" + client_id)
 
     raw = request_dict(
@@ -130,7 +130,7 @@ def GetGameSettings(
         log_info("serverAlreadyuseHeartbeat(pingDisable=True)")
 
     log_info(
-        "getTakeDone:isMaintenance=" + str(gs.isMaintenance)
+        "fetch complete: isMaintenance=" + str(gs.isMaintenance)
         + " requestInterval=" + str(gs.requestInterval)
         + " packetTimeout=" + str(gs.packetTimeout)
         + " packetTimeoutLong=" + str(gs.packetTimeoutLong)
@@ -140,12 +140,12 @@ def GetGameSettings(
 
 
 def is_maintenance(settings: GameSettingResponseVO) -> bool:
-    """Convenient Judgment:serverisNoplacein"""
+    """Convenient Judgment: serverisNoplacein"""
     return bool(settings.gameSetting.isMaintenance)
 
 
 def is_ping_disabled(settings: GameSettingResponseVO) -> bool:
-    """Convenient Judgment:isNoAlreadyuseHeartbeat."""
+    """Convenient Judgment: isNoAlreadyuseHeartbeat."""
     return bool(settings.gameSetting.pingDisable)
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
             gs = resp.gameSetting
             print("")
             for name in GameSetting.__dataclass_fields__:
-                print("   " + name.ljust(34) + "= " + str(getattr(gs, name)))
+                print("  " + name.ljust(34) + "= " + str(getattr(gs, name)))
             return 0
         except Exception as exc:
             from .log_setup import log_error

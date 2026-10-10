@@ -150,8 +150,8 @@ def print_forward(chart: Chart, result) -> None:
           % (result.dx, th.max_dx, 100.0 * result.dx / th.max_dx if th.max_dx else 0.0))
     if result.achievement_min != result.achievement_max:
         print()
-        print("  description：When only aggregation decisions are given，achievement rateTakein「Which notes」text Great/Good/Miss——")
-        print("        Lower bound of interval = MinutesallfallatweightofnoteUp，Upper Realm = allfallatweightofnoteUp。")
+        print("  description: When only aggregate judgments are given, the achievement rate depends on which notes are Great, Good, or Miss.")
+        print("        Lower bound: assign the lower weight to every note; upper bound: assign the higher weight to every note.")
     print(LINE)
 
 

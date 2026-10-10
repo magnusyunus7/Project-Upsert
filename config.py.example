@@ -1,366 +1,366 @@
 # -*- coding: utf-8 -*-
 """
-config.py —— DX networkscript · timeitem
+config. py — DX network script · configuration item
 ================================================================================
 
-★★ this is**file**。numberOnceUsepleaseMake a copy first：
+-- this is**file**. make a copy before first use:
 
-        cp config.py.example config.py          # Linux / macOS
-        copy config.py.example config.py        # Windows
+    cp config. py. example config. py     # Linux / macOS
+    copy config. py. example config. py    # Windows
 
-   After**Required**Complete Section 2「machineStageAndStore」of 6 values，Otherwise, the script sends out a request
-   Bring someone else's machine ID，serverMeetings。
+  After completing the required Section 2"machine state and store"of 6 values, Otherwise, the script sends out a request
+  another machine's ID, the server will.
 
-   ★ config.py at .gitignore in —— It belongs to your private configuration，Don't submit。
+  - config. py at. gitignore in — It belongs to your private configuration, Don't submit.
 ================================================================================
 
-fileStorage**usercanneedchange**ofContent，The rest of the protocol constants are written in their respective scripts。
+file contents**user-editable**content, The rest of the protocol constants are written in their respective scripts.
 
-Split into six pieces：
-  1. networkAndEncryptionConstant（AES Key、Protocol Version、server）
-  2. machineStageAndStore（Keychip、Area、Store）
-  3. QR loginConstant（aimedb）
-  4. ★ UpsertUserAll Upcoming song data uploads（defaultTake source/2026-10-05.log real-machine sample）
-  5. UpsertUserAll Safety gate
-  6. log
+Split into six pieces:
+ 1. network and encryption constants(AES Key, Protocol Version, server)
+ 2. machine state and store(Keychip, Area, Store)
+ 3. QR login constants(aimedb)
+ 4. - UpsertUserAll upcoming song data uploads(defaultTake source/2026-10-05. log real-machine sample)
+ 5. UpsertUserAll Safety gate
+ 6. log
 
-Allatin，changeBeforepleaseLook firstBasis。
+all logging, review the source first before changing.
 """
 
 # =============================================================================
-# One、networkAndEncryptionConstant
+# One, network and encryption constants
 # =============================================================================
 
-# ★ BASE_URL / AES_KEY / AES_IV / OBFUSCATE_PARAM Dropped to api/maimai_net.py
+# - BASE_URL / AES_KEY / AES_IV / OBFUSCATE_PARAM moved to api/maimai_net. py
 # --- packet ---
-# Basis：source/Assembly-CSharp/Net/NetHttpClient.cs:69  DefaultHttpHeaderEncryption = "1.55"
-#       （requestHead Mai-Encoding ofValue；1.56 ROM The actual test is still sent 1.55）
+# Basis: source/Assembly-CSharp/Net/NetHttpClient. cs:69 DefaultHttpHeaderEncryption = "1.55"
+#    (request header Mai-Encoding value of;1.56 ROM the actual test is still sent 1.55)
 MAI_ENCODING = "1.55"
 
-# --- time（seconds）---
-# Basis：source/Assembly-CSharp/Net/NetConfig.cs:7-11
-TIMEOUT_MS = 10000          # interface
-TIMEOUT_LONG_MS = 60000     # login / settlementUpload
+# --- time(seconds)---
+# Basis: source/Assembly-CSharp/Net/NetConfig. cs:7-11
+TIMEOUT_MS = 10000     # interface
+TIMEOUT_LONG_MS = 60000   # login / settlement upload
 
 
 # =============================================================================
-# Two、machineStageAndStore
+# Two, machine state and store
 # =============================================================================
 
-# Client ID（Keychip shortValue）
-# Basis：source/Assembly-CSharp/Net.Packet.Mai2/PacketGetGameSetting.cs:23
-#       clientId = AMDaemon.System.KeychipId.ShortValue
-# Measured：real machinelogin clientId Constant equals Keychip shortValue
-# ★ Morphology = 15 Bit Keychip After removing the hyphen**ago 11 Bit**（Uppercase hex）。
-CLIENT_ID = ""                  # ★★ Required：Shape like "A63E01C3047"
+# Client ID(Keychip shortValue)
+# Basis: source/Assembly-CSharp/Net. Packet. Mai2/PacketGetGameSetting. cs:23
+#    clientId = AMDaemon. System. KeychipId. ShortValue
+# Measured: real-machine login clientId Constant equals Keychip shortValue
+# - Morphology = 15 Bit Keychip After removing the hyphen**ago 11 Bit**(Uppercase hex).
+CLIENT_ID = ""         # -- Required: Shape like "A63E01C3047"
 
 # Area ID / Store ID
-# Basis：source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogin.cs:24-25
-#       regionId = Auth.RegionCode ; placeId = Auth.LocationId
-# Measured：real machineloginof regionId / placeId Consistent with the location of the machine
-REGION_ID = 0                   # ★★ Required：Your area ID
-PLACE_ID = 0                    # ★★ Required：Your store ID
+# Basis: source/Assembly-CSharp/Net. Packet. Mai2/PacketUserLogin. cs:24-25
+#    regionId = Auth. RegionCode; placeId = Auth. LocationId
+# Measured: real-machine loginof regionId / placeId Consistent with the location of the machine
+REGION_ID = 0          # -- Required: Your area ID
+PLACE_ID = 0          # -- Required: Your store ID
 
-# Keychip ID（machineStageUnique，Full format with hyphens）
-# ★★ this isofmachineStage，Don't spread the word；Fill in the wrong server and it will be rejected。
-# Basis：source/Assembly-CSharp/Manager/ChimeReaderManager.cs:250
-#       KeychipID = AMDaemon.System.KeychipId.Value
-# ★ group = CLIENT_ID ofago 4 Bit + "-" + CLIENT_ID number 5 Bit from + PLACE_ID
-#     Example：CLIENT_ID "A63E01C3047" + PLACE_ID 1007  ->  "A63E-01C30471007"
-#   So it's made up of the top two values**text**，Don't manipulate。
+# Keychip ID(machine stateUnique, Full format with hyphens)
+# -- this isofmachine state, Do not share this value; Fill in the wrong server and it will be rejected.
+# Basis: source/Assembly-CSharp/Manager/ChimeReaderManager. cs:250
+#    KeychipID = AMDaemon. System. KeychipId. Value
+# - group = CLIENT_ID offirst 4 digits + "-" + CLIENT_ID remaining digits plus + PLACE_ID
+#   Example: CLIENT_ID "A63E01C3047" + PLACE_ID 1007 -> "A63E-01C30471007"
+#  So it's made up of the two values above**text**, Don't manipulate.
 KEYCHIP_ID = (CLIENT_ID[:4] + "-" + CLIENT_ID[4:] + str(PLACE_ID)) if CLIENT_ID else ""
 
 # Store Name / Area Name
 #
-# ★ Why it had to be filled in manually before：**servernoneAnyinterfacereturntimesStore Name**。
-#   text source/2026-10-05.log All Responses：
-#     - GetGameSettingApi Only Returns gameSetting，noFirst name
-#     - GetUserDataApi of lastPlaceName back is null
-#     - GetUserRegionApi Only Returns regionId/playCount/created
-#   Store name from machine local AMDaemon：
-#     source/AMDaemon.NET/AMDaemon/Allnet/Auth.cs:33  LocationName <- allnet_Auth_getLocationName()
-#   ismachinetime ALL.Net Issueof，client locally.，Will not request from the game server。
+# - Why it had to be filled in manually before:**servernoneAnyinterfacereturntimesStore Name**.
+#  source/2026-10-05. log All Responses:
+#   - GetGameSettingApi Only Returns gameSetting, noFirst name
+#   - GetUserDataApi of lastPlaceName back is null
+#   - GetUserRegionApi Only Returns regionId/playCount/created
+#  Store name from machine local AMDaemon:
+#   source/AMDaemon. NET/AMDaemon/Allnet/Auth. cs:33 LocationName <- allnet_Auth_getLocationName()
+#  ismachinetime ALL. Net Issueof, client locally., Will not request from the game server.
 #
-# ★★ currentatNouse：python authv1.py <YourKeychip> will ask directly ALL.Net
-#    servermusttimes name / region_name0。putBelowof AUTHV1_WRITE_CONFIG text，
-#    It also automatically writes the results back config.py。
-PLACE_NAME = ""                 # ★★ Required：Store Name
-REGION_NAME = ""                # ★★ Required：Area Name
+# -- currentatNouse: python authv1. py <YourKeychip> will ask directly ALL. Net
+#  the server musttimes name / region_name0. putBelowof AUTHV1_WRITE_CONFIG,
+#  It also automatically writes the results back config. py.
+PLACE_NAME = ""         # -- Required: Store Name
+REGION_NAME = ""        # -- Required: Area Name
 
 
 # --- authv1 Write back switch ---
 #
-# authv1.py（Keychip -> machineStage）checktoresultAfter，isNo**Writeback config.py**。
+# authv1. py(Keychip -> machine state)checktoresultAfter, isNo**write-back config. py**.
 #
-#   True  : eachcheckAfter successful，put CLIENT_ID / REGION_ID / PLACE_ID /
-#           PLACE_NAME / REGION_NAME Five values rewritten into config.py。
-#           （KEYCHIP_ID isValue，will automatically change with it，No need to write。）
-#           changeagoMeetingsputHarafile config.py.bak，Write a bad dish。
-#   False : Only print results，immovable config.py。（default，Safety）
+#  True: eachcheckAfter successful, put CLIENT_ID / REGION_ID / PLACE_ID /
+#      PLACE_NAME / REGION_NAME Five values rewritten into config. py.
+#      (KEYCHIP_ID isValue, will automatically change with it, No need to write.)
+#      changes create a backup file config. py. bak, Write a bad configuration.
+#  False: Only print results, immovable config. py.(default, Safety)
 #
-# Command line can be temporarily overwritten：--write Force Write / --no-write Force Do Not Write。
+# Command line can be temporarily overwritten:--write Force Write / --no-write Force Do Not Write.
 AUTHV1_WRITE_CONFIG = False
 
 
 # =============================================================================
-# Three、QR loginConstant（aimedb）
+# Three, QR login constants(aimedb)
 # =============================================================================
 #
-# Basis：source/ChimeLib.NET/ChimeLib/NET/COMM/CCommGetUserData.cs
-#       + docs/DX_QR login.md
+# Basis: source/ChimeLib. NET/ChimeLib/NET/COMM/CCommGetUserData. cs
+#    + docs/DX_QR login. md
 
-# ★ aimedb / QR Constant has sank to api/chime.py
+# - aimedb / QR Constant has sank to api/chime. py
 # =============================================================================
-# Three bis、★ Feature Tickets（Ticket）Master Data
+# Three bis,- feature tickets(Ticket)Master Data
 # =============================================================================
 #
-# Basis：Master Data
-#         D:\SDGB2026\Package\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket.xml
-#       source codeSide Manager.MaiStudio.TicketData.creditNum
+# Basis: Master Data
+#     D:\SDGB2026\Package\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket. xml
+#    source codeSide Manager. MaiStudio. TicketData. creditNum
 #
-# ★ Why the script needs it：
-#     UpsertUserChargelogApi（purchaseBuyFeature Tickets）of userChargelog.price Take is
-#     **ticket.creditNum（ofusetimesnumber）**，No GetGameChargeApi inof money price：
-#         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:410
-#             result.price = ticket.creditNum;
+# - Why the script needs it:
+#   UpsertUserChargelogApi(purchase tickets Tickets)of userChargelog. price Take is
+#   **ticket. creditNum(ofusetimesnumber)**, No GetGameChargeApi inof money price:
+#     source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:410
+#       result. price = ticket. creditNum;
 #
-# ticketKind Meaning（Ticket.xml inof）：
-#     1=Paid(Paid，Can be bought at the machine)  2=Event  3=Free  4=Link  5=ShopWeekly  6=ShopChara
-# ★ TICKET_CREDIT_NUM / TICKET_NAMES / PAID_TICKET_IDS /
-#   TICKET_VALID_HOUR_OFFSET / TICKET_VALID_DAYS
-#   Dropped to api/upsert_user_chargelog.py
+# ticketKind Meaning(Ticket. xml inof):
+#   1=Paid(Paid, Can be bought at the machine) 2=Event 3=Free 4=Link 5=ShopWeekly 6=ShopChara
+# - TICKET_CREDIT_NUM / TICKET_NAMES / PAID_TICKET_IDS /
+#  TICKET_VALID_HOUR_OFFSET / TICKET_VALID_DAYS
+#  moved to api/upsert_user_chargelog. py
 
-#: Ticket gate（and UpsertUserAll Same，defaultNo）
+#: Ticket gate(and UpsertUserAll Same, defaultNo)
 UPSERT_CHARGELOG_CONFIRM = False
 # =============================================================================
-# Four、★ UpsertUserAll Upcoming song data uploads
+# Four,- UpsertUserAll upcoming song data uploads
 # =============================================================================
 #
-# ★ Why put config：
-#   The result of one game is**Unique cannot be generated by the script itself**of ——
-#   networkscriptReprintNooutplay，servermustofThat's it.OriginalResults。
-#   text / ResultsOnlychangethisin，Don't move anything api script。
+# - Why put config:
+#  The result of one game is**Unique cannot be generated by the script itself**of —
+#  network scriptReprintNooutplay, the server mustofThat's it. OriginalResults.
+#  / ResultsOnlychangethisin, Don't move anything api script.
 #
-# ★ defaultValue = source/2026-10-05.log:123 of**real machinepacket**（UpsertUserAllApi request）
-#   i.e. userPlaylogList[0] Field。
+# - defaultValue = source/2026-10-05. log:123 of**real-machine packet**(UpsertUserAllApi request)
+#  i. e. userPlaylogList[0] Field.
 #
-# ★ Two"data"of（Don't mess around.）：
-#   userPlaylogList     this game**Raw Decision Input** —— servercalculateMinutes、Write a transcript
-#   userMusicDetailList press (musicId, level) of**Historical Archives** —— this gamethatitem playCount +1
-#   Below PLAY_* feed both at the same time，Guaranteed consistency。
+# - Two"data"of(Don't mess around.):
+#  userPlaylogList   this game**Raw Decision Input** — servercalculateMinutes, Write a transcript
+#  userMusicDetailList press (musicId, level) of**Historical Archives** — this gamethatitem playCount +1
+#  Below PLAY_* feed both at the same time, Guaranteed consistency.
 
 # --- trackAnddifficulty ---
-PLAY_MUSIC_ID = 143             # track ID
-PLAY_MUSIC_LEVEL = 4            # 0=Basic 1=Advanced 2=Expert 3=Master 4=Re:Master
-PLAY_TRACK_NO = 1               # this gamenumberfirst
+PLAY_MUSIC_ID = 143       # track ID
+PLAY_MUSIC_LEVEL = 4      # 0=Basic 1=Advanced 2=Expert 3=Master 4=Re: Master
+PLAY_TRACK_NO = 1        # this gamenumberfirst
 
-# --- text（Two ways of writing the same version，Both places）---
-PLAY_VERSION_INT = 1056000      # number，used for userPlaylogList[].version（1.56.00）
-PLAY_VERSION_STR = "1.56.00"    # String Format，used for userGamePlaylogList[].version
+# ---(Two ways of writing the same version, Both places)---
+PLAY_VERSION_INT = 1056000   # number, used for userPlaylogList[]. version(1.56.00)
+PLAY_VERSION_STR = "1.56.00"  # String Format, used for userGamePlaylogList[]. version
 
 # --- Results ---
-PLAY_ACHIEVEMENT = 0            # achievement rate ×10000（0 = this gameFailed）
-PLAY_DELUXSCORE = 0             # DX Score
-PLAY_SCORE_RANK = 0             # file（0 = no）
-PLAY_IS_CLEAR = False           # isNo Clear
+PLAY_ACHIEVEMENT = 0      # achievement rate ×10000(0 = this gameFailed)
+PLAY_DELUXSCORE = 0       # DX Score
+PLAY_SCORE_RANK = 0       # file(0 = no)
+PLAY_IS_CLEAR = False      # isNo Clear
 
 PLAY_MAX_COMBO = 0
-PLAY_TOTAL_COMBO = 655          # thechart note Total（= Sum of each type of judgment number）
+PLAY_TOTAL_COMBO = 655     # thechart note Total(= Sum of each type of judgment number)
 PLAY_MAX_SYNC = 0
 PLAY_TOTAL_SYNC = 0
-PLAY_COMBO_STATUS = 0           # 0=no 1=Quan Lian
+PLAY_COMBO_STATUS = 0      # 0=no 1=Quan Lian
 PLAY_SYNC_STATUS = 0
 
 PLAY_FAST_COUNT = 0
 PLAY_LATE_COUNT = 0
 
 # --- Determination Details {text: {Judgment positioning: count}} ---
-# real-machine sampleisOnegame**Failed**ofResults（Full Miss）
+# real-machine sampleisone game**Failed**ofResults(Full Miss)
 PLAY_JUDGE_COUNTS = {
-    "tap":   {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 441},
-    "hold":  {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 19},
-    "slide": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 192},
-    "touch": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 0},
-    "break": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 3},
+  "tap":  {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 441},
+  "hold": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 19},
+  "slide": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 192},
+  "touch": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 0},
+  "break": {"CriticalPerfect": 0, "Perfect": 0, "Great": 0, "Good": 0, "Miss": 3},
 }
 
-# --- text（this gameagoAfter）---
-# ★ PLAY_BEFORE/AFTER_RATING etcAlreadychangefortimeFromserverSnapshotTake（derive_play_rating）
-# --- text ---
-# ★ Must be associated with userExtend.categoryIndex Match（real machineBoth 2022）
+# ---(this gameagoAfter)---
+# - PLAY_BEFORE/AFTER_RATING etcAlreadychangefortimeFromserverSnapshotTake(derive_play_rating)
+# --- ---
+# - Must be associated with userExtend. categoryIndex Match(real machineBoth 2022)
 PLAY_CATEGORY_INDEX = 2022
-PLAY_MUSIC_INDEX = 10           # userExtend.musicIndex
-PLAY_EXTRA_FLAG = 1721          # userExtend.extraFlag
+PLAY_MUSIC_INDEX = 10      # userExtend. musicIndex
+PLAY_EXTRA_FLAG = 1721     # userExtend. extraFlag
 
-# --- this gameUseofSnapshot（characterId1..5 / Level / Awakening）---
+# --- this gameUseofSnapshot(characterId1..5 / Level / Awakening)---
 #
-# ★ semantic：**playtime**ofSnapshotValue，Don't add experience —— thisOne。
-#   （settlementAfteroflevelat upsertUserAll.userCharacterList in，thatplaceonly +text）
-#   real machineEmpirical（source/2026-10-05.log:123 Same message）：
-#       userPlaylogList[0].characterLevel1..5 = 3800/4455/134/134/134  ← Snapshot（playago）
-#       upsertUserAll.userCharacterList       = 3801/4456/135/135/135  ← settlementAfter
+# - semantic:**playtime**ofSnapshotValue, Don't add experience — thisOne.
+#  (settlementAfteroflevelat upsertUserAll. userCharacterList in, thatplaceonly +text)
+#  real machineEmpirical(source/2026-10-05. log:123 Same message):
+#    userPlaylogList[0]. characterLevel1..5 = 3800/4455/134/134/134 ← Snapshot(playago)
+#    upsertUserAll. userCharacterList    = 3801/4456/135/135/135 ← settlementAfter
 #
-# ★★ text**No need to change here**：main.py will be called derive_play_characters(snapshot)，
-#    directlyFromserverIssueof userData.charaSlot + userCharacterList outplayagolevel，
-#    and overwrite this configuration。Only can't get a snapshot（groupPackage）timeonlyFallback tothisin。
+# --**No need to change here**: main. py will be called derive_play_characters(snapshot),
+#  directlyFromserver-issuedof userData. charaSlot + userCharacterList outplayagolevel,
+#  and overwrite this configuration. Only can't get a snapshot(batch packets)timeonlyFallback tothisin.
 #
 # defaultValue = real machine charaSlot [395, 101, 400402, 400401, 200401] ofplayagolevel
 # --- this gameconsume ---
-# ★ playCredit semantic（VOExtensions.cs:838-845）：
-#     playCredit = Credit.GameCostEnoughPlay()（text） + TicketManager.GetTicketCredit(useTicketId)
-#   i.e."thisOnegameof credit"，Not a balance、is not track count。real-machine sample = 1。
+# - playCredit semantic(VOExtensions. cs:838-845):
+#   playCredit = Credit. GameCostEnoughPlay()(text) + TicketManager. GetTicketCredit(useTicketId)
+#  i. e."thisone gameof credit", Not a balance, is not track count. real-machine sample = 1.
 PLAY_CREDIT = 1
-# ★ -1 = Don't use tickets。Basis TicketManager.cs:47 Initialization _useTicketId[i] = -1；
-#   GetTicketCredit(-1) in GetTicket(-1) returntimes null -> returntimes 0，That is, no ticket is not converted credit。
+# - -1 = Don't use tickets. Basis TicketManager. cs:47 Initialization _useTicketId[i] = -1;
+#  GetTicketCredit(-1) in GetTicket(-1) returntimes null -> returntimes 0, That is, no ticket is not converted credit.
 PLAY_USE_TICKET_ID = -1
-PLAY_MODE = 0                   # 0=text
+PLAY_MODE = 0          # 0=text
 PLAY_IS_TUTORIAL = False
 PLAY_IS_EVENT_MODE = False
 PLAY_IS_NEW_FREE = False
 PLAY_IS_FREEDOM_MODE = False
 
-# --- machineStagecountnumber（★ noFromserver，Can only be filled in manually）---
+# --- machine statecountnumber(- noFromserver, Can only be filled in manually)---
 #
-# Basis：source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:881
-#       result.playCount = Backup.localParameter.playCount
-#     this ismachineStage**text**ofplaycountnumber，Any Get interfaceallNowill return，
-#     So it can neither be rolled out nor corrected by the server —— Misfilling is just a statistic。
-# Pick a value = themachineStageWhendays/ofcountplaygamenumber（eachOnegame +1）。
-# real machineMeasured：19:21 thatOnegame = 9，22:31 thatOnegame = 10。
-# ★ PLAY_LOCAL_PLAY_COUNT Constantly 2（Dropped to api/upsert_user_all.py）
-# --- ★ playSpecial inof "CalcSpecialNum"（machineStageBit）---
+# Basis: source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:881
+#    result. playCount = Backup. localParameter. playCount
+#   this ismachine state**text**ofplaycountnumber, Any Get interfaceallNowill return,
+#   So it can neither be rolled out nor corrected by the server — Misfilling is just a statistic.
+# Pick a value = themachine stateWhendays/ofcountplaygamenumber(eachone game +1).
+# real machineMeasured:19:21 thatone game = 9,22:31 thatone game = 10.
+# - PLAY_LOCAL_PLAY_COUNT Constantly 2(moved to api/upsert_user_all. py)
+# --- - playSpecial inof "CalcSpecialNum"(machine stateBit)---
 #
-# Basis：source/Assembly-CSharp/Manager/GameManager.cs:332-378
-#       source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:846-855
+# Basis: source/Assembly-CSharp/Manager/GameManager. cs:332-378
+#    source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:846-855
 #
-#   playSpecial = Bit inversion32( Random.Range(1,1037933) * 2069 + CalcSpecialNum() )
+#  playSpecial = Bit inversion32( Random. Range(1,1037933) * 2069 + CalcSpecialNum() )
 #
-#   CalcSpecialNum() is**pressBitor**Outgoing machine feature mask，BitMeaning（source codeHara）：
-#       0x001  SpecialAP                    （text/text AP）
-#       0x002  IsAutoPlay()
-#       0x004  Win32.getRawInputDeviceCount of keyboard > 0
-#       0x008  Ibid. mouse > 0
-#       0x010  config.IsAutoPlay / IsDebugDisp / IsAllOpen
-#       0x020  AMDaemon.System.IsDevelop
-#       0x040  !SystemInfo.deviceName.Contains("ACA")        ← real machine is ACA，theBitfor 0
-#       0x080  !graphicsDeviceName.Contains("GeForce GTX")   ← real machine is GTX，theBitfor 0
-#       0x100  !processorType.Contains("Core(TM) i3-8100")   ← real machine is i3-8100，theBitfor 0
-#       0x400  noitemBit（source code GameManager.cs:375）           ← ★ Constantly 1
+#  CalcSpecialNum() is**pressBitor**Outgoing machine feature mask, BitMeaning(source codeHara):
+#    0x001 SpecialAP          (text/AP)
+#    0x002 IsAutoPlay()
+#    0x004 Win32. getRawInputDeviceCount of keyboard > 0
+#    0x008 Ibid. mouse > 0
+#    0x010 config. IsAutoPlay / IsDebugDisp / IsAllOpen
+#    0x020 AMDaemon. System. IsDevelop
+#    0x040! SystemInfo. deviceName. Contains("ACA")    ← real machine is ACA, theBitfor 0
+#    0x080! graphicsDeviceName. Contains("GeForce GTX")  ← real machine is GTX, theBitfor 0
+#    0x100! processorType. Contains("Core(TM) i3-8100")  ← real machine is i3-8100, theBitfor 0
+#    0x400 noitemBit(source code GameManager. cs:375)      ← - Constantly 1
 #
-#   ★ real machineMeasured（gamehook to CalcSpecialNum calluse）：
-#         [CalcSpecialNum] = 1024   (SpecialAP=False  IsFreedomMode=False)
-#       1024 = 0x400，i.e. divide by"noitemBit"thatOneBitAllfor 0 —— currentisOneStagestandard ACA machineStage。
+#  - real machineMeasured(gamehook to CalcSpecialNum calluse):
+#     [CalcSpecialNum] = 1024  (SpecialAP=False IsFreedomMode=False)
+#    1024 = 0x400, i. e. divide by"noitemBit"thatOneBitAllfor 0 — currentisOneStagestandard ACA machine state.
 #
-#   ★ Reverse inference validation：real machine playSpecial = 892014272
-#         Bit inversion32(892014272) = 57726124 = 27900 * 2069 + 1024
-#         The remainder is just right 1024，with caught CalcSpecialNum Exact match。
+#  - Reverse inference validation: real machine playSpecial = 892014272
+#     Bit inversion32(892014272) = 57726124 = 27900 * 2069 + 1024
+#     The remainder is just right 1024, with caught CalcSpecialNum Exact match.
 #
-#   change 0 No errors，But playSpecial ofBitmodeNoreal machinethat。
-# ★ PLAY_SPECIAL_NUM = 1024 Dropped to api/upsert_user_all.py
+#  change 0 No errors, But playSpecial ofBitmodeNoreal machinethat.
+# - PLAY_SPECIAL_NUM = 1024 moved to api/upsert_user_all. py
 # --- userTotal Play CountIncrement ---
 #
-# ★ default 0 = **userData.playCount / currentPlayCount allUnchanged**（this gameDo not countTotal number of times）。
-#   Want to replicate the real machine「+1」Change to 1。
+# - default 0 = **userData. playCount / currentPlayCount allUnchanged**(this gameDo not countTotal number of times).
+#  Want to replicate the real machine"+1"Change to 1.
 #
-#   Why was the default changed to 0：
-#     playCount isof**Total Play Count**，isVisibleofsystemcountValue；
-#     text「Score Upload」timeNot requiredchange，Stay consistent and safer before uploading。
-#   ★ change 0 Side effects after：「fallLibrarytimescheck」Can't rely on it anymore playCount isNo +1 Judgment，
-#     will be automatically switched to lastPlayDate isNoupdateJudgment（text verify_upsert_landing）。
+#  Why was the default changed to 0:
+#   playCount isof**Total Play Count**, isVisibleofsystemcountValue;
+#  "Score Upload"timeNot requiredchange, Stay consistent and safer before uploading.
+#  - change 0 Side effects after:"post-upload validation"Can't rely on it anymore playCount isNo +1 Judgment,
+#   will be automatically switched to lastPlayDate isNoupdateJudgment(verify_upsert_landing).
 PLAY_USER_PLAY_COUNT_GAIN = 0
 
 # --- trackplaycountIncrement ---
 #
-# ★ default 0 = this game**No change**thetrackofplaycount。
-#   ★★ notesemantic：is「itemPassing on、countUnchanged」，**No**「Do not return this node」。
-#      Measured（Same code、Same account，The only difference is this node）：
-#          userMusicDetailList Callback 1 item -> returnCode=1 And playCount of +1（fallLibrary）
-#          userMusicDetailList leave blank     -> returnCode=1 But playCount immovable（**fallLibrary**）
-#      So「I don't want the music playCount Increase」Must lean against the handle**Increment**text 0，
-#      andNoputnodesempty —— The latter will cause the entire package to be silently discarded by the server。
+# - default 0 = this game**No change**thetrackofplaycount.
+#  -- notesemantic: is"itemPassing on, countUnchanged",**No**"Do not return this node".
+#   Measured(Same code, Same account, The only difference is this node):
+#     userMusicDetailList Callback 1 item -> returnCode=1 And playCount of +1(post-upload)
+#     userMusicDetailList leave blank   -> returnCode=1 But playCount immovable(**post-upload**)
+#   So"I don't want the music playCount Increase"Must lean against the handle**Increment**0,
+#   andNoputnodesempty — The latter will cause the entire package to be silently discarded by the server.
 #
-#   Want to replicate the real machine「thechart playCount +1」Change to 1。
+#  Want to replicate the real machine"thechart playCount +1"Change to 1.
 PLAY_MUSIC_PLAY_COUNT_GAIN = 0
 
 # --- Map Progress Increment ---
 #
-# ★ default 0 = **this gameNoMap**，userMapList Returns an empty array。
-#   Want to replicate the real machine"Map +11000"Change to 11000（real-machine sample：mapId=550003 of
-#   distance 1424000 -> 1435000）。
+# - default 0 = **this gameNoMap**, userMapList Returns an empty array.
+#  Want to replicate the real machine"Map +11000"Change to 11000(real-machine sample: mapId=550003 of
+#  distance 1424000 -> 1435000).
 #
-# Basis：source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs ofMapExport
-#       —— VariationofitemNoMeetingsDifferentialresult。
+# Basis: source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs ofMapExport
+#    — VariationofitemNoMeetingsDifferentialresult.
 PLAY_MAP_DISTANCE_GAIN = 0
 
 # --- grouplevelIncrement ---
 #
-# ★ default 0 = **this gameDo not add experience to the character**，userCharacterList Returns an empty array。
-#   Want to replicate the real machine"group 5 Only each +1 text"Change to 1（real-machine sample 4455->4456 etc）。
+# - default 0 = **this gameDo not add experience to the character**, userCharacterList Returns an empty array.
+#  Want to replicate the real machine"group 5 Only each +1"Change to 1(real-machine sample 4455->4456 etc).
 #
-# ★ note：text 0 time userCharacterList Difference set is empty -> thenodesNoCallback，
-#   this is**of**，Not a mistake；validate_before_send and only if you set the increment to not 0
-#   Warn when there are no entries。
+# - note:0 time userCharacterList Difference set is empty -> thenodesNoCallback,
+#  this is**of**, Not a mistake; validate_before_send and only if you set the increment to not 0
+#  Warn when there are no entries.
 PLAY_CHARACTER_EXP_GAIN = 0
 
-# --- ★ About userGetPointList / userLoginBonusList（leave blankJust do it）---
+# --- - About userGetPointList / userLoginBonusList(leave blankJust do it)---
 #
-# thisnodesis**loginRewardshair**Produced by，playsettlementNot requiredCallback：
+# thisnodesis**loginRewardshair**Produced by, playsettlementNot requiredCallback:
 #
-#   userGetPointList（in/numberdetails）
-#     real machine 39 text UpsertUserAll in，**25 Is Empty（64%）**；
-#     Only login rewards occur/Not empty when rewarding a task（As getKind=1 point=200）。
-#     leave blank => serverNoPlus point，numberStay the same。
+#  userGetPointList(in/numberdetails)
+#   real machine 39 UpsertUserAll in,**25 Is Empty(64%)**;
+#   Only login rewards occur/Not empty when rewarding a task(As getKind=1 point=200).
+#   leave blank => serverNoPlus point, numberStay the same.
 #
-#   userLoginBonusList（toRewards）
-#     Empathy，Only return that item if this login triggers a new check-in（isCurrent=true）。
-#     leave blank => isNewLoginBonusList is also an empty string。
+#  userLoginBonusList(toRewards)
+#   Empathy, Only return that item if this login triggers a new check-in(isCurrent=true).
+#   leave blank => isNewLoginBonusList is also an empty string.
 #
-# ★ BeltImpact（currentcurrent）：leave blankAfter userData.point Keep baseline value unchanged。
+# - BeltImpact(currentcurrent): leave blankAfter userData. point Keep baseline value unchanged.
 #
-# source code（To restore issuance behavior）：
-#   Manager/UserData.cs:57-62   enum MaiMileGetKind { Mission=1, FriendBonus=2, Present=3 }
-#   Manager/UserData.cs:352-367 AddMissionPointLog / AddFriendBonusPointLog
+# source code(To restore issuance behavior):
+#  Manager/UserData. cs:57-62  enum MaiMileGetKind { Mission=1, FriendBonus=2, Present=3 }
+#  Manager/UserData. cs:352-367 AddMissionPointLog / AddFriendBonusPointLog
 
-# --- Store Inventory Inquiry List（Leave blank to skip this node）---
+# --- Store Inventory Inquiry List(Leave blank to skip this node)---
 PLAY_SHOP_ITEM_IDS = []
 
 
 # =============================================================================
-# Five、UpsertUserAll Safety gate
+# Five, UpsertUserAll Safety gate
 # =============================================================================
 #
-# ★ this is**The only one with side effects**ofinterface：will write the actual results of this bureau into the server，Irrevocable。
-#   Keep False（default），callusetimeRequiredexplicitPassing on confirm=True onlycurrentPackaging。
-#   change True will be released permanently（Not recommended）。
+# - this is**The only one with side effects**ofinterface: will write the actual results of this bureau into the server, Irrevocable.
+#  Keep False(default), callusetimeRequiredexplicitPassing on confirm=True onlycurrentPackaging.
+#  change True will be released permanently(Not recommended).
 UPSERT_CONFIRM = False
 
-# realPackagingagoofCooling Wait（seconds）
+# realPackagingagoofCooling Wait(seconds)
 #
-# ★ semantic：**each**realSend UpsertUserAll Before，allwaitthisseconds（Includes first time）。
-#   of：Escalationsreal machine —— real machineFromlogintosettlementEscalations 80 seconds，
-#         Report as soon as you are not logged in（source/2026-10-05.log:25 login → :123 Escalations，text 81 seconds）。
+# - semantic:**each**realSend UpsertUserAll Before, allwaitthisseconds(Includes first time).
+#  of: Escalationsreal machine — real machineFromlogintosettlementEscalations 80 seconds,
+#     Report as soon as you are not logged in(source/2026-10-05. log:25 login →:123 Escalations,81 seconds).
 #
-# ★ Works only on**realSend**（confirm=True）；dry_run Don't wait。
-# ★ Cooling occurs at「Self-inspection before contract issuance」After，So if there is a problem with the self-test, you will see an alarm first.，No need to wait in vain。
-# ★ debugtimeskipwait：putthisinchange 0，or call time transfer cooldown_sec=0。
+# - Works only on**realSend**(confirm=True); dry_run Don't wait.
+# - Cooling occurs at"Self-inspection before contract issuance"After, So if there is a problem with the self-test, you will see an alarm first., No need to wait in vain.
+# - debugtimeskipwait: putthisinchange 0, or call time transfer cooldown_sec=0.
 UPSERT_SEND_COOLDOWN_SEC = 60
 
 
 # =============================================================================
-# Sat、log
+# Sat, log
 # =============================================================================
 #
-#   "info"  Output only api scriptofAndresult：
-#              === XxxApi Get started ===
-#              === XxxApi run completion ===
+#  "info" Output only api scriptofAndresult:
+#       === XxxApi Get started ===
+#       === XxxApi run completion ===
 #
-#   "debug" Based on the above，outTowards api Data sent vs. api returntimesofdata：
-#              → request XxxApi  URL / requestHead / request body JSON Full text
-#              ← Response XxxApi  text / time / Response header / Response body JSON Full text
+#  "debug" Based on the above, outTowards api Data sent vs. api returntimesofdata:
+#       → request XxxApi URL / request header / request body JSON Full
+#       ← Response XxxApi / time / Response header / Response body JSON Full
 #
 LOG_LEVEL = "info"
 
-# Truncation length of embedded long text in a single log（0 = No truncation）
+# Truncation length of embedded long in a single log(0 = No truncation)
 LOG_VALUE_MAX = 0
 
 
@@ -369,37 +369,37 @@ LOG_VALUE_MAX = 0
 # =============================================================================
 
 __all__ = [
-    # networkAndEncryption
-    "BASE_URL", "AES_KEY", "AES_IV", "OBFUSCATE_PARAM", "MAI_ENCODING",
-    "TIMEOUT_MS", "TIMEOUT_LONG_MS",
-    # machineStageAndStore
-    "KEYCHIP_ID", "CLIENT_ID", "REGION_ID", "PLACE_ID", "PLACE_NAME", "REGION_NAME",
-    "AUTHV1_WRITE_CONFIG",
-    # Feature Tickets
-    "TICKET_CREDIT_NUM", "TICKET_NAMES", "PAID_TICKET_IDS",
-    "UPSERT_CHARGELOG_CONFIRM", "TICKET_VALID_HOUR_OFFSET", "TICKET_VALID_DAYS",
-    # QR login
-    "AIMEDB_HOST", "AIMEDB_PORT", "AIMEDB_PATH", "QR_SIGN_KEY",
-    "QR_OPEN_GAME_ID", "QR_TITLE_KEY", "QR_USER_AGENT",
-    # data
-    "PLAY_MUSIC_ID", "PLAY_MUSIC_LEVEL", "PLAY_TRACK_NO",
-    "PLAY_VERSION_INT", "PLAY_VERSION_STR",
-    "PLAY_ACHIEVEMENT", "PLAY_DELUXSCORE", "PLAY_SCORE_RANK", "PLAY_IS_CLEAR",
-    "PLAY_MAX_COMBO", "PLAY_TOTAL_COMBO", "PLAY_MAX_SYNC", "PLAY_TOTAL_SYNC",
-    "PLAY_COMBO_STATUS", "PLAY_SYNC_STATUS", "PLAY_FAST_COUNT", "PLAY_LATE_COUNT",
-    "PLAY_JUDGE_COUNTS",
-    "PLAY_BEFORE_RATING", "PLAY_AFTER_RATING",
-    "PLAY_BEFORE_GRADE", "PLAY_AFTER_GRADE", "PLAY_AFTER_GRADE_RANK",
-    "PLAY_BEFORE_DELUX_RATING", "PLAY_AFTER_DELUX_RATING",
-    "PLAY_CATEGORY_INDEX", "PLAY_MUSIC_INDEX", "PLAY_EXTRA_FLAG",
-    "PLAY_CHARACTERS", "PLAY_CREDIT", "PLAY_USE_TICKET_ID", "PLAY_MODE",
-    "PLAY_IS_TUTORIAL", "PLAY_IS_EVENT_MODE", "PLAY_IS_NEW_FREE", "PLAY_IS_FREEDOM_MODE",
-    "PLAY_LOCAL_PLAY_COUNT", "PLAY_SPECIAL_NUM",
-    "PLAY_USER_PLAY_COUNT_GAIN",
-    "PLAY_MUSIC_PLAY_COUNT_GAIN", "PLAY_MAP_DISTANCE_GAIN", "PLAY_CHARACTER_EXP_GAIN",
-    "PLAY_SHOP_ITEM_IDS",
-    # text
-    "UPSERT_CONFIRM", "UPSERT_SEND_COOLDOWN_SEC",
-    # log
-    "LOG_LEVEL", "LOG_VALUE_MAX",
+  # networkAndEncryption
+  "BASE_URL", "AES_KEY", "AES_IV", "OBFUSCATE_PARAM", "MAI_ENCODING",
+  "TIMEOUT_MS", "TIMEOUT_LONG_MS",
+  # machine state and store
+  "KEYCHIP_ID", "CLIENT_ID", "REGION_ID", "PLACE_ID", "PLACE_NAME", "REGION_NAME",
+  "AUTHV1_WRITE_CONFIG",
+  # feature tickets
+  "TICKET_CREDIT_NUM", "TICKET_NAMES", "PAID_TICKET_IDS",
+  "UPSERT_CHARGELOG_CONFIRM", "TICKET_VALID_HOUR_OFFSET", "TICKET_VALID_DAYS",
+  # QR login
+  "AIMEDB_HOST", "AIMEDB_PORT", "AIMEDB_PATH", "QR_SIGN_KEY",
+  "QR_OPEN_GAME_ID", "QR_TITLE_KEY", "QR_USER_AGENT",
+  # data
+  "PLAY_MUSIC_ID", "PLAY_MUSIC_LEVEL", "PLAY_TRACK_NO",
+  "PLAY_VERSION_INT", "PLAY_VERSION_STR",
+  "PLAY_ACHIEVEMENT", "PLAY_DELUXSCORE", "PLAY_SCORE_RANK", "PLAY_IS_CLEAR",
+  "PLAY_MAX_COMBO", "PLAY_TOTAL_COMBO", "PLAY_MAX_SYNC", "PLAY_TOTAL_SYNC",
+  "PLAY_COMBO_STATUS", "PLAY_SYNC_STATUS", "PLAY_FAST_COUNT", "PLAY_LATE_COUNT",
+  "PLAY_JUDGE_COUNTS",
+  "PLAY_BEFORE_RATING", "PLAY_AFTER_RATING",
+  "PLAY_BEFORE_GRADE", "PLAY_AFTER_GRADE", "PLAY_AFTER_GRADE_RANK",
+  "PLAY_BEFORE_DELUX_RATING", "PLAY_AFTER_DELUX_RATING",
+  "PLAY_CATEGORY_INDEX", "PLAY_MUSIC_INDEX", "PLAY_EXTRA_FLAG",
+  "PLAY_CHARACTERS", "PLAY_CREDIT", "PLAY_USE_TICKET_ID", "PLAY_MODE",
+  "PLAY_IS_TUTORIAL", "PLAY_IS_EVENT_MODE", "PLAY_IS_NEW_FREE", "PLAY_IS_FREEDOM_MODE",
+  "PLAY_LOCAL_PLAY_COUNT", "PLAY_SPECIAL_NUM",
+  "PLAY_USER_PLAY_COUNT_GAIN",
+  "PLAY_MUSIC_PLAY_COUNT_GAIN", "PLAY_MAP_DISTANCE_GAIN", "PLAY_CHARACTER_EXP_GAIN",
+  "PLAY_SHOP_ITEM_IDS",
+  #
+  "UPSERT_CONFIRM", "UPSERT_SEND_COOLDOWN_SEC",
+  # log
+  "LOG_LEVEL", "LOG_VALUE_MAX",
 ]

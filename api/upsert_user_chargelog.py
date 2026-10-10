@@ -283,12 +283,12 @@ def calc_valid_date(
 
 def parse_wall_time(text: Any) -> Optional[datetime]:
     """
-    parseWall Time，Compatible with both formats：
+    Parse wall-clock time, accepting both formats:
 
-        "2026-10-06 13:20:10.0"   ← TimeManager.DateTimeFormat（One decimal place，real machinepacketusethisPiece）
-        "2026-10-06 13:20:10"     ← noDecimal（servertimes GetUserChargeApi ofisthisPiece）
+        "2026-10-06 13:20:10.0"   <- TimeManager.DateTimeFormat
+        "2026-10-06 13:20:10"     <- the format returned by GetUserChargeApi
 
-    parseNooutreturntimes None。
+    Returns None when the value cannot be parsed.
     """
     s = str(text or "").strip()
     if not s:
@@ -302,7 +302,7 @@ def parse_wall_time(text: Any) -> Optional[datetime]:
 
 
 def _find_charge(charge_list: Any, charge_id: int) -> Optional[Dict[str, Any]]:
-    """at GetUserChargeApi of userChargeList infindspecified chargeId。"""
+    """Find a charge with the requested charge ID in userChargeList."""
     if not isinstance(charge_list, list):
         return None
     for c in charge_list:

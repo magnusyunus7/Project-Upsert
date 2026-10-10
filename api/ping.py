@@ -1,38 +1,38 @@
 # -*- coding: utf-8 -*-
 """
-ping.py —— Heartbeat Probe Alive(PingMaimaiChn)
+ping. py — Heartbeat Probe Alive(PingMaimaiChn)
 ================================================================================
 
-Features:Send a heartbeat to the game server,
+Features: Send a heartbeat to the game server,
 
-Corresponding interface:PingMaimaiChn
-request body  :{}(source/Assembly-CSharp/Net.VO.Mai2/PingRequestVO.cs isempty)
+Corresponding interface: PingMaimaiChn
+request body:{}(source/Assembly-CSharp/Net. VO. Mai2/PingRequestVO. cs isempty)
 Response:{"result": "Pong"}
 
-★ interfaceFirst name(Easily misspelled,note):
-    source/Assembly-CSharp/Net.Packet.Mai2/PacketPing.cs:22
-        new NetQuery<PingRequestVO, PingResponseVO>("Ping", 0uL);
-    The logical name passed by the client is **"Ping"**,NetQuery.cs:14 Make it up again "MaimaiChn" Suffix,
-    So the full name of the confusion is "PingMaimaiChn":
-        md5("PingMaimaiChn" + "8bF76dE9") = 3bae8c1162b3148abcfc38a89c03e3e7
-    Passing on "Ping" Just do it,obfuscate_api_name Will autofill suffixes.
+- interfaceFirst name(Easily misspelled, note):
+  source/Assembly-CSharp/Net. Packet. Mai2/PacketPing. cs:22
+    new NetQuery<PingRequestVO, PingResponseVO>("Ping", 0uL);
+  The logical name passed by the client is **"Ping"**, NetQuery. cs:14 Make it up again "MaimaiChn" Suffix,
+  So the full name of the confusion is "PingMaimaiChn":
+    md5("PingMaimaiChn" + "8bF76dE9") = 3bae8c1162b3148abcfc38a89c03e3e7
+  Passing on "Ping" Just do it, obfuscate_api_name Will autofill suffixes.
 
-    (Packet.cs:96 use Query.Api.StartsWith("Ping") Determine if the cardiac packet,
-      It is also based on the completion suffix "PingMaimaiChn".)
+  (Packet. cs:96 use Query. Api. StartsWith("Ping") Determine if the cardiac packet,
+   It is also based on the completion suffix "PingMaimaiChn".)
 
-★ Why run it?(It's not just looking for work.):
-    Packet.cs:189  non- Ping interfaceallMeetingsBelt HTTP Head number = GameManager.PingMsec
-    PingChecker.cs:227   GameManager.PingMsec = Ping Packet round trip in milliseconds
+- Why run it?(It's not just looking for work.):
+  Packet. cs:189 non- Ping interfaceallMeetingsBelt HTTP Head number = GameManager. PingMsec
+  PingChecker. cs:227  GameManager. PingMsec = Ping Packet round trip in milliseconds
 
-    So **Ping is number The only source of the head**.First Ping Once,Subsequent business requests will
-    Bring the real thing number(real machineMeasured 63ms);No Ping Then number = 0,
-    First screen after starting up with a real machine(Heartbeat)offorMatch.
-    MaimaiNetClient Received at Ping Automatically counts round-trip milliseconds after response client.ping_msec.
+  So **Ping is number The only source of the head**. First Ping Once, Subsequent business requests will
+  Bring the real thing number(real machineMeasured 63ms); No Ping Then number = 0,
+  First screen after starting up with a real machine(Heartbeat)offorMatch.
+  MaimaiNetClient Received at Ping Automatically counts round-trip milliseconds after response client. ping_msec.
 
 Example:
-    from api import Ping
-    if Ping():
-        print("server")
+  from api import Ping
+  if Ping():
+    print("server")
 """
 
 from __future__ import annotations
@@ -52,16 +52,16 @@ def Ping(
     client: Optional[MaimaiNetClient] = None,
 ) -> bool:
     """
-    Heartbeat Probe Alive.
+  Heartbeat Probe Alive.
 
-    Parameter:
-        client_id:  machine stateshortValue(Optional)
-        timeout_ms: timeout milliseconds(Optional)
-        client:     Reusable MaimaiNetClient(Optional)
+  Parameter:
+    client_id: machine stateshortValue(Optional)
+    timeout_ms: timeout milliseconds(Optional)
+    client:   Reusable MaimaiNetClient(Optional)
 
-    Returns:
-        True = serverreturns "Pong"
-    """
+  Returns:
+    True = serverreturns "Pong"
+  """
     log_info("Send Heartbeat Probe Active")
 
     raw = request_dict(
@@ -73,9 +73,9 @@ def Ping(
     result = raw.get("result", "")
     ok = (result == "Pong")
     if ok:
-        log_info("Normal heartbeat:result=Pong")
+        log_info("Normal heartbeat: result=Pong")
     else:
-        log_warning("Heartbeat returned abnormal:result=" + str(result))
+        log_warning("Heartbeat returned abnormal: result=" + str(result))
     return ok
 
 
