@@ -1,32 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-userlogout.py —— 用户登出（UserLogoutApi）
+userlogout.py —— userlogout（UserLogoutApi）
 ================================================================================
 
-功能：结束登录会话，可选上报本次会话的网络统计（delayLog）。
+Features：textloginSession，Optionally escalate network statistics for this session（delayLog）。
 
-对应接口：UserLogoutApi
-请求体  ：两种形态，见 source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogout.cs:22-63
-            type == 1 (Logout) -> UserLogoutRequest2VO（含 delayLog）
-            其他 type          -> UserLogoutRequestVO （不含 delayLog）
+Corresponding interface：UserLogoutApi
+request body  ：Two Forms，text source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogout.cs:22-63
+            type == 1 (Logout) -> UserLogoutRequest2VO（Contains delayLog）
+            Other type          -> UserLogoutRequestVO （Excluding delayLog）
 
 --------------------------------------------------------------------------------
-登出类型（source/Assembly-CSharp/Net.VO.Mai2/LogoutType.cs）
+logouttext（source/Assembly-CSharp/Net.VO.Mai2/LogoutType.cs）
 --------------------------------------------------------------------------------
     None   = 0
-    Logout = 1   正常登出（带 delayLog 统计）
-    Cancel = 2   取消 / 强制登出指定座席（NetPacketUtil.cs:47）
-    Error  = 3   错误强制登出（GameMain.cs:91）
-    TestIn = 4   测试登入 / 顶号（GameMain.cs:104）
-    Quit   = 5   退出时强制登出，可释放残留会话（GameMainObject.cs:200）
+    Logout = 1   currenttextlogout（Belt delayLog systemcount）
+    Cancel = 2   Cancel / Force Logout of Assigned Agents（NetPacketUtil.cs:47）
+    Error  = 3   errorForce Logout（GameMain.cs:91）
+    TestIn = 4   text / text（GameMain.cs:104）
+    Quit   = 5   textouttimeForce Logout，Releasable Residual Sessions（GameMainObject.cs:200）
 
-★ 真机会话结束时用的是 type=4（TestIn），见 source/2026-10-05.log:125。
+★ real machineSessiontexttimeuseofis type=4（TestIn），text source/2026-10-05.log:125。
 
-★ delayLog 结构（source/Assembly-CSharp/Net.VO.Mai2/DelayLog.cs）
-    request 是定长 26 的数组（DelayLog.cs:17  new RequestAPI[26]），
-    每个元素 {count, size, msec, retry}。
+★ delayLog text（source/Assembly-CSharp/Net.VO.Mai2/DelayLog.cs）
+    request istextlong 26 ofnumbergroup（DelayLog.cs:17  new RequestAPI[26]），
+    eachPieceElement {count, size, msec, retry}。
 
-调用示例：
+call exampleExample：
     from api import UserLogout, LogoutType
     UserLogout(12345678, token, login.loginDateTime,
                logout_type=LogoutType.TestIn, region_id=1, place_id=1000)
@@ -42,23 +42,23 @@ from config import CLIENT_ID, PLACE_ID, REGION_ID, TIMEOUT_MS
 from .log_setup import log_debug, log_error, log_info
 from .maimai_net import MaimaiNetClient, request_dict
 
-#: DelayLog.request 的定长（DelayLog.cs:17）
+#: DelayLog.request oftextlong（DelayLog.cs:17）
 DELAY_LOG_SLOTS = 26
 
 
 class LogoutType:
-    """登出类型（对应 Net.VO.Mai2.LogoutType）。"""
+    """logouttext（Corresponding Net.VO.Mai2.LogoutType）。"""
     None_ = 0
-    Logout = 1      # 正常登出（带 delayLog）
-    Cancel = 2      # 取消 / 强制登出
-    Error = 3       # 错误强制登出
-    TestIn = 4      # 测试登入 / 顶号（真机会话结束用这个）
-    Quit = 5        # 退出强制登出
+    Logout = 1      # currenttextlogout（Belt delayLog）
+    Cancel = 2      # Cancel / Force Logout
+    Error = 3       # errorForce Logout
+    TestIn = 4      # text / text（real machineSessiontextusethisPiece）
+    Quit = 5        # textoutForce Logout
 
 
 @dataclass
 class RequestAPI:
-    """单个接口的统计（对应 Net.VO.Mai2/RequestAPI.cs）。"""
+    """Statistics for a single interface（Corresponding Net.VO.Mai2/RequestAPI.cs）。"""
     count: int = 0
     size: int = 0
     msec: int = 0
@@ -67,7 +67,7 @@ class RequestAPI:
 
 @dataclass
 class DelayLog:
-    """会话网络统计（对应 Net.VO.Mai2/DelayLog.cs）。"""
+    """Session Network Statistics（Corresponding Net.VO.Mai2/DelayLog.cs）。"""
     dlRequests: int = 0
     dlSize: int = 0
     dlRetry: int = 0
@@ -82,7 +82,7 @@ class DelayLog:
 
 @dataclass
 class UserLogoutRequestVO:
-    """简单登出请求 VO（对应 UserLogoutRequestVO）。"""
+    """textlogoutrequest VO（Corresponding UserLogoutRequestVO）。"""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -94,7 +94,7 @@ class UserLogoutRequestVO:
 
 @dataclass
 class UserLogoutRequest2VO:
-    """完整登出请求 VO（对应 UserLogoutRequest2VO，含 delayLog）。"""
+    """Full Logout Request VO（Corresponding UserLogoutRequest2VO，Contains delayLog）。"""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -107,12 +107,12 @@ class UserLogoutRequest2VO:
 
 @dataclass
 class UserLogoutResponseVO:
-    """响应 VO（对应 UserLogoutResponseVO）。"""
+    """Response VO（Corresponding UserLogoutResponseVO）。"""
     returnCode: int = 0
 
 
 def create_empty_delay_log() -> DelayLog:
-    """创建全零的 DelayLog（26 个槽位）。"""
+    """Create an all-zero DelayLog（26 slots）。"""
     return DelayLog()
 
 
@@ -128,12 +128,12 @@ def create_delay_log_from_stats(
     reduction_item: int = 0,
 ) -> DelayLog:
     """
-    用统计数据构造 DelayLog。
+    usesystemcountdataconstruct DelayLog。
 
-    参数：
-        requests_stats: 每个接口的统计列表，元素形如
+    Parameter：
+        requests_stats: eachPieceinterfaceofsystemcountList，Elements are shaped like
                         {"count":1,"size":2090,"msec":73,"retry":0}
-                        按 DelayLog.request 的槽位顺序填入（最多 26 个）
+                        press DelayLog.request oftextBitorderFill（Max. 26 Piece）
     """
     dl = DelayLog(
         dlRequests=dl_requests, dlSize=dl_size, dlRetry=dl_retry,
@@ -167,29 +167,29 @@ def UserLogout(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserLogoutResponseVO:
     """
-    用户登出。
+    userlogout。
 
-    参数：
-        user_id:         用户 ID（必填）
-        token:           会话令牌（必填）
-        login_date_time: 登录时刻（必填，取自 UserLogin 的 loginDateTime）
-        logout_type:     登出类型（可选，默认 4=TestIn，与真机一致）
-        access_code:     访问码（可选）
-        region_id:       区域 ID（可选）
-        place_id:        店铺 ID（可选）
-        client_id:       机台短值（可选）
-        delay_log:       会话统计（可选；仅 logout_type=1 时随报文发出）
-        timeout_ms:      超时毫秒（可选）
-        client:          可复用的 MaimaiNetClient（可选）
+    Parameter：
+        user_id:         user ID（Required）
+        token:           Session Token（Required）
+        login_date_time: logintime（Required，Retrieved from UserLogin of loginDateTime）
+        logout_type:     logouttext（Optional，default 4=TestIn，Consistent with the real machine）
+        access_code:     text（Optional）
+        region_id:       Area ID（Optional）
+        place_id:        Store ID（Optional）
+        client_id:       machineStageshortValue（Optional）
+        delay_log:       Session Stats（Optional；Only logout_type=1 timetextpackethairout）
+        timeout_ms:      timeout milliseconds（Optional）
+        client:          Reusable MaimaiNetClient（Optional）
 
-    返回：
+    returntimes：
         UserLogoutResponseVO
 
-    异常：
+    Exceptions：
         RuntimeError: returnCode != 1
     """
     log_info(
-        "用户登出：user_id=" + str(user_id) + " logout_type=" + str(logout_type)
+        "userlogout：user_id=" + str(user_id) + " logout_type=" + str(logout_type)
         + " loginDateTime=" + str(login_date_time)
     )
 
@@ -200,14 +200,14 @@ def UserLogout(
             loginDateTime=login_date_time, type=logout_type,
             delayLog=delay_log if delay_log is not None else create_empty_delay_log(),
         )
-        log_debug("使用完整登出报文（含 delayLog）")
+        log_debug("Use full logout message（Contains delayLog）")
     else:
         body = UserLogoutRequestVO(
             userId=user_id, accessCode=access_code,
             regionId=region_id, placeId=place_id, clientId=client_id,
             loginDateTime=login_date_time, type=logout_type,
         )
-        log_debug("使用简单登出报文（不含 delayLog）")
+        log_debug("Use Simple Logout Packet（Excluding delayLog）")
 
     raw = request_dict(
         "UserLogoutApi", body,
@@ -217,11 +217,11 @@ def UserLogout(
 
     resp = UserLogoutResponseVO(returnCode=int(raw.get("returnCode", 0) or 0))
     if resp.returnCode != 1:
-        msg = "登出失败：returnCode=" + str(resp.returnCode)
+        msg = "logoutFailed：returnCode=" + str(resp.returnCode)
         log_error(msg)
         raise RuntimeError(msg)
 
-    log_info("用户登出成功：returnCode=" + str(resp.returnCode))
+    log_info("userlogoutSuccess：returnCode=" + str(resp.returnCode))
     return resp
 
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         setup_logging("userlogout_test")
         try:
             if len(sys.argv) < 4:
-                print("用法: python -m api.userlogout <user_id> <token> <loginDateTime> "
+                print("usage: python -m api.userlogout <user_id> <token> <loginDateTime> "
                       "[logout_type] [region_id] [place_id]")
                 return 1
             lt = int(sys.argv[4]) if len(sys.argv) > 4 else LogoutType.TestIn
@@ -246,7 +246,7 @@ if __name__ == "__main__":
             print("returnCode =", resp.returnCode)
             return 0
         except Exception as exc:
-            log_error("用户登出失败：" + str(exc))
+            log_error("userlogoutFailed：" + str(exc))
             return 1
         finally:
             teardown_logging()

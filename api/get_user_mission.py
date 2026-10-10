@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-get_user_mission.py —— 取用户任务与周数据（GetUserMissionDataApi）
+get_user_mission.py —— Fetching user tasks and weekly data（GetUserMissionDataApi）
 ================================================================================
 
-取玩家的任务进度与周常数据（真机 6 条任务）。
+Take the player's quest progress and weekly data（real machine 6 itemTask）。
 
-对应接口：GetUserMissionDataApi
-请求体  ：UserIdRequestVO
-响应    ：{userId, userWeeklyData:{...}, userMissionDataList:[...]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserMissionRequestVO.cs
+Corresponding interface：GetUserMissionDataApi
+request body  ：UserIdRequestVO
+Response    ：{userId, userWeeklyData:{...}, userMissionDataList:[...]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserMissionRequestVO.cs
 
-★ 一个接口同时下发两个 Upsert 节点：
-    userMissionDataList  任务列表
-    userWeeklyData       周常数据（★ 是**对象**不是数组）
-★ 两者回传 Upsert 时都要丢掉各自的 userId 字段。
+★ One interface sends two at the same time Upsert nodes：
+    userMissionDataList  Task List
+    userWeeklyData       Weekly data（★ is**Object**Not an array）
+★ Both backhaul Upsert timeallmustDiscardEachtextof userId Field。
 
-调用示例：
+call exampleExample：
     from api import GetUserMissionData
 """
 
@@ -38,11 +38,11 @@ def GetUserMissionData(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户任务与周数据（对应 GetUserMissionDataApi）。
+    Fetching user tasks and weekly data（Corresponding GetUserMissionDataApi）。
 
-    返回：
-        原始响应 dict：{"userId":.., "userWeeklyData":{..}, "userMissionDataList":[..]}
+    returntimes：
+        Raw Response dict：{"userId":.., "userWeeklyData":{..}, "userMissionDataList":[..]}
     """
-    log_info("取用户任务与周数据：user_id=" + str(user_id))
+    log_info("Fetching user tasks and weekly data：user_id=" + str(user_id))
     return _get("GetUserMissionDataApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

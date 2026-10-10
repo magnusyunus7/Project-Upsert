@@ -1,4 +1,4 @@
-# 统一换行符，避免 Windows/Linux 来回转换把每个文件都标成 modified
+# systemOnetext，text Windows/Linux texttimestextputeachPiecefilealltext modified
 * text=auto
 *.py   text eol=lf
 *.md   text eol=lf

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_game_settings.py —— 获取游戏设置（GetGameSettingApi）
+get_game_settings.py —— getTaketext（GetGameSettingApi）
 ================================================================================
 
-功能：取服务器下发的运行时配置（维护窗口、心跳间隔、包超时、各类上限）。
+Features：Get the runtime configuration sent by the server（text、Heartbeat Interval、Package timeout、Various upper limits）。
 
-对应接口：GetGameSettingApi
-请求体  ：{"placeId": <店铺ID>, "clientId": "<机台短值>"}
+Corresponding interface：GetGameSettingApi
+request body  ：{"placeId": <StoreID>, "clientId": "<machineStageshortValue>"}
           source/Assembly-CSharp/Net.VO.Mai2/GameSettingRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketGetGameSetting.cs:21-24
 
-★ 真机调用时机：会话最开始、Ping 之前（source/2026-10-05.log:1）。
+★ real machinecallusetimemachine：Session Start、Ping Before（source/2026-10-05.log:1）。
 
-调用示例：
+call exampleExample：
     from api import GetGameSettings
     resp = GetGameSettings()
     print(resp.gameSetting.isMaintenance, resp.gameSetting.requestInterval)
@@ -30,12 +30,12 @@ from .maimai_net import MaimaiNetClient, request_dict
 
 
 # =============================================================================
-# VO（字段对照 source/Assembly-CSharp/Net.VO.Mai2/GameSetting.cs 与真机响应）
+# VO（Field Comparison source/Assembly-CSharp/Net.VO.Mai2/GameSetting.cs Response to real machine）
 # =============================================================================
 
 @dataclass
 class GameSetting:
-    """游戏运行时配置（对应 Net.VO.Mai2.GameSetting）。"""
+    """texttimetext（Corresponding Net.VO.Mai2.GameSetting）。"""
     isMaintenance: bool = False
     requestInterval: int = 0
     rebootStartTime: str = ""
@@ -72,20 +72,20 @@ class GameSetting:
 
 @dataclass
 class GameSettingRequestVO:
-    """请求 VO（对应 GameSettingRequestVO）。"""
+    """request VO（Corresponding GameSettingRequestVO）。"""
     placeId: int = 0
     clientId: str = ""
 
 
 @dataclass
 class GameSettingResponseVO:
-    """响应 VO（对应 GameSettingResponseVO）。"""
+    """Response VO（Corresponding GameSettingResponseVO）。"""
     isAouAccession: bool = False
     gameSetting: GameSetting = field(default_factory=GameSetting)
 
 
 # =============================================================================
-# 公开 API
+# Public API
 # =============================================================================
 
 def GetGameSettings(
@@ -96,18 +96,18 @@ def GetGameSettings(
     client: Optional[MaimaiNetClient] = None,
 ) -> GameSettingResponseVO:
     """
-    获取游戏设置（服务器下发的运行时配置）。
+    getTaketext（serverIssueoftexttimetext）。
 
-    参数：
-        place_id:  店铺 ID（可选，默认 config.PLACE_ID）
-        client_id: 机台短值（可选，默认 config.CLIENT_ID）
-        timeout_ms: 超时毫秒（可选）
-        client:    可复用的 MaimaiNetClient（可选）
+    Parameter：
+        place_id:  Store ID（Optional，default config.PLACE_ID）
+        client_id: machineStageshortValue（Optional，default config.CLIENT_ID）
+        timeout_ms: timeout milliseconds（Optional）
+        client:    Reusable MaimaiNetClient（Optional）
 
-    返回：
+    returntimes：
         GameSettingResponseVO
     """
-    log_info("获取游戏设置：place_id=" + str(place_id) + " client_id=" + client_id)
+    log_info("getTaketext：place_id=" + str(place_id) + " client_id=" + client_id)
 
     raw = request_dict(
         "GetGameSettingApi",
@@ -125,12 +125,12 @@ def GetGameSettings(
     )
 
     if gs.isMaintenance:
-        log_warning("服务器处于维护状态（isMaintenance=True）")
+        log_warning("serverplaceintext（isMaintenance=True）")
     if gs.pingDisable:
-        log_info("服务器已禁用心跳（pingDisable=True）")
+        log_info("serverAlreadytextuseHeartbeat（pingDisable=True）")
 
     log_info(
-        "游戏设置获取完成：isMaintenance=" + str(gs.isMaintenance)
+        "textgetTakeDone：isMaintenance=" + str(gs.isMaintenance)
         + " requestInterval=" + str(gs.requestInterval)
         + " packetTimeout=" + str(gs.packetTimeout)
         + " packetTimeoutLong=" + str(gs.packetTimeoutLong)
@@ -140,17 +140,17 @@ def GetGameSettings(
 
 
 def is_maintenance(settings: GameSettingResponseVO) -> bool:
-    """便捷判断：服务器是否处于维护状态。"""
+    """Convenient Judgment：serverisNoplaceintext。"""
     return bool(settings.gameSetting.isMaintenance)
 
 
 def is_ping_disabled(settings: GameSettingResponseVO) -> bool:
-    """便捷判断：是否已禁用心跳。"""
+    """Convenient Judgment：isNoAlreadytextuseHeartbeat。"""
     return bool(settings.gameSetting.pingDisable)
 
 
 # =============================================================================
-# 单独运行（调试）
+# Run separately（debug）
 # =============================================================================
 
 if __name__ == "__main__":
@@ -167,7 +167,7 @@ if __name__ == "__main__":
             return 0
         except Exception as exc:
             from .log_setup import log_error
-            log_error("获取游戏设置失败：" + str(exc))
+            log_error("getTaketextFailed：" + str(exc))
             return 1
         finally:
             teardown_logging()

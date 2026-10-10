@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-maimai_net.py —— 舞萌DX 网络核心层（纯 HTTP 复刻）
+maimai_net.py —— textDX networktext（text HTTP Reprint）
 ================================================================================
 
-本模块是【唯一】直接和游戏服务器说话的地方，其余 api 脚本都通过它收发报文。
+textis【Unique】directlyandtextservertextoftext，Remaining api scriptalltextreceivehairpacket。
 
 --------------------------------------------------------------------------------
-一、协议依据（全部来自 source/ 反编译源码）
+One、Agreement Basis（All from source/ Decompile source code）
 --------------------------------------------------------------------------------
 
-1) 服务器基址与 API 路径
+1) servertextAnd API text
      source/Assembly-CSharp/Manager/OperationManager.cs:225,338
          ServerUri = Auth.GameServerUri + MovieServerUri("mE2s3Jhd/")
      source/Assembly-CSharp/Net.Packet/Packet.cs:116
@@ -19,84 +19,84 @@ maimai_net.py —— 舞萌DX 网络核心层（纯 HTTP 复刻）
      source/Assembly-CSharp/Net.VO/NetQuery.cs:14
          Api = api + "MaimaiChn"
 
-     => 最终 URL = BASE_URL + md5(逻辑接口名 + "MaimaiChn" + "8bF76dE9")
+     => Final URL = BASE_URL + md5(textinterfaceFirst name + "MaimaiChn" + "8bF76dE9")
 
-     已用真实日志验证：md5("GetGameSettingApiMaimaiChn" + "8bF76dE9")
+     Validated with real logs：md5("GetGameSettingApiMaimaiChn" + "8bF76dE9")
                        = 83a5d5a20b062c5c2ad817460b8f7f76
-                       （source/2026-10-05.log:1 的请求就是打到这个尾段）
+                       （source/2026-10-05.log:1 ofrequestistexttothisPieceTail Segment）
 
-2) 请求体封装（三段：JSON -> deflate -> AES）
+2) request bodytext（Stage 3：JSON -> deflate -> AES）
      source/Assembly-CSharp/Net/NetHttpClient.cs:262-300 RequestCallback
-         a. DeflateStream(CompressionMode.Compress) 压缩 JSON 字节
-         b. 手工拼 zlib 头 0x78 0x9C + 压缩数据 + Adler32(4 字节大端)
-         c. CipherAES.Encrypt(...) 整体 AES 加密
+         a. DeflateStream(CompressionMode.Compress) Compression JSON Bytes
+         b. Spell it by hand zlib Head 0x78 0x9C + Compress Data + Adler32(4 Byte Big End)
+         c. CipherAES.Encrypt(...) text AES Encryption
      source/Assembly-CSharp/Net/CipherAES.cs:11-30
          AES-256-CBC / PKCS7 / Key 32B / IV 16B
 
-3) 响应体解封装（逆过程）
+3) Response body decapsulation（text）
      source/Assembly-CSharp/Net/NetHttpClient.cs:355-380 Decrypt + Decompress
-         a. AES 解密
-         b. 去掉前 2 字节 zlib 头与后 4 字节 Adler32
-         c. Deflate 解压 -> UTF-8 JSON
+         a. AES decrypt
+         b. Before Removal 2 Bytes zlib Head and back 4 Bytes Adler32
+         c. Deflate text -> UTF-8 JSON
 
-4) 请求头
+4) requestHead
      source/Assembly-CSharp/Net/NetHttpClient.cs:174-190 Request()
          Content-Type   : application/json
          charset        : UTF-8
          Mai-Encoding   : 1.55      (DefaultHttpHeaderEncryption)
-         Content-Encoding: deflate  (有请求体时)
-         User-Agent     : <混淆后的API名>#<userId 或 clientId>
+         Content-Encoding: deflate  (hasrequest bodytime)
+         User-Agent     : <obfuscationAfterofAPIFirst name>#<userId or clientId>
                           （source/Assembly-CSharp/Net/NetPacketUtil.cs:12-19）
-         number         : <ping 毫秒>（非 Ping 接口；Packet.cs:189）
+         number         : <ping textseconds>（non- Ping interface；Packet.cs:189）
 
-     ★ number 的语义：GameManager.PingMsec，只由 Ping 心跳包刷新
-       （PingChecker.cs:227 <- PacketPing.cs:34 的 sw.ElapsedMilliseconds）。
-       真机整局 53 个业务请求的 number 恒为同一个值（实测 63）。
-       所以调用方**应当先跑一次 Ping()**，之后的请求才会带上真实 number；
-       没跑过时 number = 0，与真机开机后第一屏的行为一致。
+     ★ number ofsemantic：GameManager.PingMsec，Only by Ping Heartbeat Package Refresh
+       （PingChecker.cs:227 <- PacketPing.cs:34 of sw.ElapsedMilliseconds）。
+       real machinetextgame 53 of business requests number Constant is the same value（Measured 63）。
+       So the caller**You should run once first Ping()**，After that, the request will bring the real thing. number；
+       texttime number = 0，Consistent with the behavior of the first screen after the real machine is turned on。
 
-     ★ Cookie：★ UserLoginApi 的响应会下发
+     ★ Cookie：★ UserLoginApi ofResponseMeetingsIssue
            Set-Cookie: JSESSIONID=FC9D0F122F7F24A522CD623BA3B76B74; Path=/Maimai2Servlet; HttpOnly
-       （Packet.cs:228-234 只在 UserLogin 响应上把它收进 CookieContainer，
-        之后 Packet.cs:190-193 每个带 userId 的请求都挂回去）。
-       Ping 等接口的响应头里没有 Set-Cookie，所以必须跑过登录才会拿到。
-       这是**真实的会话粘滞**，必须带着。
-       requests.Session 会自动收下并自动带上，无需额外代码 ——
-       但前提是**全程复用同一个 MaimaiNetClient**（用 get_default_client()）。
+       （Packet.cs:228-234 Only in UserLogin Respond by including it in the CookieContainer，
+        After Packet.cs:190-193 eachPieceBelt userId ofrequestalltexttimesGo）。
+       Ping etcinterfaceofResponse headerinnone Set-Cookie，so you have to run through the login to get it.。
+       this is**realofSessiontext**，Must bring。
+       requests.Session will automatically take it off and take it with you，notextCode ——
+       but only if**Reuse the same throughout MaimaiNetClient**（use get_default_client()）。
 
 --------------------------------------------------------------------------------
-二、★ 请求头集合：必须与真机一致（2026-10-06 真机抓包实证）
+Two、★ requestHeadtext：Must be consistent with the real machine（2026-10-06 real machinetextPackageEmpirical）
 --------------------------------------------------------------------------------
-     真机（Unity Mono 的 HttpWebRequest）实际发出的头**只有这几个**：
+     real machine（Unity Mono of HttpWebRequest）Actual emitted head**Only these few**：
 
          number / Content-Type / User-Agent / charset / Mai-Encoding /
-         Content-Encoding / (+ 登录后的 Cookie)
+         Content-Encoding / (+ loginAfterof Cookie)
 
-     **没有 Accept，也没有 Connection。**
+     **none Accept，Neither Connection。**
 
-     requests 默认会补 Accept: * / Connection: keep-alive，
-     已在 MaimaiNetClient.__init__ 里从 session.headers 删掉。
+     requests defaultMeetingstext Accept: * / Connection: keep-alive，
+     at MaimaiNetClient.__init__ inFrom session.headers Delete。
 
-     ★ Accept-Encoding 是唯一的例外，必须**存在且为空**：
+     ★ Accept-Encoding isUniqueofExampletext，Required**Exists and is empty**：
 
-         实测（GetGameSettingApi，2026-10-06）：
+         Measured（GetGameSettingApi，2026-10-06）：
              Accept-Encoding: ""                -> 200 + application/json
-             不发 / "gzip, deflate" / "identity" -> 200 + application/octet-stream（0 字节）
+             Do not send / "gzip, deflate" / "identity" -> 200 + application/octet-stream（0 Bytes）
 
-       反推：真机能拿到 JSON 响应体，说明 Mono 发的也是**空值**的 Accept-Encoding
-       （Headers.AllKeys 里看不到它，是框架层加的）。
-       所以这里固定 Accept-Encoding: ""。
+       Reverse：real machinecantextto JSON Response body，description Mono The hair is also**emptyValue**of Accept-Encoding
+       （Headers.AllKeys intextNototext，istextPlusof）。
+       So it's fixed here. Accept-Encoding: ""。
 
 --------------------------------------------------------------------------------
-三、对外接口
+Three、External Interface
 --------------------------------------------------------------------------------
-     MaimaiNetClient         客户端类（连接复用 + Cookie 管理）
-     get_default_client()    取全局默认客户端
-     request(...)            便捷函数：发一次请求并返回原始 JSON 字符串
-     request_vo(...)         便捷函数：发一次请求并返回映射后的 dataclass
+     MaimaiNetClient         Client Class（textMultiplexing + Cookie text）
+     get_default_client()    Take global default client
+     request(...)            Convenience functions：Make a request and return to the original JSON String
+     request_vo(...)         Convenience functions：Send a request and return the mapped dataclass
 
-     加解密工具：aes_encrypt / aes_decrypt / deflate_compress / deflate_decompress
-     协议工具  ：obfuscate_api_name / build_api_url / adler32
+     Encryption and decryption tools：aes_encrypt / aes_decrypt / deflate_compress / deflate_decompress
+     Protocol Tools  ：obfuscate_api_name / build_api_url / adler32
 """
 
 from __future__ import annotations
@@ -116,75 +116,75 @@ from Crypto.Util.Padding import pad, unpad
 from config import CLIENT_ID, MAI_ENCODING, TIMEOUT_LONG_MS, TIMEOUT_MS
 
 # =============================================================================
-# 协议常量（原在 config.py，2026-10-06 下沉到本模块 —— 它们只服务于网络层）
+# Protocol Constants（Originally at config.py，2026-10-06 sink to this module —— They only serve the network layer）
 # =============================================================================
 
-#: 游戏服务器（Maimai2Servlet）
-#: 依据 source/Assembly-CSharp/Manager/OperationManager.cs:225,338
+#: textserver（Maimai2Servlet）
+#: Basis source/Assembly-CSharp/Manager/OperationManager.cs:225,338
 #:     _operationData.ServerUri = Auth.GameServerUri + MovieServerUri("mE2s3Jhd/")
 BASE_URL = "https://maimai-gm.wahlap.com:42081/Maimai2Servlet/mE2s3Jhd/"
 
-#: AES 参数，依据 source/Assembly-CSharp/Net/CipherAES.cs:11-12
-#:   AesKey 32 字节 -> AES-256；AesIV 16 字节
+#: AES Parameter，Basis source/Assembly-CSharp/Net/CipherAES.cs:11-12
+#:   AesKey 32 Bytes -> AES-256；AesIV 16 Bytes
 AES_KEY = b"FKM2JX:VjZNK6hc:A0<JU:i5oR7LA]9W"
 AES_IV = b"F>;24DjU9W6ZsRH["
 
-#: API 名混淆盐，依据 source/Assembly-CSharp/Net.Packet/Packet.cs:44
-#: 用法：URL 尾段 = md5(逻辑接口名 + "MaimaiChn" + OBFUSCATE_PARAM) 小写 hex
+#: API First name obfuscated salt，Basis source/Assembly-CSharp/Net.Packet/Packet.cs:44
+#: usage：URL Tail Segment = md5(textinterfaceFirst name + "MaimaiChn" + OBFUSCATE_PARAM) Lowercase hex
 OBFUSCATE_PARAM = "8bF76dE9"
 
 from .log_setup import log_debug, log_error, log_request, log_response
 
 # =============================================================================
-# 协议常量
+# Protocol Constants
 # =============================================================================
 
-#: API 名后缀（NetQuery.cs:14  Api = api + "MaimaiChn"）
+#: API First Name Suffix（NetQuery.cs:14  Api = api + "MaimaiChn"）
 API_SUFFIX = "MaimaiChn"
 
-#: HTTP 头（NetHttpClient.cs:174-190）
+#: HTTP Head（NetHttpClient.cs:174-190）
 HEADER_CONTENT_TYPE = "application/json"
 HEADER_CHARSET = "UTF-8"
 HEADER_CONTENT_ENCODING = "deflate"
 
-#: AES 参数
+#: AES Parameter
 AES_BLOCK_SIZE = 16
 
 T = TypeVar("T")
 
 
 # =============================================================================
-# 一、协议工具
+# One、Protocol Tools
 # =============================================================================
 
 def obfuscate_api_name(api_name: str) -> str:
     """
-    对逻辑接口名做 MD5 混淆，得到 URL 尾段（对应 Packet.Obfuscator）。
+    Do the name of the logical interface MD5 obfuscation，Get URL Tail Segment（Corresponding Packet.Obfuscator）。
 
-        逻辑名 "GetUserPreviewApi"  ->  "GetUserPreviewApiMaimaiChn"
-                                    ->  md5(上面 + "8bF76dE9")
+        textFirst name "GetUserPreviewApi"  ->  "GetUserPreviewApiMaimaiChn"
+                                    ->  md5(Above + "8bF76dE9")
 
-    参数：
-        api_name: 逻辑接口名，**不要**自己带 MaimaiChn 后缀
+    Parameter：
+        api_name: textinterfaceFirst name，**Don't**textBelt MaimaiChn Suffix
 
-    返回：
-        32 位小写十六进制字符串
+    returntimes：
+        32 Bits Lowercase Hexadecimal String
     """
     full_name = api_name if api_name.endswith(API_SUFFIX) else api_name + API_SUFFIX
     return hashlib.md5((full_name + OBFUSCATE_PARAM).encode("utf-8")).hexdigest()
 
 
 def build_api_url(api_name: str) -> str:
-    """构建完整的请求 URL。"""
+    """textFullofrequest URL。"""
     return urljoin(BASE_URL, obfuscate_api_name(api_name))
 
 
 def build_user_agent(api_name: str, user_id: int = 0, client_id: str = CLIENT_ID) -> str:
     """
-    构建 User-Agent（对应 NetPacketUtil.GetUserAgent）。
+    text User-Agent（Corresponding NetPacketUtil.GetUserAgent）。
 
-        userId != 0  ->  "<混淆API名>#<userId>"
-        userId == 0  ->  "<混淆API名>#<clientId>"
+        userId != 0  ->  "<obfuscationAPIFirst name>#<userId>"
+        userId == 0  ->  "<obfuscationAPIFirst name>#<clientId>"
     """
     tail = user_id if user_id else client_id
     return obfuscate_api_name(api_name) + "#" + str(tail)
@@ -192,10 +192,10 @@ def build_user_agent(api_name: str, user_id: int = 0, client_id: str = CLIENT_ID
 
 def adler32(data: bytes) -> int:
     """
-    计算 Adler-32 校验和（对应 NetHttpClient.Adler32:437-452）。
+    countcalculate Adler-32 textand（Corresponding NetHttpClient.Adler32:437-452）。
 
-    ★ 注意与 zlib.adler32 的区别：C# 端是自己实现的，
-      返回值是 (b << 16) + a，与 zlib.adler32 一致，这里保留原实现以便对照。
+    ★ noteAnd zlib.adler32 oftext：C# textistextcurrentof，
+      returntimesValue is (b << 16) + a，And zlib.adler32 Match，thisinHoldHaratextcurrentintextControl。
     """
     a = 1
     b = 0
@@ -206,33 +206,33 @@ def adler32(data: bytes) -> int:
 
 
 # =============================================================================
-# 二、加解密 / 压缩
+# Two、Encryption and decryption / Compression
 # =============================================================================
 
 def aes_encrypt(data: bytes) -> bytes:
-    """AES-256-CBC 加密（PKCS7 填充）。对应 CipherAES.Encrypt。"""
+    """AES-256-CBC Encryption（PKCS7 Fill）。Corresponding CipherAES.Encrypt。"""
     cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
     return cipher.encrypt(pad(data, AES_BLOCK_SIZE))
 
 
 def aes_decrypt(data: bytes) -> bytes:
-    """AES-256-CBC 解密（PKCS7 去填充）。对应 CipherAES.Decrypt。"""
+    """AES-256-CBC decrypt（PKCS7 Unfill）。Corresponding CipherAES.Decrypt。"""
     cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
     return unpad(cipher.decrypt(data), AES_BLOCK_SIZE)
 
 
 def deflate_compress(data: bytes) -> bytes:
     """
-    原始 deflate 压缩 + 手工拼 zlib 头与 Adler32。
+    Original deflate Compression + Spell it by hand zlib Head vs. Adler32。
 
-    对应 NetHttpClient.cs:262-300 RequestCallback：
+    Corresponding NetHttpClient.cs:262-300 RequestCallback：
         memoryStream.WriteByte(120);      // 0x78
         memoryStream.WriteByte(156);      // 0x9C
-        ... 原始 deflate 数据 ...
-        ... Adler32 大端 4 字节 ...
+        ... Original deflate data ...
+        ... Adler32 Big End 4 Bytes ...
 
-    ★ C# 的 DeflateStream 产生的是**原始 deflate**（无 zlib 头），
-      所以 Python 侧要用 compressobj(wbits=-zlib.MAX_WBITS)。
+    ★ C# of DeflateStream The result is**Original deflate**（no zlib Head），
+      So Python Side to use compressobj(wbits=-zlib.MAX_WBITS)。
     """
     compressor = zlib.compressobj(wbits=-zlib.MAX_WBITS)
     compressed = compressor.compress(data) + compressor.flush()
@@ -242,11 +242,11 @@ def deflate_compress(data: bytes) -> bytes:
 
 def deflate_decompress(data: bytes) -> bytes:
     """
-    去掉 zlib 头与 Adler32 后做原始 deflate 解压。
+    Remove zlib Head vs. Adler32 Post-primitive deflate text。
 
-    对应 NetHttpClient.cs:355-380 Decompress：
-        _temporaryStream.Position = 2;                          // 跳过 2 字节头
-        _temporaryStream.SetLength(_temporaryStream.Length - 4); // 去掉 4 字节校验
+    Corresponding NetHttpClient.cs:355-380 Decompress：
+        _temporaryStream.Position = 2;                          // skip 2 Byte header
+        _temporaryStream.SetLength(_temporaryStream.Length - 4); // Remove 4 Byte check
     """
     if len(data) < 6:
         return b""
@@ -254,11 +254,11 @@ def deflate_decompress(data: bytes) -> bytes:
 
 
 # =============================================================================
-# 三、真机时间戳
+# Three、real machinetimetext
 # =============================================================================
 
 def local_utc_offset_seconds() -> int:
-    """取本机时区相对 UTC 的偏移秒数（东八区 = +28800）。"""
+    """Take the native time zone relative UTC ofOffsetsecondsnumber（Dongba District = +28800）。"""
     offset = -time.timezone
     if time.daylight and time.localtime().tm_isdst > 0:
         offset = -time.altzone
@@ -267,35 +267,35 @@ def local_utc_offset_seconds() -> int:
 
 def login_date_time_now() -> int:
     """
-    生成真机 UserLoginApi 的 loginDateTime。
+    textreal machine UserLoginApi of loginDateTime。
 
-    ★ 真机算法（source/Assembly-CSharp/MAI2/DateTime.cs + PacketUserLogin.cs:29）：
-        MAI2.DateTime.Now 返回 DateTime.UtcNow + LocalOffset，Kind = Unspecified；
-        new DateTimeOffset(该 Unspecified 值) 会再按本地时区加一次偏移，
-        最终 ToUnixTimeSeconds() = 标准 Unix 秒 + 本地时区偏移。
+    ★ real machinecalculatetext（source/Assembly-CSharp/MAI2/DateTime.cs + PacketUserLogin.cs:29）：
+        MAI2.DateTime.Now returntimes DateTime.UtcNow + LocalOffset，Kind = Unspecified；
+        new DateTimeOffset(the Unspecified Value) will add another offset by local time zone，
+        Final ToUnixTimeSeconds() = standard Unix seconds + texttimetextOffset。
 
-      东八区即 now + 28800。
+      Eastern Eight Wards now + 28800。
 
-    ★ 为什么必须一致：
-        PacketUserLogin.cs:43 会把请求值回填进响应，
-        PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 都复用该值，
-        与登录时不一致会被服务端拒绝。
+    ★ Why it must be consistent：
+        PacketUserLogin.cs:43 will backfill the request value into the response，
+        PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 allMultiplexingtheValue，
+        Inconsistent with login will be rejected by the server。
     """
     return int(time.time()) + local_utc_offset_seconds()
 
 
 # =============================================================================
-# 四、VO 序列化 / 反序列化
+# Four、VO Serialization / Deserialization
 # =============================================================================
 
 def vo_to_json(obj: Any) -> str:
     """
-    把请求对象序列化成紧凑 JSON（对应 VOSerializer.Serialize）。
+    putrequestObjectSerializationtext JSON（Corresponding VOSerializer.Serialize）。
 
-    规则：
-        - dataclass       -> 按字段声明顺序，跳过值为 None 的字段
-        - 带 __dict__ 的对象 -> 同上
-        - dict / 其他      -> 直接 json.dumps
+    textThen：
+        - dataclass       -> pressFieldDeclarationorder，skipValuefor None ofField
+        - Belt __dict__ ofObject -> Ibid.
+        - dict / Other      -> directly json.dumps
     """
     if obj is None:
         return "{}"
@@ -312,7 +312,7 @@ def vo_to_json(obj: Any) -> str:
 
 
 def _json_default(value: Any) -> Any:
-    """json.dumps 的兜底转换：dataclass / 普通对象 -> dict。"""
+    """json.dumps ofPocket backtext：dataclass / textObject -> dict。"""
     if is_dataclass(value) and not isinstance(value, type):
         return {k: getattr(value, k) for k in value.__dataclass_fields__}
     if hasattr(value, "__dict__"):
@@ -321,7 +321,7 @@ def _json_default(value: Any) -> Any:
 
 
 def _convert_value(value: Any, target_type: Any) -> Any:
-    """按目标类型递归转换嵌套 dataclass。"""
+    """presstextReturnedtextNested dataclass。"""
     if value is None:
         return None
 
@@ -344,9 +344,9 @@ def _convert_value(value: Any, target_type: Any) -> Any:
 
 def vo_from_json(cls: Type[T], json_str: str) -> T:
     """
-    把响应 JSON 反序列化成 dataclass（对应 VOSerializer.Deserialize）。
+    putResponse JSON Deserialize to dataclass（Corresponding VOSerializer.Deserialize）。
 
-    ★ 只填充类里声明过的字段 —— 服务端多给的字段会被忽略，不会报错。
+    ★ Populate only declared fields in the class —— servertextofFieldMeetingstextIgnore，No errors。
     """
     data = json.loads(json_str)
     if not isinstance(data, dict):
@@ -367,24 +367,24 @@ def vo_from_json(cls: Type[T], json_str: str) -> T:
 
 
 # =============================================================================
-# 五、网络客户端
+# Five、networkClient
 # =============================================================================
 
 class MaimaiNetError(RuntimeError):
-    """网络层 / 协议层错误。"""
+    """networktext / Protocol Layer Error。"""
 
 
 class MaimaiNetClient:
     """
-    舞萌DX 游戏服务器客户端。
+    textDX textserverClient。
 
-    一次完整请求的流程：
+    The process of a full request：
 
-        请求方向：VO -> 紧凑 JSON -> 原始 deflate -> 0x78 0x9C + Adler32 -> AES-256-CBC -> HTTP POST
-        响应方向：HTTP Body -> AES 解密 -> 去 2 字节头 / 4 字节尾 -> deflate 解压 -> JSON -> VO
+        requesttextTowards：VO -> text JSON -> Original deflate -> 0x78 0x9C + Adler32 -> AES-256-CBC -> HTTP POST
+        Response Direction：HTTP Body -> AES decrypt -> Go 2 Byte header / 4 End of byte -> deflate text -> JSON -> VO
 
-    Cookie 由 requests.Session 自动管理；登录接口返回的 Set-Cookie 会被保存，
-    后续请求自动带上（对应 C# 的 CookieContainer，Packet.cs:183-190）。
+    Cookie by requests.Session text；logininterfacereturntimesof Set-Cookie will be saved，
+    Subsequent requests automatically bring（Corresponding C# of CookieContainer，Packet.cs:183-190）。
     """
 
     def __init__(
@@ -399,31 +399,31 @@ class MaimaiNetClient:
         self.session = requests.Session()
 
         # ---------------------------------------------------------------------
-        # ★ 对齐真机的请求头集合（2026-10-06 真机抓包实证）
+        # ★ Align request header collection of the real machine（2026-10-06 real machinetextPackageEmpirical）
         # ---------------------------------------------------------------------
-        # 真机（Unity Mono 的 HttpWebRequest）在 Headers.AllKeys 里**只有**：
+        # real machine（Unity Mono of HttpWebRequest）at Headers.AllKeys in**Only**：
         #     number / Content-Type / User-Agent / charset / Mai-Encoding /
         #     Content-Encoding / (+ Cookie)
-        # 没有 Accept，也没有 Connection。
+        # none Accept，Neither Connection。
         #
-        # 而 requests 默认会补上：
-        #     Accept: */*        <- 删掉（真机不发）
-        #     Connection: keep-alive <- 删掉（真机不发；HTTP/1.1 本来就是长连接）
-        #     Accept-Encoding    <- 删掉（真机不发），改由 _build_headers 显式置空
+        # and requests defaultMeetingstextUp：
+        #     Accept: */*        <- Delete（real machineDo not send）
+        #     Connection: keep-alive <- Delete（real machineDo not send；HTTP/1.1 textislongtext）
+        #     Accept-Encoding    <- Delete（real machineDo not send），changeby _build_headers explicittextempty
         #
-        # ★ Accept-Encoding 为什么必须**存在且为空**：
-        #     实测（GetGameSettingApi，2026-10-06）：
+        # ★ Accept-Encoding Why it must be**Exists and is empty**：
+        #     Measured（GetGameSettingApi，2026-10-06）：
         #         Accept-Encoding: ""              -> 200 + application/json（384 B）
-        #         不发该头 / "gzip, deflate" / "identity"
+        #         Don't hair the right hair / "gzip, deflate" / "identity"
         #                                          -> 200 + application/octet-stream（0 B）
-        #   所以这里从 Session 默认里删掉，再由 _build_headers 显式发一个空值。
+        #   So here from Session defaultinDelete，Then by _build_headers explicithairOneemptyValue。
         self.session.headers.pop("Accept", None)
         self.session.headers.pop("Connection", None)
         self.session.headers.pop("Accept-Encoding", None)
 
-        #: ★ number 头的值（Packet.cs:189 GameManager.PingMsec）。
-        #:   只由 **Ping 心跳包**更新（对应 PingChecker.cs:227 PingSuccess），
-        #:   普通业务请求不会改动它 —— 真机整局 53 个请求的 number 恒为 63。
+        #: ★ number Value of the header（Packet.cs:189 GameManager.PingMsec）。
+        #:   Only by **Ping Heartbeat Packet**update（Corresponding PingChecker.cs:227 PingSuccess），
+        #:   textrequestNoMeetingschangetext —— real machinetextgame 53 of requests number Constantly 63。
         self.ping_msec: int = 0
 
         if not verify_ssl:
@@ -434,7 +434,7 @@ class MaimaiNetClient:
                 pass
 
     # -------------------------------------------------------------------------
-    # 内部
+    # Internal
     # -------------------------------------------------------------------------
 
     def _build_headers(
@@ -446,9 +446,9 @@ class MaimaiNetClient:
         ping_msec: Optional[int] = None,
     ) -> Dict[str, str]:
         """
-        构建请求头（对应 NetHttpClient.Request:174-190 + Packet.ProcImpl:166-176）。
+        textrequestHead（Corresponding NetHttpClient.Request:174-190 + Packet.ProcImpl:166-176）。
 
-        ★ 关于 number 头：
+        ★ About number Head：
             source/Assembly-CSharp/Net.Packet/Packet.cs:187-194
 
                 if (!IsPingPacket())
@@ -457,47 +457,47 @@ class MaimaiNetClient:
                     if (Query.UserId != 0L) { Client.AddCookie(Query.UserId); }
                 }
 
-            即**除 Ping 外的每个接口**都会带一个 number 头，值是本机到服务器的
-            ping 毫秒数（GameManager.PingMsec）。
+            i.e.**text Ping Per Interface Outside**allMeetingsBeltOne number Head，Value is native to server
+            ping textsecondsnumber（GameManager.PingMsec）。
 
-        ★ number 的来源（源码链路，逐条可查）：
+        ★ number oftext（source codetext，textitemtextcheck）：
             Main/PingChecker.cs:166   StartPacket(new PacketPing(PingSuccess, PingError))
             Net.Packet.Mai2/PacketPing.cs:34
                                       _onDone((int)sw.ElapsedMilliseconds)
-                                      → 值 = **Ping 包的往返毫秒**
+                                      → Value = **Ping Packet round trip in milliseconds**
             Main/PingChecker.cs:227   GameManager.PingMsec = pingMsec
 
-            所以 number **只由 Ping 心跳刷新**，普通业务请求不会改它。
-            实测（gamehook 抓真机一局 70 个请求）：
-                #1  ~ #10   number = 0     ← 还没跑过 Ping
-                #11 ~ #17   Ping 心跳（不带 number 头）
-                #18 ~ #70   number = 63    ← Ping 往返 63ms，此后恒定
-            本类在 request() 里对 Ping 包做同样的事：把往返毫秒写进 self.ping_msec。
+            So number **Only by Ping Heartbeat Refresh**，textrequestNoMeetingschangetext。
+            Measured（gamehook textreal machineOnegame 70 requests）：
+                #1  ~ #10   number = 0     ← text Ping
+                #11 ~ #17   Ping Heartbeat（Without number Head）
+                #18 ~ #70   number = 63    ← Ping Round trip 63ms，textAfterHengtext
+            textat request() inYes. Ping to do the same thing.：putRound triptextsecondstext self.ping_msec。
 
-        ★ 关于 Cookie（Packet.cs:190-193 + 228-234）：
-            Client.AddCookie(Query.UserId) 把「登录时服务端 Set-Cookie 存下来的
-            CookieContainer」挂到本次请求上（NetHttpClient.cs:170-177）。
+        ★ About Cookie（Packet.cs:190-193 + 228-234）：
+            Client.AddCookie(Query.UserId) put「logintimeserver Set-Cookie Saved
+            CookieContainer」texttotextrequestUp（NetHttpClient.cs:170-177）。
 
-            ★ 实测 **UserLoginApi 的响应头里确实有**：
+            ★ Measured **UserLoginApi ofResponse headerintexthas**：
                 Set-Cookie: JSESSIONID=FC9D0F122F7F24A522CD623BA3B76B74; Path=/Maimai2Servlet; HttpOnly
-              而 Ping 等接口的响应头里没有 Set-Cookie（只有 Date / Content-Type /
+              and Ping etcinterfaceofResponse headerinnone Set-Cookie（Only Date / Content-Type /
               Content-Length / Connection / Pragma / Cache-Control）。
-              所以「登录前没有 Cookie、登录后一直带着 JSESSIONID」正是真机行为。
+              So「loginagonone Cookie、loginAfterOnetextBelttext JSESSIONID」currentisreal machinetextfor。
 
-            Cookie 由 requests.Session 自动管理：收到就存、后续自动带 —— 无需额外代码，
-            但**必须全程复用同一个 MaimaiNetClient**，否则会丢掉 JSESSIONID。
+            Cookie by requests.Session text：receivetotext、Subsequent automatic tape —— notextCode，
+            But**Must reuse the same throughout MaimaiNetClient**，Otherwise, it will be discarded. JSESSIONID。
         """
         headers = {
             "Content-Type": HEADER_CONTENT_TYPE,
             "charset": HEADER_CHARSET,
             "Mai-Encoding": MAI_ENCODING,
             "User-Agent": build_user_agent(api_name, user_id, client_id),
-            # ★ 必须显式置空，见模块 docstring 第二节
+            # ★ Must be explicitly empty，text docstring numberTwotext
             "Accept-Encoding": "",
         }
         if has_body:
             headers["Content-Encoding"] = HEADER_CONTENT_ENCODING
-        # ★ number 头（Packet.cs:189）：除 Ping 外的接口都要带
+        # ★ number Head（Packet.cs:189）：text Ping External interfaces must be
         if not api_name.startswith("Ping"):
             value = self.ping_msec if ping_msec is None else ping_msec
             headers["number"] = str(int(value))
@@ -505,19 +505,19 @@ class MaimaiNetClient:
 
     @property
     def last_ping_msec(self) -> int:
-        """number 头的当前值（= 最近一次 Ping 的往返毫秒）。兼容旧字段名。"""
+        """number Current value of the header（= Last Ping ofRound triptextseconds）。Compatible with old field names。"""
         return self.ping_msec
 
     def _encrypt_request(self, json_str: str) -> bytes:
-        """JSON -> deflate(zlib头+Adler32) -> AES。"""
+        """JSON -> deflate(zlibHead+Adler32) -> AES。"""
         return aes_encrypt(deflate_compress(json_str.encode("utf-8")))
 
     def _decrypt_response(self, encrypted: bytes) -> str:
-        """AES -> 去头尾 -> deflate -> UTF-8 字符串。"""
+        """AES -> Go to head and tail -> deflate -> UTF-8 String。"""
         return deflate_decompress(aes_decrypt(encrypted)).decode("utf-8")
 
     # -------------------------------------------------------------------------
-    # 公开
+    # Public
     # -------------------------------------------------------------------------
 
     def request(
@@ -531,21 +531,21 @@ class MaimaiNetClient:
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> str:
         """
-        发送一次请求，返回**原始 JSON 响应字符串**。
+        Send a request once，returntimes**Original JSON Response string**。
 
-        参数：
-            api_name:      逻辑接口名（如 "GetUserPreviewApi"，不要带 MaimaiChn）
-            request_vo:    请求体对象（dataclass / dict / None 表示空对象 {}）
-            user_id:       用户 ID（0 表示未登录请求；影响 User-Agent 与 Cookie）
-            client_id:     客户端 ID
-            timeout_ms:    超时覆盖（毫秒）
-            extra_headers: 额外请求头（如 number）
+        Parameter：
+            api_name:      textinterfaceFirst name（As "GetUserPreviewApi"，Do not bring MaimaiChn）
+            request_vo:    request bodyObject（dataclass / dict / None textemptyObject {}）
+            user_id:       user ID（0 textnotloginrequest；Impact User-Agent And Cookie）
+            client_id:     Client ID
+            timeout_ms:    texttimeoverwrite（textseconds）
+            extra_headers: textrequestHead（As number）
 
-        返回：
-            响应 JSON 字符串
+        returntimes：
+            Response JSON String
 
-        异常：
-            MaimaiNetError: 网络异常 / 空响应 / 解密或解压失败
+        Exceptions：
+            MaimaiNetError: networkExceptions / emptyResponse / decryptortextFailed
         """
         url = urljoin(self.base_url, obfuscate_api_name(api_name))
         timeout = (timeout_ms or self.timeout * 1000) / 1000.0
@@ -557,7 +557,7 @@ class MaimaiNetClient:
         if extra_headers:
             headers.update(extra_headers)
 
-        # ★ DEBUG 模式：记录「向 api 发送的数据」
+        # ★ DEBUG mode：record「Towards api Data sent」
         log_request(url=url, body=request_json, headers=headers, api_name=api_name)
 
         t0 = time.monotonic()
@@ -570,25 +570,25 @@ class MaimaiNetClient:
                 verify=self.verify_ssl,
             )
         except requests.exceptions.RequestException as exc:
-            log_error("接口 " + api_name + " 请求失败：" + str(exc))
-            raise MaimaiNetError("接口 " + api_name + " 请求失败：" + str(exc)) from exc
+            log_error("interface " + api_name + " requestFailed：" + str(exc))
+            raise MaimaiNetError("interface " + api_name + " requestFailed：" + str(exc)) from exc
 
         elapsed_ms = int((time.monotonic() - t0) * 1000)
-        # ★ 只有 Ping 包会刷新 number（对应 PingChecker.cs:224-229 PingSuccess）。
-        #   普通业务包不动它，否则 number 会随每个包的耗时抖动，与真机不符。
+        # ★ Only Ping Package will refresh number（Corresponding PingChecker.cs:224-229 PingSuccess）。
+        #   textPackageimmovabletext，Otherwise number will jitter with the time consuming of each packet，Does not match the real machine。
         if api_name.startswith("Ping"):
             self.ping_msec = elapsed_ms
         content = response.content
 
-        # 0 字节响应：请求未进入业务层
+        # 0 Byte response：requestnottext
         if len(content) == 0:
             detail = (
-                "接口 " + api_name + " 返回 HTTP " + str(response.status_code)
-                + "，响应体为 0 字节（空响应）。\n"
-                "  含义：服务端没有返回任何内容，请求很可能未进入业务层。\n"
-                "  排查：userId/token 是否有效、接口名与请求体字段是否与源码一致、"
-                "Accept-Encoding 是否被置空。\n"
-                "  响应头：" + repr(dict(response.headers))
+                "interface " + api_name + " returntimes HTTP " + str(response.status_code)
+                + "，Response body is 0 Bytes（emptyResponse）。\n"
+                "  Meaning：servernonereturntimesAnyContent，requesttextcannottext。\n"
+                "  textcheck：userId/token isNohastext、interfaceFirst nameAndrequest bodyFieldisNoAndsource codeMatch、"
+                "Accept-Encoding isNotextempty。\n"
+                "  Response header：" + repr(dict(response.headers))
             )
             log_error(detail)
             raise MaimaiNetError(detail)
@@ -597,33 +597,33 @@ class MaimaiNetClient:
             response_json = self._decrypt_response(content)
         except ValueError as exc:
             detail = (
-                "接口 " + api_name + " 响应解密失败（HTTP " + str(response.status_code)
-                + "，body " + str(len(content)) + " 字节）：" + str(exc) + "\n"
-                "  含义：服务器返回了内容，但不是合法的 AES 密文，或长度不是 16 的倍数。"
+                "interface " + api_name + " Response decryption failed（HTTP " + str(response.status_code)
+                + "，body " + str(len(content)) + " Bytes）：" + str(exc) + "\n"
+                "  Meaning：serverreturntimestextContent，But not legally. AES Ciphertext，or length is not 16 oftimesnumber。"
             )
             log_error(detail)
             raise MaimaiNetError(detail) from exc
         except zlib.error as exc:
             detail = (
-                "接口 " + api_name + " 响应解压失败（HTTP " + str(response.status_code)
-                + "，body " + str(len(content)) + " 字节）：" + str(exc) + "\n"
-                "  含义：AES 解密成功但 deflate 解压失败，响应不是预期的压缩格式"
-                "（可能是网关/防火墙返回的页面）。"
+                "interface " + api_name + " Response decompression failed（HTTP " + str(response.status_code)
+                + "，body " + str(len(content)) + " Bytes）：" + str(exc) + "\n"
+                "  Meaning：AES decryptSuccessBut deflate textFailed，Response is not in the expected compression format"
+                "（Probably a gateway/textreturntimesoftext）。"
             )
             log_error(detail)
             raise MaimaiNetError(detail) from exc
 
         if not response_json:
             detail = (
-                "接口 " + api_name + " 返回空明文（HTTP " + str(response.status_code)
-                + "，密文 " + str(len(content)) + " 字节，解密后为空串）。\n"
-                "  含义：链路与加密都正常，但服务端没有返回内容。\n"
-                "  排查：userId / token 是否失效、keychip 与该卡是否匹配、该卡是否正在游戏中。"
+                "interface " + api_name + " returntimesemptytext（HTTP " + str(response.status_code)
+                + "，Ciphertext " + str(len(content)) + " Bytes，decryptAfteris an empty string）。\n"
+                "  Meaning：textAndEncryptionallcurrenttext，But the server did not return any content。\n"
+                "  textcheck：userId / token isNotext、keychip Match with this card?、thetextisNocurrentattext。"
             )
             log_error(detail)
             raise MaimaiNetError(detail)
 
-        # ★ DEBUG 模式：记录「api 返回的数据」
+        # ★ DEBUG mode：record「api returntimesofdata」
         try:
             shown_body: Any = json.loads(response_json)
         except Exception:
@@ -649,7 +649,7 @@ class MaimaiNetClient:
         timeout_ms: Optional[int] = None,
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> T:
-        """发送请求并把响应映射成 dataclass。"""
+        """Send request and map response to dataclass。"""
         raw = self.request(
             api_name, request_vo,
             user_id=user_id, client_id=client_id,
@@ -668,10 +668,10 @@ class MaimaiNetClient:
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
-        发送请求并返回**原始响应 dict**。
+        Send request and go back**Raw Response dict**。
 
-        ★ 取数脚本一律用这个：upsertUserAll 需要响应原文，
-          映射成 dataclass 会丢掉服务端多给的字段。
+        ★ Use this for all sampling scripts：upsertUserAll needResponse original text，
+          text dataclass Will lose the fields given by the server。
         """
         raw = self.request(
             api_name, request_vo,
@@ -682,7 +682,7 @@ class MaimaiNetClient:
         return data if isinstance(data, dict) else {"_data": data}
 
     def close(self) -> None:
-        """关闭底层会话。"""
+        """Close the underlying session。"""
         try:
             self.session.close()
         except Exception:
@@ -696,14 +696,14 @@ class MaimaiNetClient:
 
 
 # =============================================================================
-# 六、全局默认客户端
+# Sat、Global Default Client
 # =============================================================================
 
 _default_client: Optional[MaimaiNetClient] = None
 
 
 def get_default_client() -> MaimaiNetClient:
-    """获取（必要时创建）全局默认客户端 —— 连接与 Cookie 会自动复用。"""
+    """getTake（Create if necessary）Global Default Client —— textAnd Cookie will be automatically reused。"""
     global _default_client
     if _default_client is None:
         _default_client = MaimaiNetClient()
@@ -711,7 +711,7 @@ def get_default_client() -> MaimaiNetClient:
 
 
 def close_default_client() -> None:
-    """关闭全局默认客户端（一般不需要手动调用）。"""
+    """Turn off global default client（Manual calls are generally not required）。"""
     global _default_client
     if _default_client is not None:
         _default_client.close()
@@ -728,7 +728,7 @@ def request(
     client: Optional[MaimaiNetClient] = None,
     extra_headers: Optional[Dict[str, str]] = None,
 ) -> str:
-    """便捷函数：用默认客户端发一次请求，返回原始 JSON 字符串。"""
+    """Convenience functions：usedefaultClientSend a request，returntimesOriginal JSON String。"""
     net = client or get_default_client()
     return net.request(
         api_name, request_vo,
@@ -747,7 +747,7 @@ def request_dict(
     client: Optional[MaimaiNetClient] = None,
     extra_headers: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
-    """便捷函数：用默认客户端发一次请求，返回原始响应 dict。"""
+    """Convenience functions：usedefaultClientSend a request，returntimesRaw Response dict。"""
     net = client or get_default_client()
     return net.request_dict(
         api_name, request_vo,
@@ -767,7 +767,7 @@ def request_vo(
     client: Optional[MaimaiNetClient] = None,
     extra_headers: Optional[Dict[str, str]] = None,
 ) -> T:
-    """便捷函数：用默认客户端发一次请求，返回映射后的 dataclass。"""
+    """Convenience functions：usedefaultClientSend a request，returntimestextAfterof dataclass。"""
     net = client or get_default_client()
     return net.request_vo(
         api_name, request_vo, response_cls,
@@ -777,44 +777,44 @@ def request_vo(
 
 
 # =============================================================================
-# 七、通用请求 / 响应 VO
+# Seven、textuserequest / Response VO
 # =============================================================================
 
 @dataclass
 class EmptyRequestVO:
-    """空请求体 —— 对应 C# 里没有任何字段的 RequestVO（如 PingRequestVO）。"""
+    """emptyrequest body —— Corresponding C# innoneAnyField RequestVO（As PingRequestVO）。"""
 
 
 @dataclass
 class UserIdRequestVO:
-    """只有 userId 的请求体（对应 UserDetailRequestVO / UserCharacterRequestVO 等）。"""
+    """Only userId ofrequest body（Corresponding UserDetailRequestVO / UserCharacterRequestVO etc）。"""
     userId: int
 
 
 @dataclass
 class ReturnCodeVO:
-    """通用「只有 returnCode」的响应体。"""
+    """textuse「Only returnCode」ofResponse body。"""
     returnCode: int = 0
 
 
 # =============================================================================
-# 单独运行：协议自检（不发业务请求）
+# Run separately：Protocol Self-Test（Do not send a business request）
 # =============================================================================
 
 if __name__ == "__main__":
-    print("=== maimai_net 协议自检 ===")
+    print("=== maimai_net Protocol Self-Test ===")
     print("BASE_URL          :", BASE_URL)
     print("GetGameSettingApi :", build_api_url("GetGameSettingApi"))
-    print("  期望尾段         : 83a5d5a20b062c5c2ad817460b8f7f76")
-    print("User-Agent 示例   :", build_user_agent("UserLoginApi", 12345678))
+    print("  textTail Segment         : 83a5d5a20b062c5c2ad817460b8f7f76")
+    print("User-Agent textExample   :", build_user_agent("UserLoginApi", 12345678))
 
     sample = '{"userId":12345678,"token":"abc"}'
     packed = deflate_compress(sample.encode("utf-8"))
-    print("deflate 头/尾     :", packed[:2].hex(), packed[-4:].hex(),
+    print("deflate Head/Tail     :", packed[:2].hex(), packed[-4:].hex(),
           " Adler32 =", hex(adler32(sample.encode("utf-8"))))
     assert deflate_decompress(packed).decode("utf-8") == sample
 
     enc = aes_encrypt(packed)
     assert aes_decrypt(enc) == packed
-    print("AES 往返           : OK（密文", len(enc), "字节，16 的倍数：", len(enc) % 16 == 0, "）")
-    print("自检通过")
+    print("AES Round trip           : OK（Ciphertext", len(enc), "Bytes，16 oftimesnumber：", len(enc) % 16 == 0, "）")
+    print("text")

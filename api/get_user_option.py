@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-get_user_option.py —— 取用户游戏设置（GetUserOptionApi）
+get_user_option.py —— Fetch User Game Settings（GetUserOptionApi）
 ================================================================================
 
-取玩家的音符速度、判定显示、音量等游戏内设置（48 个字段）。
+Take player's note speed、Decision Display、textetctext（48 fields）。
 
-对应接口：GetUserOptionApi
-请求体  ：UserIdRequestVO
-响应    ：userOption 的字段直接平铺在响应顶层
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserOptionRequestVO.cs
+Corresponding interface：GetUserOptionApi
+request body  ：UserIdRequestVO
+Response    ：userOption ofFielddirectlyTileatResponsetop-level
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserOptionRequestVO.cs
 
-    ★ 形态提醒：Get 侧响应是**平铺**的（顶层直接就是 optionKind/noteSpeed/...），
-      而回传 Upsert 时要包成单元素数组 userOption:[{...}]。
-      裁剪时要丢掉 tempoVolume（真机 Upsert 报文里没有这个字段）。
+    ★ Form Alerts：Get The side response is**Tile**of（top-leveldirectlyis optionKind/noteSpeed/...），
+      andCallback Upsert timemustPackagetextArray of elements userOption:[{...}]。
+      texttimemustDiscard tempoVolume（real machine Upsert packetinnonethisfields）。
 
-调用示例：
+call exampleExample：
     from api import GetUserOption
 """
 
@@ -37,11 +37,11 @@ def GetUserOption(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户游戏设置（对应 GetUserOptionApi）。
+    Fetch User Game Settings（Corresponding GetUserOptionApi）。
 
-    返回：
-        原始响应 dict，设置字段平铺在顶层
+    returntimes：
+        Raw Response dict，textFieldTileattop-level
     """
-    log_info("取用户游戏设置：user_id=" + str(user_id))
+    log_info("Fetch User Game Settings：user_id=" + str(user_id))
     return _get("GetUserOptionApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

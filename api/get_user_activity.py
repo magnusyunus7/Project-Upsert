@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-get_user_activity.py —— 取用户活动记录（GetUserActivityApi）
+get_user_activity.py —— Pick up user activity records（GetUserActivityApi）
 ================================================================================
 
-取玩家的活动/成就记录（playList 与 musicList 两个列表）。
+Pick a player's activity/Achievement Record（playList And musicList Two Lists）。
 
-对应接口：GetUserActivityApi
-请求体  ：UserIdRequestVO
-响应    ：{userActivity:{playList:[...], musicList:[...]}}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserActivityRequestVO.cs
+Corresponding interface：GetUserActivityApi
+request body  ：UserIdRequestVO
+Response    ：{userActivity:{playList:[...], musicList:[...]}}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserActivityRequestVO.cs
 
-★ 形状特例（36 个 Upsert 节点里唯一一个 Get 与 Upsert 形状不同的）：
-    Get 侧  ：单个对象 userActivity = {playList, musicList}
-    Upsert 侧：**单元素数组** userActivityList = [ {playList, musicList} ]
-    不是把两个数组首尾相接摊平。
+★ Shape Exceptions（36 Piece Upsert nodesinUniqueOne Get And Upsert different shapes）：
+    Get Side  ：Single Object userActivity = {playList, musicList}
+    Upsert Side：**Array of elements** userActivityList = [ {playList, musicList} ]
+    Instead of spreading the two arrays end to end,。
 
-调用示例：
+call exampleExample：
     from api import GetUserActivity
 """
 
@@ -38,11 +38,11 @@ def GetUserActivity(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户活动记录（对应 GetUserActivityApi）。
+    Pick up user activity records（Corresponding GetUserActivityApi）。
 
-    返回：
-        原始响应 dict，含 userActivity 子对象
+    returntimes：
+        Raw Response dict，Contains userActivity Child Objects
     """
-    log_info("取用户活动记录：user_id=" + str(user_id))
+    log_info("Pick up user activity records：user_id=" + str(user_id))
     return _get("GetUserActivityApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

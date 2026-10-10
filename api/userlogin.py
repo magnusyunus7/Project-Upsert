@@ -1,40 +1,40 @@
 # -*- coding: utf-8 -*-
 """
-userlogin.py —— 用户正式登录（UserLoginApi）
+userlogin.py —— usercurrenttextlogin（UserLoginApi）
 ================================================================================
 
-功能：创建登录会话，返回 loginId / loginDateTime / 登录天数统计。
-      loginId 与 loginDateTime 是后续结算上报与登出的**必需输入**。
+Features：Create Login Session，returntimes loginId / loginDateTime / logindaysnumbersystemcount。
+      loginId And loginDateTime isFollow-upsettlementEscalationsAndlogoutof**Required**。
 
-对应接口：UserLoginApi
-请求体  ：10 个字段，见 source/Assembly-CSharp/Net.VO.Mai2/UserLoginRequestVO.cs
+Corresponding interface：UserLoginApi
+request body  ：10 fields，text source/Assembly-CSharp/Net.VO.Mai2/UserLoginRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketUserLogin.cs:21-31
-响应    ：UserLoginResponseVO（returnCode=1 表示成功）
+Response    ：UserLoginResponseVO（returnCode=1 textSuccess）
 
 --------------------------------------------------------------------------------
-★ 关于 loginDateTime（与后续接口强相关，务必理解）
+★ About loginDateTime（Strong correlation with subsequent interfaces，It's important to understand）
 --------------------------------------------------------------------------------
-    真机取的是「本地墙上时间被当作 UTC 时刻」的秒数，即
+    real machineTake is「textWall TimetextWhentext UTC time」ofsecondsnumber，i.e.
 
-        loginDateTime = 标准 Unix 时间戳 + 本地时区偏移
+        loginDateTime = standard Unix timetext + texttimetextOffset
 
-    东八区即 now + 28800。
+    Eastern Eight Wards now + 28800。
 
-    成因：MAI2.DateTime.cs 里 DateTime.UtcNow + LocalOffset 得到 Kind=Unspecified
-          的值，PacketUserLogin.cs:29 再用 new DateTimeOffset(该值) 又加一次本地偏移。
+    Causes：MAI2.DateTime.cs in DateTime.UtcNow + LocalOffset Get Kind=Unspecified
+          ofValue，PacketUserLogin.cs:29 Reuse new DateTimeOffset(theValue) Add another local offset。
 
-    影响：PacketUserLogin.cs:43 会把请求值回填响应；
-          PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 都复用该值，
-          与登录时不一致会被服务端拒绝。
+    Impact：PacketUserLogin.cs:43 will backfill the response with the requested value；
+          PacketUpsertUserAll.cs:31 / PacketUserLogout.cs:29 allMultiplexingtheValue，
+          Inconsistent with login will be rejected by the server。
 
-    本模块默认按真机算法生成；需要手动指定时传 login_date_time。
+    textdefaultpressreal machinecalculatetext；needtextspecifiedtimePassing on login_date_time。
 
-★ 关于 dateTime 与 loginDateTime 的区别
-    dateTime     = ALL.Net 认证时刻（Auth.AuthTime，标准 Unix 秒）
-    loginDateTime= 本次登录时刻（上面的特殊算法）
-    两者都出现在 UserLoginRequestVO 里，但只有 loginDateTime 会被后续接口复用。
+★ About dateTime And loginDateTime oftext
+    dateTime     = ALL.Net texttime（Auth.AuthTime，standard Unix seconds）
+    loginDateTime= textlogintime（Special algorithm above）
+    Both appear in the UserLoginRequestVO in，But only loginDateTime Will be multiplexed by subsequent interfaces。
 
-调用示例：
+call exampleExample：
     from api import UserLogin
     login = UserLogin(12345678, "TESTTOKEN0000000000", region_id=1, place_id=1000)
     print(login.loginId, login.loginDateTime)
@@ -59,7 +59,7 @@ from .maimai_net import (
 
 @dataclass
 class UserLoginRequestVO:
-    """请求 VO（对应 UserLoginRequestVO，字段顺序照 C# 声明）。"""
+    """request VO（Corresponding UserLoginRequestVO，Field order photo C# Declaration）。"""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -75,14 +75,14 @@ class UserLoginRequestVO:
 @dataclass
 class UserLoginResponseVO:
     """
-    响应 VO（对应 UserLoginResponseVO）。
+    Response VO（Corresponding UserLoginResponseVO）。
 
-    ★ 后两个字段是**客户端回填**的，服务端不返回：
-        loginDateTime —— PacketUserLogin.cs:43 用请求值回填，
-                         UpsertUserAll / UserLogout 都复用它
-        dateTime      —— 本次请求发出的 ALL.Net 认证时刻，
-                         UpsertUserAll 的 userData.dateTime 要用它
-                         （真机 source/2026-10-05.log:123 两处都是 1791134329）
+    ★ The last two fields are**Client Backfill**of，serverNoreturntimes：
+        loginDateTime —— PacketUserLogin.cs:43 userequestValueBackfill，
+                         UpsertUserAll / UserLogout allMultiplexingtext
+        dateTime      —— textrequesthairoutof ALL.Net texttime，
+                         UpsertUserAll of userData.dateTime mustusetext
+                         （real machine source/2026-10-05.log:123 Both 1791134329）
     """
     returnCode: int = 0
     lastLoginDate: str = ""
@@ -110,30 +110,30 @@ def UserLogin(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserLoginResponseVO:
     """
-    用户正式登录（创建登录会话）。
+    usercurrenttextlogin（Create Login Session）。
 
-    参数：
-        user_id:         用户 ID（必填）
-        token:           会话令牌（必填，来自 ParseQRCode）
-        access_code:     访问码（可选，通常为空）
-        region_id:       区域 ID（可选，默认 config.REGION_ID）
-        place_id:        店铺 ID（可选，默认 config.PLACE_ID）
-        client_id:       机台短值（可选）
-        is_continue:     是否续玩（可选）
-        generic_flag:    通用标志位（可选）
-        date_time:       ALL.Net 认证时刻（可选，默认当前 Unix 秒）
-        login_date_time: 本次登录时刻（可选，默认按真机算法生成）
-        timeout_ms:      超时毫秒（可选，默认 60 秒）
-        client:          可复用的 MaimaiNetClient（可选）
+    Parameter：
+        user_id:         user ID（Required）
+        token:           Session Token（Required，text ParseQRCode）
+        access_code:     text（Optional，textIs Empty）
+        region_id:       Area ID（Optional，default config.REGION_ID）
+        place_id:        Store ID（Optional，default config.PLACE_ID）
+        client_id:       machineStageshortValue（Optional）
+        is_continue:     isNocontinuetext（Optional）
+        generic_flag:    textusetextBit（Optional）
+        date_time:       ALL.Net texttime（Optional，defaultCurrent Unix seconds）
+        login_date_time: textlogintime（Optional，defaultpressreal machinecalculatetext）
+        timeout_ms:      timeout milliseconds（Optional，default 60 seconds）
+        client:          Reusable MaimaiNetClient（Optional）
 
-    返回：
-        UserLoginResponseVO（loginDateTime 已按真机行为回填）
+    returntimes：
+        UserLoginResponseVO（loginDateTime Backfilled according to real machine behavior）
 
-    异常：
+    Exceptions：
         RuntimeError: returnCode != 1
     """
     log_info(
-        "用户正式登录：user_id=" + str(user_id)
+        "usercurrenttextlogin：user_id=" + str(user_id)
         + " region_id=" + str(region_id) + " place_id=" + str(place_id)
     )
 
@@ -144,8 +144,8 @@ def UserLogin(
         login_date_time = login_date_time_now()
 
     log_debug(
-        "时间戳：dateTime=" + str(date_time) + " loginDateTime=" + str(login_date_time)
-        + "（本地时区偏移 " + str(local_utc_offset_seconds()) + " 秒）"
+        "timetext：dateTime=" + str(date_time) + " loginDateTime=" + str(login_date_time)
+        + "（texttimetextOffset " + str(local_utc_offset_seconds()) + " seconds）"
     )
 
     raw = request_dict(
@@ -170,22 +170,22 @@ def UserLogin(
     resp = UserLoginResponseVO(**{k: v for k, v in raw.items() if k in known})
 
     if resp.returnCode != 1:
-        msg = "登录失败：returnCode=" + str(resp.returnCode)
+        msg = "loginFailed：returnCode=" + str(resp.returnCode)
         log_error(msg)
         raise RuntimeError(msg)
 
-    # ★ 回填 loginDateTime（对应 PacketUserLogin.cs:43）
-    #   服务端不返回该字段，客户端用请求值回填；后续 UpsertUserAll / UserLogout 复用。
+    # ★ Backfill loginDateTime（Corresponding PacketUserLogin.cs:43）
+    #   serverNoreturntimestheField，Client backfill with request value；Follow-up UpsertUserAll / UserLogout Multiplexing。
     if not resp.loginDateTime:
         resp.loginDateTime = login_date_time
-        log_debug("服务端未返回 loginDateTime，按真机行为回填为 " + str(login_date_time))
+        log_debug("servernotreturntimes loginDateTime，pressreal machinetextforBackfillfor " + str(login_date_time))
 
-    # ★ 回填 dateTime：本次请求实际发出的 ALL.Net 认证时刻。
-    #   UpsertUserAll 的 userData.dateTime 要用它（真机两处一致）。
+    # ★ Backfill dateTime：textrequestActualhairoutof ALL.Net texttime。
+    #   UpsertUserAll of userData.dateTime mustusetext（real machinetextplaceMatch）。
     resp.dateTime = date_time
 
     log_info(
-        "用户登录成功：loginId=" + str(resp.loginId)
+        "userloginSuccess：loginId=" + str(resp.loginId)
         + " loginDateTime=" + str(resp.loginDateTime)
         + " dateTime=" + str(resp.dateTime)
         + " lastLoginDate=" + resp.lastLoginDate
@@ -204,7 +204,7 @@ if __name__ == "__main__":
         setup_logging("userlogin_test")
         try:
             if len(sys.argv) < 3:
-                print("用法: python -m api.userlogin <user_id> <token> [region_id] [place_id]")
+                print("usage: python -m api.userlogin <user_id> <token> [region_id] [place_id]")
                 return 1
             rid = int(sys.argv[3]) if len(sys.argv) > 3 else REGION_ID
             pid = int(sys.argv[4]) if len(sys.argv) > 4 else PLACE_ID
@@ -214,7 +214,7 @@ if __name__ == "__main__":
                 print("   " + name.ljust(24) + "= " + str(getattr(lg, name)))
             return 0
         except Exception as exc:
-            log_error("用户登录失败：" + str(exc))
+            log_error("userloginFailed：" + str(exc))
             return 1
         finally:
             teardown_logging()

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""舞萌DX 谱面达成率 / DX 分计算器。
+"""textDX chartachievement rate / DX Minutes Calculator。
 
-正向：给 谱面 + 各判定数量 -> 算达成率与 DX 分
-反向：给 谱面 + 目标达成率   -> 倒算所有可行的判定组合与 DX 分
+currentTowards：text chart + Number of each decision -> calculateachievement rateAnd DX Minutes
+Reverse：text chart + textachievement rate   -> Reverse all feasible decision combinations vs. DX Minutes
 
-只依赖 Python 标准库。
+Depends only Python standardLibrary。
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from score import (DX_PER, JUDGE_LABEL, JUDGMENTS, Theory, dx_score,
                    reference_achievement, solve_forward, solve_reverse,
                    theory_from_chart)
 
-try:  # 中文输出到管道时避免 UnicodeEncodeError
+try:  # Avoid when exporting Chinese to the pipeline UnicodeEncodeError
     sys.stdout.reconfigure(errors="replace")
     sys.stderr.reconfigure(errors="replace")
 except Exception:  # noqa: BLE001
@@ -40,13 +40,13 @@ def pct(value) -> str:
 
 
 def die(msg: str, code: int = 2) -> "None":
-    print("[错误] " + msg, file=sys.stderr)
+    print("[error] " + msg, file=sys.stderr)
     raise SystemExit(code)
 
 
-# --------------------------------------------------------------- 载入谱面
+# --------------------------------------------------------------- textchart
 def _enrich(chart: Chart, path: str) -> Chart:
-    """从同目录的 Music.xml 补全曲名 / 难度 / 等级（拿不到就跳过）。"""
+    """From the same directory as Music.xml textFulltextFirst name / difficulty / level（textNototextskip）。"""
     base = os.path.basename(path)
     stem = os.path.splitext(base)[0]
     if "_" in stem:
@@ -76,7 +76,7 @@ def _enrich(chart: Chart, path: str) -> Chart:
 def load_from_file(path: str) -> Chart:
     path = os.path.abspath(os.path.expanduser(path))
     if not os.path.isfile(path):
-        die("谱面文件不存在：%s" % path)
+        die("chartfileAbsent：%s" % path)
     return _enrich(parse_ma2(path), path)
 
 
@@ -88,8 +88,8 @@ def load_from_game(game_path: str, music_id: int, difficulty: int) -> Chart:
         hint = ""
         if os.path.isdir(alt):
             have = sorted(f for f in os.listdir(alt) if f.lower().endswith(".ma2"))
-            hint = "；该曲目现有谱面：" + (", ".join(have) if have else "无")
-        die("找不到谱面：%s%s" % (path, hint))
+            hint = "；thetrackcurrenthaschart：" + (", ".join(have) if have else "no")
+        die("findNotochart：%s%s" % (path, hint))
     chart = parse_ma2(path)
     chart.music_id = music_id
     chart.difficulty_index = difficulty
@@ -100,58 +100,58 @@ def load_from_game(game_path: str, music_id: int, difficulty: int) -> Chart:
     return chart
 
 
-# ------------------------------------------------------------------ 展示
+# ------------------------------------------------------------------ Showcase
 def print_chart(chart: Chart, th: Theory) -> None:
     print(LINE)
-    print("谱面")
-    print("  文件      %s" % chart.path)
+    print("chart")
+    print("  file      %s" % chart.path)
     if chart.song_name:
-        print("  曲目      %s" % chart.song_name)
+        print("  track      %s" % chart.song_name)
     if chart.music_id is not None:
-        print("  编号      %d" % chart.music_id)
+        print("  text      %d" % chart.music_id)
     if chart.difficulty_name:
-        print("  难度      %s (%d)" % (chart.difficulty_name.upper(),
+        print("  difficulty      %s (%d)" % (chart.difficulty_name.upper(),
                                        chart.difficulty_index if chart.difficulty_index is not None else 0))
     if chart.level_text:
-        print("  等级      %s" % chart.level_text)
+        print("  level      %s" % chart.level_text)
     parts = []
     for g in GROUP_ORDER:
         n = th.counts.get(g, 0)
         if n:
             parts.append("%s %d" % (GROUP_LABEL[g], n))
-    print("  音符      %s" % " · ".join(parts))
-    print("  合计      %d 个计分音符" % th.total_notes)
+    print("  note      %s" % " · ".join(parts))
+    print("  Total      %d score notes" % th.total_notes)
     if chart.connect_count:
-        print("            （另有 %d 个接续滑条节点，不计分）" % chart.connect_count)
-    bonus = "  +  绝赞奖励 %d" % th.break_bonus_score if th.break_bonus_score else ""
-    print("  理论分    %d%s" % (th.all_perfect_score, bonus))
-    print("  理论DX    %d" % th.max_dx)
-    print("  满分      %s" % pct(th.max_achievement))
+        print("            （There is another %d connected slider nodes，No score）" % chart.connect_count)
+    bonus = "  +  critical perfectRewards %d" % th.break_bonus_score if th.break_bonus_score else ""
+    print("  theoreticalMinutes    %d%s" % (th.all_perfect_score, bonus))
+    print("  theoreticalDX    %d" % th.max_dx)
+    print("  textMinutes      %s" % pct(th.max_achievement))
     for w in chart.warnings:
-        print("  [警告]    %s" % w)
+        print("  [text]    %s" % w)
     declared = chart.totals.get("TTM_SCR_SS")
     if declared is not None and declared != th.all_perfect_score:
-        print("  [警告]    谱面自带 TTM_SCR_SS=%d 与计算出的理论分 %d 不一致"
+        print("  [text]    charttextBelt TTM_SCR_SS=%d and the calculated theoretical score %d Inconsistent"
               % (declared, th.all_perfect_score))
 
 
 def print_forward(chart: Chart, result) -> None:
     th = result.theory
     print(LINE)
-    print("判定输入")
+    print("Decision input")
     for j in JUDGMENTS:
         print("  %-18s %d" % (JUDGE_LABEL[j], result.judges.get(j, 0)))
-    print("  %-18s %d / %d" % ("合计", sum(result.judges.values()), th.total_notes))
+    print("  %-18s %d / %d" % ("Total", sum(result.judges.values()), th.total_notes))
     print(LINE)
-    print("结果")
-    print("  达成率      %s ~ %s" % (pct(result.achievement_min), pct(result.achievement_max)))
-    print("  按比例参考  %s" % pct(result.achievement_ref))
-    print("  DX 分       %d / %d  (%.2f%%)"
+    print("result")
+    print("  achievement rate      %s ~ %s" % (pct(result.achievement_min), pct(result.achievement_max)))
+    print("  presstextExampletext  %s" % pct(result.achievement_ref))
+    print("  DX Minutes       %d / %d  (%.2f%%)"
           % (result.dx, th.max_dx, 100.0 * result.dx / th.max_dx if th.max_dx else 0.0))
     if result.achievement_min != result.achievement_max:
         print()
-        print("  说明：只给聚合判定数时，达成率取决于「哪些音符」被判成 Great/Good/Miss——")
-        print("        区间下界 = 扣分都落在权重最高的音符上，上界 = 都落在权重最低的音符上。")
+        print("  description：When only aggregation decisions are given，achievement rateTaketextin「Which notes」text Great/Good/Miss——")
+        print("        Lower bound of interval = textMinutesallfallatweighttextofnoteUp，Upper Realm = allfallatweighttextofnoteUp。")
     print(LINE)
 
 
@@ -160,25 +160,25 @@ def print_reverse(chart: Chart, outcome) -> None:
     rows = outcome["rows"]
     mode = outcome.get("mode", "exact")
     print(LINE)
-    print("目标达成率 %s   [%s]" % (pct(outcome["target"]),
-                                   "精确模式" if mode == "exact" else "区间模式"))
+    print("textachievement rate %s   [%s]" % (pct(outcome["target"]),
+                                   "textmode" if mode == "exact" else "Interval Mode"))
     note = outcome.get("note")
     if note:
-        print("  [说明] %s" % note)
+        print("  [description] %s" % note)
     if not rows:
         if mode == "exact":
             cap = outcome.get("exact_cap") or 0
-            print("  （在严格验证范围内没有找到解：坏音符 ≤ %d 的组合里没有能精确打出该值的）" % cap)
+            print("  （No solution found in strict validation scope：Bad notes ≤ %d ofgrouptextinnonecantextouttheValueof）" % cap)
             if outcome.get("more_unverified"):
-                print("  [注意] 坏音符超过 %d 个的候选组合没有验证（不保证那里没有解）" % cap)
+                print("  [note] Bad notes over %d candidate combinations without validation（There's no guarantee there's no solution.）" % cap)
         else:
-            print("  （无解：该达成率在这个谱面上打不出来）")
+            print("  （notext：theachievement rateatthisPiecechartUptextNoouttext）")
         print(LINE)
         return
     if mode == "exact":
-        print("  Miss  Good  Great  CP+P   CP 范围      DX 分范围")
+        print("  Miss  Good  Great  CP+P   CP text      DX Minute Range")
     else:
-        print("  Miss  Good  Great  CP+P   CP 范围      达成率范围                 DX 分范围")
+        print("  Miss  Good  Great  CP+P   CP text      achievement ratetext                 DX Minute Range")
     for r in rows:
         cp_range = "%d~%d" % (r.cp_min, r.cp_max) if r.cp_min != r.cp_max else str(r.cp_min)
         dx_range = "%d~%d" % (r.dx_min, r.dx_max) if r.dx_min != r.dx_max else str(r.dx_min)
@@ -191,21 +191,21 @@ def print_reverse(chart: Chart, outcome) -> None:
                   % (r.miss, r.good, r.great, r.cp_plus_perfect, cp_range, ach, dx_range))
     print()
     if mode == "exact":
-        print("  共 %d 组能精确打出 %s 的判定组合（CP+P = Critical Perfect 与 Perfect 之和）"
+        print("  of %d groupcantextout %s ofDetermine Combination（CP+P = Critical Perfect And Perfect Sum）"
               % (len(rows), pct(outcome["target"])))
         cap = outcome.get("exact_cap") or 0
-        print("  已逐个严格验证 Miss+Good+Great ≤ %d 的组合；每个组合都真的能打出该达成率" % cap)
+        print("  Strictly verified on a case-by-c Miss+Good+Great ≤ %d ofgrouptext；eachPiecegrouptextalltextofcantextouttheachievement rate" % cap)
         if outcome.get("unverified"):
-            print("  [注意] 另有 %d 组候选（坏音符超过 %d 个）未做精确验证，未列入结果"
+            print("  [note] There is another %d grouptext（Bad notes over %d Piece）nottext，notColumnstextresult"
                   % (outcome["unverified"], cap))
         if outcome.get("more_unverified"):
-            print("  [注意] 坏音符超过 %d 个的候选组合没有验证（不保证那里没有解）" % cap)
+            print("  [note] Bad notes over %d candidate combinations without validation（There's no guarantee there's no solution.）" % cap)
     else:
-        print("  共 %d 组可行组合（CP+P = Critical Perfect 与 Perfect 之和）" % len(rows))
-        print("  区间模式：只保证达成率落在这个范围内，不保证能恰好打出目标值")
+        print("  of %d grouptextgrouptext（CP+P = Critical Perfect And Perfect Sum）" % len(rows))
+        print("  Interval Mode：Only guarantee that the achievement rate falls within this range，It is not guaranteed that the target value will be hit exactly")
     if outcome["truncated"]:
-        print("  [注意] 结果被 --limit / 扫描上限截断，可能还有更多组合")
-    print("  DX 分 = 3*CP + 2*Perfect + 1*Great；CP 越靠范围上端，DX 分越高")
+        print("  [note] resulttext --limit / textUptextTruncation，There may be more combinations")
+    print("  DX Minutes = 3*CP + 2*Perfect + 1*Great；CP textUptext，DX The higher the score,")
     print(LINE)
 
 
@@ -233,7 +233,7 @@ def to_json(chart: Chart, th: Theory, payload: Dict) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2)
 
 
-# ------------------------------------------------------------------ 交互
+# ------------------------------------------------------------------ Interaction
 def ask(prompt: str, default: str = "") -> str:
     try:
         text = input(prompt).strip()
@@ -250,30 +250,30 @@ def ask_int(prompt: str, default: Optional[int] = None) -> Optional[int]:
         try:
             return int(raw)
         except ValueError:
-            print("  请输入整数")
+            print("  pleasetextnumber")
 
 
 def interactive(args) -> None:
     print("=" * 60)
-    print("舞萌DX 谱面达成率 / DX 分 计算器")
+    print("textDX chartachievement rate / DX Minutes countcalculatetext")
     print("=" * 60)
     chart = None
     while chart is None:
-        mode = ask("谱面来源：1) .ma2 文件路径  2) 游戏路径 + musicid  [1]: ", "1")
+        mode = ask("charttext：1) .ma2 file path  2) text + musicid  [1]: ", "1")
         if mode.startswith("2"):
-            game = ask("游戏路径（Sinmai_Data 目录）: ")
+            game = ask("text（Sinmai_Data text）: ")
             if not game:
                 continue
             mid = ask_int("musicid: ")
             if mid is None:
                 continue
-            diff = ask("难度 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER  [3]: ", "3")
+            diff = ask("difficulty 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER  [3]: ", "3")
             try:
                 chart = load_from_game(game, mid, parse_difficulty(diff))
             except SystemExit:
                 chart = None
         else:
-            path = ask("谱面文件路径: ")
+            path = ask("chartfile path: ")
             if not path:
                 continue
             try:
@@ -283,18 +283,18 @@ def interactive(args) -> None:
     th = theory_from_chart(chart)
     print_chart(chart, th)
 
-    mode = ask("计算模式：1) 已知判定数算达成率  2) 已知达成率倒算判定数  [1]: ", "1")
+    mode = ask("countcalculatemode：1) Known decision number calculation achievement rate  2) Known Achievement Rate Recalculation Judgments  [1]: ", "1")
     if mode.startswith("2"):
         while True:
-            raw = ask("目标达成率（如 99.5 或 100.5）: ")
+            raw = ask("textachievement rate（As 99.5 or 100.5）: ")
             if not raw:
                 return
             try:
                 target = Fraction(raw.rstrip("%"))
                 break
             except (ValueError, ZeroDivisionError):
-                print("  请输入数字")
-        mode = ask("反算方式：1) 精确（只列真能打出该达成率的组合）  2) 区间（判定数只是估算时用）  [1]: ", "1")
+                print("  pleasetextnumbertext")
+        mode = ask("Inverse calculation method：1) text（Only the combination that can really play the completion rate can be listed）  2) Interval（The number of judgments is only used for estimation）  [1]: ", "1")
         args.mode = "range" if mode.startswith("2") else "exact"
         run_reverse(chart, th, target, args)
     else:
@@ -302,22 +302,22 @@ def interactive(args) -> None:
         for j in JUDGMENTS:
             if j == "miss":
                 continue
-            values[j] = ask_int("  %s 数 [0]: " % JUDGE_LABEL[j], 0) or 0
-        values["miss"] = ask_int("  Miss 数（留空 = 总数减去以上判定）: ")
+            values[j] = ask_int("  %s number [0]: " % JUDGE_LABEL[j], 0) or 0
+        values["miss"] = ask_int("  Miss number（leave blank = Total minus the above decision）: ")
         run_forward(chart, th, values, args)
 
 
-# ------------------------------------------------------------------ 执行
+# ------------------------------------------------------------------ text
 def normalize_judges(th: Theory, raw: Dict[str, Optional[int]]) -> Dict[str, int]:
     given = {j: int(raw.get(j) or 0) for j in JUDGMENTS}
     if raw.get("miss") is None:
         given["miss"] = th.total_notes - sum(given[j] for j in JUDGMENTS if j != "miss")
     if given["miss"] < 0:
-        die("CP+Perfect+Great+Good 合计 %d 超过了音符总数 %d"
+        die("CP+Perfect+Great+Good Total %d textnoteTotal %d"
             % (sum(given[j] for j in JUDGMENTS if j != "miss"), th.total_notes))
     total = sum(given.values())
     if total != th.total_notes:
-        die("判定数之和 %d 与音符总数 %d 不一致（Miss 请留空自动补足）" % (total, th.total_notes))
+        die("Sum of the judgments %d and total number of notes %d Inconsistent（Miss pleaseleave blanktext）" % (total, th.total_notes))
     return given
 
 
@@ -369,45 +369,45 @@ def run_reverse(chart: Chart, th: Theory,
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="chart_achievement.py",
-        description="舞萌DX 谱面达成率 / DX 分计算器（正向计算 + 由达成率倒算判定数）",
+        description="textDX chartachievement rate / DX Minutes Calculator（currentTowardscountcalculate + byachievement ratetextcalculateDeterminenumber）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""示例:
-  # 直接给谱面文件，正向计算
+        epilog="""textExample:
+  # directlytextchartfile，currentTowardscountcalculate
   python chart_achievement.py --chart "D:\\SDGB2026\\Package\\Sinmai_Data\\StreamingAssets\\A000\\music\\music000008\\000008_03.ma2" --cp 290 --perfect 10 --great 2
 
-  # 给游戏路径 + musicid + 难度（难度用游戏里的数字：0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）
+  # text + musicid + difficulty（difficultyusetextinofnumbertext：0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）
   python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --cp 300 --perfect 2
 
-  # 由达成率倒算判定组合（精确模式：只列真能打出该值的组合）
+  # byachievement ratetextcalculateDetermine Combination（textmode：Only columns can really print the combination of values）
   python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --achievement 99.5
 
-  # 判定数只是估算时，用区间模式
+  # When the number of judgments is only estimated，useInterval Mode
   python chart_achievement.py --game "D:\\SDGB2026\\Package\\Sinmai_Data" --music-id 8 --level 3 --achievement 99.5 --mode range
 """)
-    src = p.add_argument_group("谱面来源（二选一）")
-    src.add_argument("--chart", metavar="PATH", help=".ma2 谱面文件路径")
-    src.add_argument("--game", metavar="PATH", help="游戏目录（Sinmai_Data / StreamingAssets / A000 / music 均可）")
-    src.add_argument("--music-id", type=int, metavar="ID", help="曲目编号（配合 --game 使用）")
+    src = p.add_argument_group("charttext（Choose one of the two）")
+    src.add_argument("--chart", metavar="PATH", help=".ma2 chartfile path")
+    src.add_argument("--game", metavar="PATH", help="text（Sinmai_Data / StreamingAssets / A000 / music Both）")
+    src.add_argument("--music-id", type=int, metavar="ID", help="tracktext（text --game Use）")
     src.add_argument("--level", "--difficulty", dest="level", default=None, metavar="D",
-                     help="谱面难度，用游戏里的数字：0=BASIC 1=ADVANCED 2=EXPERT "
-                          "3=MASTER 4=RE:MASTER（也可直接写名字；默认 3=MASTER）")
+                     help="chartdifficulty，usetextinofnumbertext：0=BASIC 1=ADVANCED 2=EXPERT "
+                          "3=MASTER 4=RE:MASTER（You can also write your name directly；default 3=MASTER）")
 
-    fw = p.add_argument_group("正向计算：已知判定数")
-    fw.add_argument("--cp", type=int, metavar="N", help="Critical Perfect 个数")
-    fw.add_argument("--perfect", type=int, metavar="N", help="Perfect 个数")
-    fw.add_argument("--great", type=int, metavar="N", help="Great 个数")
-    fw.add_argument("--good", type=int, metavar="N", help="Good 个数")
-    fw.add_argument("--miss", type=int, metavar="N", help="Miss 个数（留空 = 总数减去其它判定）")
+    fw = p.add_argument_group("currentTowardscountcalculate：Number of known decisions")
+    fw.add_argument("--cp", type=int, metavar="N", help="Critical Perfect Number")
+    fw.add_argument("--perfect", type=int, metavar="N", help="Perfect Number")
+    fw.add_argument("--great", type=int, metavar="N", help="Great Number")
+    fw.add_argument("--good", type=int, metavar="N", help="Good Number")
+    fw.add_argument("--miss", type=int, metavar="N", help="Miss Number（leave blank = Total minus other judgments）")
 
-    rv = p.add_argument_group("反向计算：已知达成率")
-    rv.add_argument("--achievement", metavar="A", help="目标达成率（如 99.5 / 100.5）")
+    rv = p.add_argument_group("Reverse calculation：Known attainment rate")
+    rv.add_argument("--achievement", metavar="A", help="textachievement rate（As 99.5 / 100.5）")
     rv.add_argument("--mode", choices=("exact", "range"), default="exact",
-                    help="exact（默认）：只列真的能打出该达成率的组合；"
-                         "range：列出达成率区间覆盖该值的组合（更快，输入不精确时用）")
+                    help="exact（default）：Only the combination that can really play the completion rate is listed；"
+                         "range：List the combinations of attainment intervals that cover this value（text，textNotexttimeuse）")
     rv.add_argument("--limit", type=int, default=200, metavar="N",
-                    help="反向计算最多输出多少组解（默认 200）")
+                    help="Reverse calculate how many sets of solutions to output at most（default 200）")
 
-    p.add_argument("--json", action="store_true", help="以 JSON 输出结果")
+    p.add_argument("--json", action="store_true", help="in JSON textoutresult")
     return p
 
 
@@ -415,7 +415,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
 
     if args.chart and args.game:
-        die("--chart 与 --game 只能给一个")
+        die("--chart And --game Only one can be given")
     if not args.chart and not args.game:
         interactive(args)
         return 0
@@ -427,14 +427,14 @@ def main(argv: Optional[List[str]] = None) -> int:
             except ValueError as exc:
                 die(str(exc))
             if chart.difficulty_index is not None and want != chart.difficulty_index:
-                print("[注意] --level 给的是 %s，但谱面文件名里是 %s，按文件名算"
+                print("[note] --level textofis %s，But in the spectrum file name is %s，pressfileFirst namecalculate"
                       % (DIFFICULTY_NAMES[want], DIFFICULTY_NAMES[chart.difficulty_index]),
                       file=sys.stderr)
     else:
         if args.music_id is None:
-            die("使用 --game 时必须同时给 --music-id")
+            die("Use --game timeMust be given at the same time --music-id")
         if args.level is None:
-            print("[提示] 没有给 --level，按默认难度 3（MASTER）计算"
+            print("[text] nonetext --level，pressdefaultdifficulty 3（MASTER）countcalculate"
                   "（0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER）", file=sys.stderr)
         try:
             difficulty = parse_difficulty(args.level if args.level is not None else "master")
@@ -444,25 +444,25 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     th = theory_from_chart(chart)
     if th.total_notes == 0:
-        die("谱面里没有解析到任何计分音符：%s" % chart.path)
+        die("chartinnoneparsetoAnycountMinutesnote：%s" % chart.path)
 
     if args.achievement:
         try:
             target = Fraction(str(args.achievement).rstrip("%"))
         except (ValueError, ZeroDivisionError):
-            die("--achievement 需要是数字，如 99.5")
+            die("--achievement needisnumbertext，As 99.5")
         if target > th.max_achievement:
-            die("目标达成率 %s 超过该谱面上限 %s" % (pct(target), pct(th.max_achievement)))
+            die("textachievement rate %s textthechartUptext %s" % (pct(target), pct(th.max_achievement)))
         if target < 0:
-            die("目标达成率不能为负")
+            die("textachievement rateCannot betext")
         run_reverse(chart, th, target, args)
         return 0
 
     raw = {"cp": args.cp, "perfect": args.perfect, "great": args.great,
            "good": args.good, "miss": args.miss}
     if all(v is None for v in raw.values()):
-        die("请给判定数（--cp/--perfect/--great/--good），或用 --achievement 做反向计算；"
-            "两个都不给则进入交互模式（需去掉其它参数）")
+        die("pleasetextDeterminenumber（--cp/--perfect/--great/--good），or with --achievement Do the reverse calculation；"
+            "If neither is given, enter interactive mode（textRemovetextParameter）")
     run_forward(chart, th, raw, args)
     return 0
 

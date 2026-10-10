@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-get_user_favorite_item.py —— 取用户收藏曲目/对手（GetUserFavoriteItemApi）
+get_user_favorite_item.py —— Fetching user favorite tracks/Opponent（GetUserFavoriteItemApi）
 ================================================================================
 
-取玩家收藏的乐曲（kind=1）或收藏的对手（kind=2）。
+Take the player's favorite songs（kind=1）or Collected Opponents（kind=2）。
 
-对应接口：GetUserFavoriteItemApi
-请求体  ：UserFavoriteItemRequestVO（userId + kind + nextIndex + maxCount=100
+Corresponding interface：GetUserFavoriteItemApi
+request body  ：UserFavoriteItemRequestVO（userId + kind + nextIndex + maxCount=100
                                     + isAllFavoriteItem）
-响应    ：{userId, kind, length, nextIndex, userFavoriteItemList:[{orderId,id}]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserFavoriteItemRequestVO.cs
-          source/2026-10-05.log:93,107  真机 kind=2 与 kind=1 各一次
+Response    ：{userId, kind, length, nextIndex, userFavoriteItemList:[{orderId,id}]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserFavoriteItemRequestVO.cs
+          source/2026-10-05.log:93,107  real machine kind=2 And kind=1 Once each
 
-★ 字段名是 kind（不是 itemKind），别写错。
+★ Field name is kind（No itemKind），Don't misspell。
 
-调用示例：
+call exampleExample：
     from api import GetUserFavoriteItem, GetUserFavoriteItemAll
 """
 
@@ -28,9 +28,9 @@ from .log_setup import log_info
 from .maimai_net import MaimaiNetClient
 from .user_getter_common import _get, UserFavoriteItemRequestVO, get_all_pages
 
-#: kind 取值
-FAVORITE_ITEM_KIND_MUSIC = 1     # 收藏乐曲
-FAVORITE_ITEM_KIND_RIVAL = 2     # 收藏对手
+#: kind Pick a value
+FAVORITE_ITEM_KIND_MUSIC = 1     # receivetextMusic
+FAVORITE_ITEM_KIND_RIVAL = 2     # receivetextOpponent
 
 
 def GetUserFavoriteItem(
@@ -44,16 +44,16 @@ def GetUserFavoriteItem(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户收藏项（单页，对应 GetUserFavoriteItemApi）。
+    Fetch user favorites（Single Page，Corresponding GetUserFavoriteItemApi）。
 
-    参数：
-        user_id: 用户 ID（必填）
-        kind:    1=收藏乐曲 2=收藏对手（默认 1）
+    Parameter：
+        user_id: user ID（Required）
+        kind:    1=receivetextMusic 2=receivetextOpponent（default 1）
 
-    返回：
-        原始响应 dict，含 userFavoriteItemList
+    returntimes：
+        Raw Response dict，Contains userFavoriteItemList
     """
-    log_info("取用户收藏项：user_id=" + str(user_id) + " kind=" + str(kind)
+    log_info("Fetch user favorites：user_id=" + str(user_id) + " kind=" + str(kind)
              + " next_index=" + str(next_index))
     return _get(
         "GetUserFavoriteItemApi",
@@ -75,12 +75,12 @@ def GetUserFavoriteItemAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户收藏项（自动翻页取全）。
+    Fetch user favorites（auto-pagingTakeFull）。
 
-    返回：
+    returntimes：
         {"userFavoriteItemList": [...]}
     """
-    log_info("取用户收藏项（全量）：user_id=" + str(user_id) + " kind=" + str(kind))
+    log_info("Fetch user favorites（Full Amount）：user_id=" + str(user_id) + " kind=" + str(kind))
     items = get_all_pages(
         "GetUserFavoriteItemApi", user_id, "userFavoriteItemList",
         body_factory=lambda ni: UserFavoriteItemRequestVO(
@@ -88,5 +88,5 @@ def GetUserFavoriteItemAll(
             maxCount=100, isAllFavoriteItem=is_all_favorite_item),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("收藏项获取完成：" + str(len(items)) + " 条")
+    log_info("receivetextitemgetTakeDone：" + str(len(items)) + " item")
     return {"userFavoriteItemList": items}

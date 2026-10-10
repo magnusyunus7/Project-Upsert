@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    MaimaiNetSpy —— MelonLoader Mod：hook 舞萌DX 游戏网络层做实时拦截
+    MaimaiNetSpy —— MelonLoader Mod：hook textDX textnetworktexttimetext
     ==========================================================================
-    目标框架必须与游戏/MelonLoader 一致：net472（MonoBleedingEdge + MelonLoader 0.6.4）
-    构建：dotnet build -c Release
-    产物：bin/Release/net472/MaimaiNetSpy.dll  -> 复制到 D:\SDGB2026\Package\Mods\
+    textMust be associated withtext/MelonLoader Match：net472（MonoBleedingEdge + MelonLoader 0.6.4）
+    text：dotnet build -c Release
+    text：bin/Release/net472/MaimaiNetSpy.dll  -> textto D:\SDGB2026\Package\Mods\
   -->
 
   <PropertyGroup>
@@ -17,14 +17,14 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Version>1.0.0</Version>
-    <!-- 不生成 apphost / 不需要运行时配置 -->
+    <!-- Notext apphost / Not requiredtexttimetext -->
     <UseAppHost>false</UseAppHost>
     <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
-    <!-- 允许引用 net472 参考程序集 -->
+    <!-- textuse net472 text -->
     <AutomaticallyUseReferenceAssemblyPackages>true</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
 
-  <!-- 游戏程序集与 MelonLoader 的引用（全部 Private=false，不复制到输出） -->
+  <!-- textAnd MelonLoader oftextuse（All Private=false，Notexttotextout） -->
   <ItemGroup>
     <Reference Include="MelonLoader">
       <HintPath>D:\SDGB2026\Package\MelonLoader\net35\MelonLoader.dll</HintPath>

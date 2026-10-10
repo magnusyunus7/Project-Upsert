@@ -7,8 +7,8 @@ using System.Text;
 using HarmonyLib;
 using MelonLoader;
 
-// ★ MelonLoader 靠这个特性识别 mod 并调用 OnInitializeMelon。
-//   缺了它只会 "Melon Assembly loaded" 但不会实例化（表现为 "N Mods loaded" 不计入）。
+// ★ MelonLoader textthisPiecetext mod and call OnInitializeMelon。
+//   textOnlyMeetings "Melon Assembly loaded" but will not be instantiated（textcurrentfor "N Mods loaded" Do not count）。
 [assembly: MelonInfo(typeof(MaimaiNetSpy.Main), "MaimaiNetSpy", "1.0.0", "wahappy")]
 [assembly: MelonGame(null, null)]
 [assembly: MelonColor(255, 120, 200, 255)]
@@ -16,37 +16,37 @@ using MelonLoader;
 namespace MaimaiNetSpy
 {
     /// <summary>
-    /// MaimaiNetSpy —— hook 舞萌DX 游戏网络层，做实时拦截与落盘。
+    /// MaimaiNetSpy —— hook textDX textnetworktext，Do real-time interception and dishwashing。
     ///
-    /// 拦截点（全部依据 Assembly-CSharp 的实际签名）：
-    ///   Net.NetHttpClient.AddHeader(name, value)          所有请求头
+    /// text（All by Assembly-CSharp ofActualtextFirst name）：
+    ///   Net.NetHttpClient.AddHeader(name, value)          All Request Headers
     ///   Net.NetHttpClient.AddCookie(userId)               Cookie
-    ///   Net.NetHttpClient.Request(bytes, ua, method)      ★ 加密前的明文 JSON
-    ///   Net.NetHttpClient.GetResponse()                   解密后的响应
-    ///   Net.NetPacketUtil.GetUserAgent(query)             逻辑 API 名
-    ///   Manager.GameManager.CalcSpecialNum()              playSpecial 的硬件标志位
+    ///   Net.NetHttpClient.Request(bytes, ua, method)      ★ Pre-encrypted clear text JSON
+    ///   Net.NetHttpClient.GetResponse()                   decryptAfterofResponse
+    ///   Net.NetPacketUtil.GetUserAgent(query)             text API First name
+    ///   Manager.GameManager.CalcSpecialNum()              playSpecial oftextBit
     ///
-    /// 输出：
-    ///   &lt;游戏根目录&gt;/MaimaiNetSpy/YYYY-MM-DD_HHmmss.log     人类可读时间线
-    ///   &lt;游戏根目录&gt;/MaimaiNetSpy/raw/*.json                每个接口的请求/响应原文
+    /// textout：
+    ///   &lt;text&gt;/MaimaiNetSpy/YYYY-MM-DD_HHmmss.log     Human Readable Timeline
+    ///   &lt;text&gt;/MaimaiNetSpy/raw/*.json                eachPieceinterfaceofrequest/Response original text
     /// </summary>
     public class Main : MelonMod
     {
         internal static MelonLogger.Instance Log;
 
-        //: 当前请求的上下文（按线程隔离，游戏是异步回调模型）
+        //: Context of the current request（presstext，textistexttimescalltext）
         private static readonly object _lock = new object();
 
         private static string _outDir;
         private static StreamWriter _writer;
 
-        //: 本次请求累积的头部（AddHeader 逐条调用，Request 时才真正发出）
+        //: textrequesttextofHeadtext（AddHeader textitemcalluse，Request timeonlytextcurrenthairout）
         [ThreadStatic] private static List<KeyValuePair<string, string>> _headers;
         [ThreadStatic] private static string _cookie;
         [ThreadStatic] private static string _currentApi;
         [ThreadStatic] private static string _currentUrl;
 
-        //: 统计
+        //: systemcount
         private static int _reqCount;
         private static int _respCount;
 
@@ -64,8 +64,8 @@ namespace MaimaiNetSpy
             _writer = new StreamWriter(file, false, new UTF8Encoding(false)) { AutoFlush = true };
 
             Line("=".PadRight(78, '='));
-            Line("  MaimaiNetSpy 已加载  —— 舞萌DX 网络层实时拦截");
-            Line("  日志: " + file);
+            Line("  MaimaiNetSpy Loaded  —— textDX networktexttimetext");
+            Line("  log: " + file);
             Line("=".PadRight(78, '='));
 
             try
@@ -73,8 +73,8 @@ namespace MaimaiNetSpy
                 var h = new HarmonyLib.Harmony("MaimaiNetSpy");
                 int n = 0;
 
-                // ★ Request 有两个重载：Request() 与 Request(byte[], string, string)
-                //   必须按参数类型精确匹配，否则会命中无参版本导致
+                // ★ Request hasTwotext：Request() And Request(byte[], string, string)
+                //   Must match exactly by parameter type，Otherwise, it will hit the unparametric version.
                 //   "Parameter bytes not found in method Request()"
                 n += PatchBySig(h, "Net.NetHttpClient", "Create",
                                 new[] { typeof(string) },
@@ -102,11 +102,11 @@ namespace MaimaiNetSpy
                                         typeof(int), typeof(System.Net.HttpWebResponse) },
                                 nameof(PreSetError), null);
 
-                Line("  已挂载 " + n + " 个 hook");
+                Line("  Mounted " + n + " Piece hook");
             }
             catch (Exception e)
             {
-                Line("  !! hook 挂载失败: " + e);
+                Line("  !! hook textFailed: " + e);
             }
             Line("");
         }
@@ -117,31 +117,31 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // hook 挂载工具
+        // hook textTools
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// 按**参数类型**精确挂载 hook。
+        /// press**Parameter Type**text hook。
         ///
-        /// ★ 为什么必须精确匹配：NetHttpClient.Request 有两个重载
-        ///     Boolean Request()                              —— 只发请求（无体）
-        ///     Boolean Request(Byte[] bytes, String ua, String m) —— 带请求体
-        ///   用 AccessTools.Method(t, "Request") 会命中前者，
-        ///   导致 prefix 里的 bytes 参数对不上而抛
+        /// ★ Why it's important to match exactly：NetHttpClient.Request hasTwotext
+        ///     Boolean Request()                              —— Request only（notext）
+        ///     Boolean Request(Byte[] bytes, String ua, String m) —— With request body
+        ///   use AccessTools.Method(t, "Request") will hit the former，
+        ///   lead to prefix inof bytes Parameters are thrown at the top
         ///   "Parameter bytes not found in method Request()"。
         /// </summary>
         private static int PatchBySig(HarmonyLib.Harmony h, string typeName, string methodName,
                                       Type[] paramTypes, string pre, string post)
         {
             var t = AccessTools.TypeByName(typeName);
-            if (t == null) { Line("  [skip] 类型未找到: " + typeName); return 0; }
+            if (t == null) { Line("  [skip] textnotfindto: " + typeName); return 0; }
             if (paramTypes == null || paramTypes.Any(x => x == null))
-            { Line("  [skip] 参数类型解析失败: " + typeName + "." + methodName); return 0; }
+            { Line("  [skip] Parameter type parsing failed: " + typeName + "." + methodName); return 0; }
 
             var m = AccessTools.Method(t, methodName, paramTypes);
             if (m == null)
             {
-                Line("  [skip] 方法未找到: " + typeName + "." + methodName
+                Line("  [skip] textnotfindto: " + typeName + "." + methodName
                      + "(" + string.Join(", ", Array.ConvertAll(paramTypes, x => x.Name)) + ")");
                 return 0;
             }
@@ -166,7 +166,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // Create —— 捕获完整 URL（NetHttpClient.Create(url)）
+        // Create —— textgetFull URL（NetHttpClient.Create(url)）
         // ------------------------------------------------------------------
 
         private static void PreCreate(string url)
@@ -175,7 +175,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // AddHeader —— 收集请求头
+        // AddHeader —— receivetextrequestHead
         // ------------------------------------------------------------------
 
         private static void PreAddHeader(string name, string value)
@@ -186,11 +186,11 @@ namespace MaimaiNetSpy
 
         private static void PostAddHeader()
         {
-            // 不在这里输出：AddHeader 会被多次调用，等 Request 时统一打印
+            // Don't output here：AddHeader will be called multiple times，etc Request timesystemOnetext
         }
 
         // ------------------------------------------------------------------
-        // AddCookie —— 记录 Cookie
+        // AddCookie —— record Cookie
         // ------------------------------------------------------------------
 
         private static void PreAddCookie(ulong userId)
@@ -199,7 +199,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // Request —— ★ 核心：加密前的明文 JSON 在这里
+        // Request —— ★ text：Pre-encrypted clear text JSON here
         // ------------------------------------------------------------------
 
         private static void PreRequest(byte[] bytes, string userAgent, string method)
@@ -216,7 +216,7 @@ namespace MaimaiNetSpy
             var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine("+" + new string('-', 76));
-            sb.AppendLine("| [" + _reqCount + "] >>> 请求  "
+            sb.AppendLine("| [" + _reqCount + "] >>> request  "
                           + DateTime.Now.ToString("HH:mm:ss.fff"));
             sb.AppendLine("+" + new string('-', 76));
             sb.AppendLine("| API          : " + (_currentApi ?? "(unknown)"));
@@ -225,28 +225,28 @@ namespace MaimaiNetSpy
             sb.AppendLine("| User-Agent   : " + userAgent);
             sb.AppendLine("| Method       : " + method);
             sb.AppendLine("| Cookie       : " + (_cookie ?? "(none)"));
-            sb.AppendLine("| 明文长度     : " + (bytes == null ? 0 : bytes.Length) + " 字节");
+            sb.AppendLine("| textlength     : " + (bytes == null ? 0 : bytes.Length) + " Bytes");
 
             if (_headers != null && _headers.Count > 0)
             {
-                sb.AppendLine("| ---- 请求头（AddHeader 收集）----");
+                sb.AppendLine("| ---- requestHead（AddHeader receivetext）----");
                 foreach (var kv in _headers)
                     sb.AppendLine("|   " + kv.Key + ": " + kv.Value);
             }
             else
             {
-                sb.AppendLine("| ---- 请求头: (无 AddHeader 调用) ----");
+                sb.AppendLine("| ---- requestHead: (no AddHeader calluse) ----");
             }
 
             if (plain != null)
             {
-                sb.AppendLine("| ---- 请求体（加密前明文）----");
+                sb.AppendLine("| ---- request body（Pre-encrypted clear text）----");
                 foreach (var ln in Wrap(plain, 150))
                     sb.AppendLine("| " + ln);
             }
             Line(sb.ToString());
 
-            // 落盘原始明文
+            // falltextOriginaltext
             try
             {
                 string safe = Sanitize(_currentApi ?? ("req" + _reqCount));
@@ -256,36 +256,36 @@ namespace MaimaiNetSpy
             }
             catch { }
 
-            // 清空累积状态（本次请求已消费）
+            // textemptytext（textrequestAlreadytext）
             _headers = null;
         }
 
         private static void PostRequest()
         {
-            // 状态清理交给下一次 PreRequest
+            // textHand overDownOnce PreRequest
         }
 
         // ------------------------------------------------------------------
-        // ★ 真实 HTTP 请求头 dump
+        // ★ real HTTP requestHead dump
         // ------------------------------------------------------------------
         //
-        // 为什么必须用 postfix：
-        //   PreRequest 跑在 Request() 方法体**之前**，那时
-        //   Method / ContentType / UserAgent / Content-Encoding 都还没设置。
-        //   只有 postfix 才能看到最终真正要发出去的头（含框架自带的）。
+        // Why do I have to use postfix：
+        //   PreRequest textat Request() text**Before**，thattime
+        //   Method / ContentType / UserAgent / Content-Encoding alltext。
+        //   Only postfix onlycantexttoFinaltextcurrentmustSend outofHead（Includes frame-built）。
         //
-        // 目的：把真机的**完整请求头**抓下来，和纯 Python 脚本发的做逐字节对比。
-        //       （排查「报文一致但服务端 returnCode=0」这类问题）
+        // textof：putreal machineof**Full request headers**textDowntext，and pure Python scripthairoftextBytesYes.text。
+        //       （textcheck「packetMatchButserver returnCode=0」thistext）
         private static void PostRequestDumpHeaders(Net.NetHttpClient __instance)
         {
             try
             {
                 var fld = AccessTools.Field(typeof(Net.NetHttpClient), "_request");
                 var wr = (fld == null ? null : fld.GetValue(__instance)) as System.Net.HttpWebRequest;
-                if (wr == null) { Line("| [头 dump] _request 取不到"); return; }
+                if (wr == null) { Line("| [Head dump] _request Unable to retrieve"); return; }
 
                 var sb = new StringBuilder();
-                sb.AppendLine("| ---- ★ 真实 HTTP 请求头（HttpWebRequest，含框架自带）----");
+                sb.AppendLine("| ---- ★ real HTTP requestHead（HttpWebRequest，Includes Frame Bring Your Own）----");
                 sb.AppendLine("|   [Method]        : " + wr.Method);
                 sb.AppendLine("|   [ContentType]   : " + wr.ContentType);
                 sb.AppendLine("|   [UserAgent]     : " + wr.UserAgent);
@@ -299,31 +299,31 @@ namespace MaimaiNetSpy
                     foreach (string k in wr.Headers.AllKeys)
                         sb.AppendLine("|   " + k + ": " + wr.Headers[k]);
                 }
-                catch (Exception e2) { sb.AppendLine("|   [Headers 枚举失败] " + e2.Message); }
+                catch (Exception e2) { sb.AppendLine("|   [Headers textFailed] " + e2.Message); }
                 try
                 {
-                    sb.AppendLine("|   [Cookie 头] : "
+                    sb.AppendLine("|   [Cookie Head] : "
                         + (wr.CookieContainer == null ? "(null container)"
                            : "[" + wr.CookieContainer.GetCookieHeader(wr.RequestUri) + "]"));
                 }
-                catch (Exception e3) { sb.AppendLine("|   [Cookie 取失败] " + e3.Message); }
+                catch (Exception e3) { sb.AppendLine("|   [Cookie Fetch failed] " + e3.Message); }
                 Line(sb.ToString());
             }
             catch (Exception e)
             {
-                Line("| [头 dump 失败] " + e);
+                Line("| [Head dump Failed] " + e);
             }
         }
 
         // ------------------------------------------------------------------
-        // GetResponse —— 解密后的响应
+        // GetResponse —— decryptAfterofResponse
         // ------------------------------------------------------------------
 
         private static void PostGetResponse(Net.NetHttpClient __instance, ref MemoryStream __result)
         {
             _respCount++;
 
-            // ★ 响应头 dump（尤其看 UserLoginApi 的 Set-Cookie: JSESSIONID）
+            // ★ Response header dump（Especially looking at UserLoginApi of Set-Cookie: JSESSIONID）
             try
             {
                 var fldR = AccessTools.Field(typeof(Net.NetHttpClient), "_response");
@@ -331,18 +331,18 @@ namespace MaimaiNetSpy
                 if (resp != null)
                 {
                     var sh = new StringBuilder();
-                    sh.AppendLine("| ---- ★ 真实 HTTP 响应头 ----");
+                    sh.AppendLine("| ---- ★ real HTTP Response header ----");
                     sh.AppendLine("|   [StatusCode] : " + (int)resp.StatusCode);
                     try
                     {
                         foreach (string k in resp.Headers.AllKeys)
                             sh.AppendLine("|   " + k + ": " + resp.Headers[k]);
                     }
-                    catch (Exception e4) { sh.AppendLine("|   [响应头枚举失败] " + e4.Message); }
+                    catch (Exception e4) { sh.AppendLine("|   [Response header enumeration failed] " + e4.Message); }
                     Line(sh.ToString());
                 }
             }
-            catch (Exception e5) { Line("| [响应头 dump 失败] " + e5.Message); }
+            catch (Exception e5) { Line("| [Response header dump Failed] " + e5.Message); }
 
             try
             {
@@ -356,9 +356,9 @@ namespace MaimaiNetSpy
                 string txt = Encoding.UTF8.GetString(buf, 0, read);
 
                 var sb = new StringBuilder();
-                sb.AppendLine("| [" + _respCount + "] <<< 响应  "
+                sb.AppendLine("| [" + _respCount + "] <<< Response  "
                               + DateTime.Now.ToString("HH:mm:ss.fff")
-                              + "   (" + read + " 字节)");
+                              + "   (" + read + " Bytes)");
                 foreach (var ln in Wrap(txt, 150))
                     sb.AppendLine("| " + ln);
                 Line(sb.ToString());
@@ -370,12 +370,12 @@ namespace MaimaiNetSpy
             }
             catch (Exception e)
             {
-                Line("| [响应解析失败] " + e.Message);
+                Line("| [Response parsing failed] " + e.Message);
             }
         }
 
         // ------------------------------------------------------------------
-        // GetUserAgent —— 从 UA 反推 API 名；同时记录 URL
+        // GetUserAgent —— From UA Reverse API First name；Record at the same time URL
         // ------------------------------------------------------------------
 
         private static void PostGetUserAgent(Net.INetQuery query, ref string __result)
@@ -383,14 +383,14 @@ namespace MaimaiNetSpy
             try
             {
                 _currentApi = query?.Api;
-                // UA 形如 "<md5>#<userId>"
+                // UA Shape like "<md5>#<userId>"
                 Line("  [API] " + _currentApi + "   UA=" + __result);
             }
             catch { }
         }
 
         // ------------------------------------------------------------------
-        // CalcSpecialNum —— playSpecial 的硬件标志位
+        // CalcSpecialNum —— playSpecial oftextBit
         // ------------------------------------------------------------------
 
         private static void PostCalcSpecialNum(ref int __result)
@@ -407,7 +407,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // SetError —— 记录网络层错误（含 HTTP 状态码）
+        // SetError —— recordnetworktexterror（Contains HTTP text）
         // ------------------------------------------------------------------
 
         private static void PreSetError(System.Net.WebExceptionStatus status, string error,
@@ -419,7 +419,7 @@ namespace MaimaiNetSpy
         }
 
         // ------------------------------------------------------------------
-        // 工具
+        // Tools
         // ------------------------------------------------------------------
 
         private static string Sanitize(string s)

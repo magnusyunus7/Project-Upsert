@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-get_user_character.py —— 取用户角色列表（GetUserCharacterApi）
+get_user_character.py —— Take a list of user roles（GetUserCharacterApi）
 ================================================================================
 
-取玩家所有角色的等级与觉醒度（真机 312 条）。
+Take the level and awakening of all of the player's characters（real machine 312 item）。
 
-对应接口：GetUserCharacterApi
-请求体  ：UserIdRequestVO
-响应    ：{userId, length, userCharacterList:[...]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserCharacterRequestVO.cs
+Corresponding interface：GetUserCharacterApi
+request body  ：UserIdRequestVO
+Response    ：{userId, length, userCharacterList:[...]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserCharacterRequestVO.cs
 
-    ★ 回传 Upsert 时只保留 characterId / level / awakening / useCount 四个字段
-      （真机 source/2026-10-05.log:123 的 userCharacterList 就是这 4 个键）。
+    ★ Callback Upsert timeOnlyHold characterId / level / awakening / useCount Four Fields
+      （real machine source/2026-10-05.log:123 of userCharacterList That's it. 4 keys）。
 
-调用示例：
+call exampleExample：
     from api import GetUserCharacter
 """
 
@@ -36,11 +36,11 @@ def GetUserCharacter(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户角色列表（对应 GetUserCharacterApi）。
+    Take a list of user roles（Corresponding GetUserCharacterApi）。
 
-    返回：
-        原始响应 dict，含 userCharacterList
+    returntimes：
+        Raw Response dict，Contains userCharacterList
     """
-    log_info("取用户角色列表：user_id=" + str(user_id))
+    log_info("Take a list of user roles：user_id=" + str(user_id))
     return _get("GetUserCharacterApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

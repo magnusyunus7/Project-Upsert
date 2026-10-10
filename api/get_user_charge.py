@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_user_charge.py —— 取用户票券（GetUserChargeApi）
+get_user_charge.py —— Pick up user tickets（GetUserChargeApi）
 ================================================================================
 
-取玩家的票券持有情况（真机 3 条）。
+Take the holdings of the player's tickets（real machine 3 item）。
 
-对应接口：GetUserChargeApi
-请求体  ：UserIdRequestVO
-响应    ：{userId, length, userChargeList:[{chargeId,stock,purchaseDate,validDate,extNum1}]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserChargeRequestVO.cs
+Corresponding interface：GetUserChargeApi
+request body  ：UserIdRequestVO
+Response    ：{userId, length, userChargeList:[{chargeId,stock,purchaseDate,validDate,extNum1}]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserChargeRequestVO.cs
 
-★ 回传 Upsert 时要丢掉 extNum1（真机 Upsert 报文里没有这个字段）。
+★ Callback Upsert timemustDiscard extNum1（real machine Upsert packetinnonethisfields）。
 
-调用示例：
+call exampleExample：
     from api import GetUserCharge
 """
 
@@ -35,11 +35,11 @@ def GetUserCharge(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户票券（对应 GetUserChargeApi）。
+    Pick up user tickets（Corresponding GetUserChargeApi）。
 
-    返回：
-        原始响应 dict，含 userChargeList
+    returntimes：
+        Raw Response dict，Contains userChargeList
     """
-    log_info("取用户票券：user_id=" + str(user_id))
+    log_info("Pick up user tickets：user_id=" + str(user_id))
     return _get("GetUserChargeApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

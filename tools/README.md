@@ -1,28 +1,28 @@
-# tools/ —— 独立小工具
+# tools/ —— textTools
 
-这个目录放**与游戏协议无关的独立小工具**：纯计算、纯文件处理。
-它们**不联网**、**不碰游戏服务器**、也**不依赖 `api/` 与 `config.py`**。
+thisPiecetext**Separate gadgets unrelated to the game protocol**：textcountcalculate、textfileProcess。
+They**Unconnected**、**Don't touch the game server**、Also**Do not rely on `api/` And `config.py`**。
 
-## 约定
+## text
 
-| 约定 | 说明 |
+| text | description |
 |---|---|
-| 一个工具一个子目录 | `tools/<工具名>/` |
-| 自包含 | 工具之间不互相依赖，单独拷走也能跑 |
-| 纯本地 | 不联网、不写游戏服务器；最多读本机文件 |
-| 无第三方依赖 | 只用 Python 标准库（除非工具自己的 README 里写明） |
-| 登记 | 新增工具时，在下面的「已有工具」表里加一行 |
+| One tool, one subdirectory | `tools/<Tool name>/` |
+| textPackageContains | Tools are not interdependent，You can also run away by handcuffing alone |
+| text | Unconnected、Do Not Write Game Servers；Max Read Native Files |
+| nonumberThreetext | Use only Python standardLibrary（textnon-Toolstextof README intext） |
+| text | addedToolstime，Below「Existing Tools」textinPlusOne Row |
 
-## 已有工具
+## Existing Tools
 
-| 工具 | 目录 | 干什么 |
+| Tools | text | What for? |
 |---|---|---|
-| 谱面达成率计算器 | [`chart_achievement/`](chart_achievement/) | 按判定数算谱面达成率与 DX 分；也可由达成率倒算判定组合 |
+| chartachievement ratecountcalculatetext | [`chart_achievement/`](chart_achievement/) | pressDeterminenumbercalculatechartachievement rateAnd DX Minutes；The combination can also be determined by the reverse calculation of the achievement rate |
 
-## 怎么跑
+## How to run
 
 ```bash
-# 进工具目录，直接 python 跑（各工具的参数见它自己的说明）
+# textToolstext，directly python text（The parameters of each tool are described in its own）
 cd tools/chart_achievement
 python chart_achievement.py --help
 ```

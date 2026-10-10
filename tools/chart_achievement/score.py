@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
-"""舞萌DX 达成率 / DX 分计算模型（按音符组精确建模）。
+"""textDX achievement rate / DX Minute Calculation Model（pressnotegrouptext）。
 
-达成率（source/Assembly-CSharp/Manager/GameScoreList.cs:1238-1310 CalcUpdate()）::
+achievement rate（source/Assembly-CSharp/Manager/GameScoreList.cs:1238-1310 CalcUpdate()）::
 
     Achivement = num / _allPerfectScore * 100 + num2 / _breakBonusScore
 
-其中 num  = Σ 普通得分 NoteScore.GetJudgeScore(timing, 计分类型)
-     num2 = Σ 绝赞奖励分（只有绝赞音符有）NoteScore.GetJudgeScore(timing, BreakBonus)
-     _allPerfectScore  = Σ 每个音符的满权重（NotesReader.calcTotal()）
-     _breakBonusScore  = 100 × 绝赞音符数
-满分 = 101.0000%（有绝赞）/ 100.0000%（无绝赞）。
+where num  = Σ textScore NoteScore.GetJudgeScore(timing, countCategoriestext)
+     num2 = Σ critical perfectReward Points（Only the overwhelmingly acclaimed notes have）NoteScore.GetJudgeScore(timing, BreakBonus)
+     _allPerfectScore  = Σ eachPiecenoteoftextweight（NotesReader.calcTotal()）
+     _breakBonusScore  = 100 × critical perfectnotenumber
+textMinutes = 101.0000%（hascritical perfect）/ 100.0000%（nocritical perfect）。
 
-DX 分（JudgeResultSt.UpdateScore + NoteJudge.ConvertJudge）::
+DX Minutes（JudgeResultSt.UpdateScore + NoteJudge.ConvertJudge）::
 
-    DX = 3×CriticalPerfect + 2×Perfect + 1×Great（Good/Miss 不加分）
+    DX = 3×CriticalPerfect + 2×Perfect + 1×Great（Good/Miss No extra points）
 
-与音符类型无关，理论 DX = 3 × 计分音符数。
+Not related to note type，theoretical DX = 3 × countMinutesnotenumber。
 
-模型要点
+textmusttext
 --------
-* 音符按「组」划分，同一组内计分行为完全一致（权重、可选判定、失分档位、绝赞奖励档位）。
-* 绝赞（Break 类）的 Great 有 3 档失分、Perfect 奖励有 2 档（75 / 50），滑条判定的绝赞
-  没有 Perfect 档，长按判定的绝赞不分档；EX 判定（ExTap 表）只能 Critical 或 Miss。
-* 因此「给定各判定的总个数」并不能唯一确定达成率：达成率依赖这些判定落在哪些音符上。
-  本模块用最小费用流求达成率的精确上下界，并可严格判定「能否恰好打出某个达成率」。
+* notepress「group」Divide，Exactly the same scoring behavior within the same group（weight、Optional Determination、Missed Gear、critical perfectRewardsfileBit）。
+* critical perfect（Break text）of Great has 3 fileLost points、Perfect Rewards include 2 file（75 / 50），textitemDetermineofcritical perfect
+  none Perfect file，holdDetermineofcritical perfectNo Gear Break；EX Determine（ExTap text）Only Critical or Miss。
+* Therefore,「textEachDetermineoftextNumber」And it's not the only thing that determines the rate of：achievement ratetextthistextDeterminefallatWhich notesUp。
+  textuseMinimum fee streamtextachievement rateoftextUpLower Boundary，and can be strictly judged「canNoJust in timetextouttextPieceachievement rate」。
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ from ma2 import (GROUP_BREAK, GROUP_BREAK_FLAT, GROUP_BREAK_SLIDE, GROUP_EX,
                  GROUP_EX_BREAK, GROUP_HOLD, GROUP_LABEL, GROUP_ORDER,
                  GROUP_SLIDE, GROUP_TAP, GROUP_WEIGHT, Chart)
 
-# ------------------------------------------------------------------ 常量
+# ------------------------------------------------------------------ Constant
 JUDGMENTS = ("cp", "perfect", "great", "good", "miss")
 JUDGE_LABEL = {
     "cp": "Critical Perfect",
@@ -50,8 +50,8 @@ JUDGE_LABEL = {
 }
 DX_PER = {"cp": 3, "perfect": 2, "great": 1, "good": 0, "miss": 0}
 
-#: 每个音符组里，某判定实际可能出现的 (失分, 绝赞奖励分) 组合。
-#: 失分 = 该音符满权重 - 实际得分；奖励分只对绝赞（计分类型 Break）音符存在。
+#: eachPiecenotegroupin，textDetermineActualtextcanAppearanceof (Lost points, critical perfectReward Points) grouptext。
+#: Lost points = thenotetextweight - Actual Score；Reward points are only for praise（countCategoriestext Break）notetextat。
 GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
     GROUP_TAP: {
         "cp": ((0, 0),),
@@ -76,28 +76,28 @@ GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
     },
     GROUP_BREAK: {
         "cp": ((0, 100),),
-        "perfect": ((0, 75), (0, 50)),                 # FastPerfect/LatePerfect 与 2nd 档
+        "perfect": ((0, 75), (0, 50)),                 # FastPerfect/LatePerfect And 2nd file
         "great": ((500, 40), (1000, 40), (1250, 40)),  # 2000 / 1500 / 1250
         "good": ((1500, 30),),                         # 1000
         "miss": ((2500, 0),),                          # 0
     },
     GROUP_BREAK_FLAT: {
         "cp": ((0, 100),),
-        "perfect": ((0, 75),),                         # 长按判定没有 2nd 档
-        "great": ((500, 40),),                         # 只有 2000 一档
+        "perfect": ((0, 75),),                         # holdDeterminenone 2nd file
+        "great": ((500, 40),),                         # Only 2000 Grade 1
         "good": ((1500, 30),),
         "miss": ((2500, 0),),
     },
     GROUP_BREAK_SLIDE: {
         "cp": ((0, 100),),
-        # 滑条判定没有非 Critical 的 Perfect
+        # textitemDeterminenonenon- Critical of Perfect
         "great": ((500, 40), (1000, 40), (1250, 40)),
         "good": ((1500, 30),),
         "miss": ((2500, 0),),
     },
     GROUP_EX: {
         "cp": ((0, 0),),
-        "miss": ((500, 0),),       # ExTap 判定表只有 Critical / TooFast / TooLate
+        "miss": ((500, 0),),       # ExTap Determination table only Critical / TooFast / TooLate
     },
     GROUP_EX_BREAK: {
         "cp": ((0, 100),),
@@ -107,9 +107,9 @@ GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
 
 _BAD_JUDGMENTS = ("great", "good", "miss")
 
-#: 坏音符落在该组时，对 (可出现的绝赞音符数 bad_b, 加权和 slo) 的贡献。
+#: When a bad note falls on this group，Yes. (Number of accent notes that can appear bad_b, Weighted sum slo) oftext。
 #: slo = 2×bad_break + 3×bad_break_flat + 4×bad_break_slide + 4×bad_ex_break，
-#: 用于还原「绝赞音符里 cp/perfect 的奖励分取值范围」。
+#: used fortextHara「critical perfectnotein cp/perfect ofReward PointsPick a valuetext」。
 _GROUP_BAD_STEP = {
     GROUP_BREAK: (1, 2),
     GROUP_BREAK_FLAT: (1, 3),
@@ -117,23 +117,23 @@ _GROUP_BAD_STEP = {
     GROUP_EX_BREAK: (1, 4),
 }
 
-#: 精确模式严格验证的最大坏音符数（Miss+Good+Great 总和）。超过则只做区间判定。
-EXACT_MAX_BAD = 12          # 精确验证时最多考虑多少个坏音符（Miss+Good+Great）
-EXACT_TIME_BUDGET = 8.0     # 精确验证 DP 的时间预算（秒），超时退回区间模式
+#: textmodetextoftextBad notesnumber（Miss+Good+Great Sum）。textThenOnlytextIntervalDetermine。
+EXACT_MAX_BAD = 12          # texttimeMax.textbad notes（Miss+Good+Great）
+EXACT_TIME_BUDGET = 8.0     # text DP oftimetextcalculate（seconds），texttimetexttimesInterval Mode
 
 
-# ------------------------------------------------------------------ 理论值
+# ------------------------------------------------------------------ theoreticalValue
 @dataclass
 class Theory:
-    """一个谱面的计分理论值。"""
+    """Scoring Theoretical Value of a Spectrum。"""
 
-    counts: Dict[str, int]              # 音符组 -> 音符数
-    weights: Dict[str, int]             # 音符组 -> 单音符满权重
+    counts: Dict[str, int]              # notegroup -> notenumber
+    weights: Dict[str, int]             # notegroup -> Single note full weight
     all_perfect_score: int              # _allPerfectScore
-    break_bonus_score: int              # _breakBonusScore = 100 × 绝赞音符数
-    total_notes: int                    # 计分音符总数 N（不含接续滑条）
-    max_dx: int                         # 理论 DX = 3N
-    lattice: int                        # 所有单音符失分-奖励组合的最大公约数
+    break_bonus_score: int              # _breakBonusScore = 100 × critical perfectnotenumber
+    total_notes: int                    # countMinutesnoteTotal N（Connection slider not included）
+    max_dx: int                         # theoretical DX = 3N
+    lattice: int                        # Missed all single notes-Maximum common divisor of award combinations
 
     @property
     def has_break(self) -> bool:
@@ -141,12 +141,12 @@ class Theory:
 
     @property
     def break_notes(self) -> int:
-        """绝赞音符总数（计分类型为 Break 的音符）。"""
+        """critical perfectnoteTotal（countCategoriestextfor Break ofnote）。"""
         return sum(self.counts.get(g, 0) for g in _GROUP_BAD_STEP)
 
     @property
     def denominator(self) -> int:
-        """达成率公式的分母：100 - Σc/D 中的 D。"""
+        """achievement ratetextofDenominator：100 - Σc/D in D。"""
         if self.break_bonus_score:
             return self.all_perfect_score * self.break_bonus_score
         return self.all_perfect_score
@@ -157,7 +157,7 @@ class Theory:
 
     @property
     def perfect_capacity(self) -> int:
-        """允许出现 Perfect 的绝赞音符数（Break 与 Break(长按判定)）。"""
+        """Allow to appear Perfect ofcritical perfectnotenumber（Break And Break(holdDetermine)）。"""
         return (self.counts.get(GROUP_BREAK, 0)
                 + self.counts.get(GROUP_BREAK_FLAT, 0))
 
@@ -172,14 +172,14 @@ def _lattice_of(th: "Theory") -> int:
 
 
 def theory_from_counts(counts: Dict[str, int]) -> Theory:
-    """由「音符组 -> 音符数」构造理论值。"""
+    """by「notegroup -> notenumber」constructtheoreticalValue。"""
     clean: Dict[str, int] = {}
     for key, value in (counts or {}).items():
         if key not in GROUP_OPTIONS:
-            raise ValueError("未知的音符组：%r" % (key,))
+            raise ValueError("nottextofnotegroup：%r" % (key,))
         value = int(value or 0)
         if value < 0:
-            raise ValueError("音符数不能为负：%s=%d" % (key, value))
+            raise ValueError("notenumberCannot betext：%s=%d" % (key, value))
         if value:
             clean[key] = value
     all_perfect = 0
@@ -211,9 +211,9 @@ def theory_from_chart(chart: Chart) -> Theory:
     return theory_from_counts(chart.counts())
 
 
-# ------------------------------------------------------------------ 单音符代价
+# ------------------------------------------------------------------ Single note cost
 def _cost(th: Theory, loss: int, bonus: int) -> int:
-    """把 (失分, 奖励分) 折算成一个整数代价 c，使达成率 = 100 - Σc / D。"""
+    """put (Lost points, Reward Points) textcalculatetextOnetextnumbertext c，Enable Achievement Rate = 100 - Σc / D。"""
     if th.break_bonus_score:
         return 100 * th.break_bonus_score * loss - th.all_perfect_score * bonus
     return 100 * loss
@@ -224,19 +224,19 @@ def _edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optional[i
     if not opts:
         return None
     values = [_cost(th, loss, bonus) for loss, bonus in opts]
-    # want_max 表示「追求最大达成率」，而达成率 = 100 - Σc/D，所以要取最小代价。
+    # want_max text「textachievement rate」，andachievement rate = 100 - Σc/D，So at the least cost.。
     return min(values) if want_max else max(values)
 
 
 def _flex_edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optional[int]:
-    """与 _edge_cost 相同，但「好音符」（CP/Perfect）可以在 CP 与 Perfect 之间自由选择。
+    """And _edge_cost relatedSame，But「Good notes」（CP/Perfect）Available at CP And Perfect Free choice between。
 
-    只在反向求解的上下界里用：用户没给 CP/Perfect 拆分时，这个选择会影响达成率
-    （绝赞的 CP 奖励 100、Perfect 只有 75/50）。
+    Use only in the upper and lower bounds of the reverse solution：usertext CP/Perfect textMinutestime，thisPiecetextMeetingsImpactachievement rate
+    （critical perfectof CP Rewards 100、Perfect Only 75/50）。
     """
     if judge == "cp":
-        # 「其余音符」这一档：既可以是 Critical Perfect，也可以是 Perfect
-        # （Perfect 只能落在绝赞音符上，交给流自己挑）
+        # 「Remaining notes」thisGrade 1：textYesis Critical Perfect，It can also be Perfect
+        # （Perfect can only fall on the overwhelming praise note，Hand over the current to your own choice）
         opts = (tuple(GROUP_OPTIONS.get(group, {}).get("cp", ()))
                 + tuple(GROUP_OPTIONS.get(group, {}).get("perfect", ())))
     else:
@@ -247,9 +247,9 @@ def _flex_edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optio
     return min(values) if want_max else max(values)
 
 
-# ------------------------------------------------------------------ 最小费用流
+# ------------------------------------------------------------------ Minimum fee stream
 class _MinCostFlow:
-    """连续最短路 + 整条增广（边数很少，够快）。"""
+    """textcontinuetextshorttext + textitemtext（textnumbertext，Fast enough）。"""
 
     def __init__(self, n: int) -> None:
         self.n = n
@@ -308,14 +308,14 @@ class _MinCostFlow:
 
 def _extreme(th: Theory, judges: Dict[str, int], want_max: bool,
              flex_good: bool = False) -> Optional[Fraction]:
-    """在给定各判定总数的前提下，求达成率的极大值 / 极小值。
+    """Given the total number of each decision,，textachievement rateoftextValue / textValue。
 
-    flex_good=True 时，「good」这一类里的 CP/Perfect 拆分由流自己挑
-    （反向求解用：只给 Miss/Good/Great 时，CP 与 Perfect 的拆分是自由的）。
+    flex_good=True time，「good」thisOnetextinof CP/Perfect textMinutesbytext
+    （Reverse solving with：Only for Miss/Good/Great time，CP And Perfect oftextMinutesistextbyof）。
     """
     total = sum(int(judges.get(j, 0)) for j in JUDGMENTS)
     if total != th.total_notes:
-        raise ValueError("判定总数 %d 与谱面音符数 %d 不一致" % (total, th.total_notes))
+        raise ValueError("Total number of judgments %d with number of notes on the musical surface %d Inconsistent" % (total, th.total_notes))
     if total == 0:
         return Fraction(0)
     groups = [g for g in GROUP_ORDER if th.counts.get(g, 0)]
@@ -338,8 +338,8 @@ def _extreme(th: Theory, judges: Dict[str, int], want_max: bool,
             cost = (_flex_edge_cost(th, group, judge, want_max) if flex_good
                     else _edge_cost(th, group, judge, want_max))
             if cost is None:
-                continue     # 该判定不可能落在这类音符上：不连边，交给流去判定可行性
-            # 最小费用流只会最小化总代价：求最小达成率时把代价取负，最后再翻回来。
+                continue     # theDetermineNotextcanfallatthistextnoteUp：Unconnected，Leave it to the flow to determine the feasibility
+            # Minimum fee flow will only minimize the total cost：textachievement ratetimeputtextTaketext，Last flip back。
             mcf.add_edge(gbase + i, jbase + j, min(th.counts[group], count),
                          cost if want_max else -cost)
     total_cost = mcf.min_cost(src, sink, total)
@@ -351,16 +351,16 @@ def _extreme(th: Theory, judges: Dict[str, int], want_max: bool,
 
 
 def achievement_bounds(th: Theory, judges: Dict[str, int]) -> Tuple[Fraction, Fraction]:
-    """返回 (达成率下界, 达成率上界)。"""
+    """returntimes (achievement rateLower Boundary, achievement rateUpper Realm)。"""
     lo = _extreme(th, judges, want_max=False)
     hi = _extreme(th, judges, want_max=True)
     if lo is None or hi is None:
-        raise ValueError("这些判定数无法落在该谱面上（例如把 Perfect 给了 EX 音符）")
+        raise ValueError("thistextDeterminenumbernotextfallatthechartUp（For example, putting Perfect text EX note）")
     return lo, hi
 
 
 def reference_achievement(th: Theory, judges: Dict[str, int]) -> Fraction:
-    """按比例分摊的参考达成率：各判定按总数比例摊到每个音符组，档位取中值。"""
+    """presstextExampleMinutestextoftextachievement rate：Each decision is apportioned to each note group in proportion to the total number，fileBitTaketextValue。"""
     n = th.total_notes
     if n == 0:
         return Fraction(0)
@@ -392,7 +392,7 @@ def dx_score(judges: Dict[str, int]) -> int:
     return sum(DX_PER[j] * int(judges.get(j, 0)) for j in JUDGMENTS)
 
 
-# ------------------------------------------------------------------ 正向
+# ------------------------------------------------------------------ currentTowards
 @dataclass
 class ForwardResult:
     theory: Theory
@@ -415,7 +415,7 @@ def solve_forward(th: Theory, judges: Dict[str, int]) -> ForwardResult:
     clean = {j: int(judges.get(j, 0) or 0) for j in JUDGMENTS}
     total = sum(clean.values())
     if total != th.total_notes:
-        raise ValueError("判定总数 %d 与谱面音符数 %d 不一致" % (total, th.total_notes))
+        raise ValueError("Total number of judgments %d with number of notes on the musical surface %d Inconsistent" % (total, th.total_notes))
     lo, hi = achievement_bounds(th, clean)
     return ForwardResult(
         theory=th,
@@ -427,14 +427,14 @@ def solve_forward(th: Theory, judges: Dict[str, int]) -> ForwardResult:
     )
 
 
-# ------------------------------------------------------------------ 反向：工具函数
+# ------------------------------------------------------------------ Reverse：Tool Functions
 def _judges_for(th: Theory, miss: int, good: int, great: int,
                 cp: int, perfect: int) -> Dict[str, int]:
     return {"cp": cp, "perfect": perfect, "great": great, "good": good, "miss": miss}
 
 
 def _best(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
-    """给定 Miss/Good/Great 数时，达成率能达到的最大值（CP/Perfect 拆分自由）。"""
+    """text Miss/Good/Great numbertime，achievement ratecantexttooftextValue（CP/Perfect textMinutestextby）。"""
     s = th.total_notes - miss - good - great
     if s < 0:
         return None
@@ -443,7 +443,7 @@ def _best(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
 
 
 def _worst(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
-    """给定 Miss/Good/Great 数时，达成率能达到的最小值（CP/Perfect 拆分自由）。"""
+    """text Miss/Good/Great numbertime，achievement ratecantexttooftextValue（CP/Perfect textMinutestextby）。"""
     s = th.total_notes - miss - good - great
     if s < 0:
         return None
@@ -452,7 +452,7 @@ def _worst(th: Theory, miss: int, good: int, great: int) -> Optional[Fraction]:
 
 
 def _max_true(lo: int, hi: int, pred) -> int:
-    """pred 在 [lo, hi] 上单调不增时，求满足 pred 的最大值（无则返回 lo-1）。"""
+    """pred at [lo, hi] When monotonous does not increase，text pred oftextValue（noThenreturntimes lo-1）。"""
     best = lo - 1
     while lo <= hi:
         mid = (lo + hi) // 2
@@ -465,7 +465,7 @@ def _max_true(lo: int, hi: int, pred) -> int:
 
 
 def _min_true(lo: int, hi: int, pred) -> int:
-    """pred 在 [lo, hi] 上单调不增时，求满足 pred 的最小值（无则返回 hi+1）。"""
+    """pred at [lo, hi] When monotonous does not increase，text pred oftextValue（noThenreturntimes hi+1）。"""
     best = hi + 1
     while lo <= hi:
         mid = (lo + hi) // 2
@@ -477,13 +477,13 @@ def _min_true(lo: int, hi: int, pred) -> int:
     return best
 
 
-# ------------------------------------------------------------------ 反向：候选行
+# ------------------------------------------------------------------ Reverse：Candidate Rows
 def _candidate_rows(th: Theory, target: Fraction, max_scan: int,
                    bad_limit: Optional[int] = None, stats: Optional[Dict] = None):
-    """生成「可能覆盖 target」的 (miss, good, great) 组合，顺序由少到多。
+    """text「Possible overrides target」of (miss, good, great) grouptext，orderbytexttotext。
 
-    bad_limit 非空时只产出 Miss+Good+Great <= bad_limit 的组合，
-    并在 stats["clipped"] 里记下「还有更多（坏音符更多的）组合没产出」。
+    bad_limit non-emptytimeOnlyOutput Miss+Good+Great <= bad_limit ofgrouptext，
+    and in the stats["clipped"] intextDown「texthastext（Bad notes more）grouptextOutput」。
     """
     n = th.total_notes
     scanned = 0
@@ -521,8 +521,8 @@ def _candidate_rows(th: Theory, target: Fraction, max_scan: int,
                 v = _worst(th, miss, good, gr)
                 return v is not None and v <= target
 
-            # 先求「Great 放得下」的最大个数：超过它整行不可行（例如 EX 音符不能判 Great），
-            # 否则不可行的高端会让 worst_gr 不再单调，二分就会找错。
+            # Seek first「Great textDown」oftextNumber：textNotext（Example EX noteNocantext Great），
+            # Otherwise, the infeasible high-end will make worst_gr No longer monotonous，The two points will be wrong.。
             feasible_hi = _max_true(0, room, lambda gr: _worst(th, miss, good, gr) is not None)
             if feasible_hi < 0:
                 continue
@@ -555,8 +555,8 @@ class ReverseRow:
     achievement_max: Fraction
     dx_min: int = 0
     dx_max: int = 0
-    verified: bool = True       # 精确模式下是否已严格验证
-    exact: bool = False         # 是否恰好等于目标达成率
+    verified: bool = True       # textmodeDownisNoAlreadytext
+    exact: bool = False         # isNoJust in timeetcintextachievement rate
 
     def summary(self) -> str:
         return ("miss %d · good %d · great %d · cp+perfect %d"
@@ -570,12 +570,12 @@ def _row_dx_bounds(th: Theory, row: ReverseRow) -> None:
 
 
 def _cp_bounds_simple(th: Theory, s: int) -> Tuple[int, int]:
-    """cp 的物理取值范围：Perfect 只能出现在 Break / Break(长按判定) 上。"""
+    """cp oftextPick a valuetext：Perfect can only appear in Break / Break(holdDetermine) Up。"""
     cp_min = max(0, s - th.perfect_capacity)
     return cp_min, s
 
 
-# ------------------------------------------------------------------ 反向：区间模式
+# ------------------------------------------------------------------ Reverse：Interval Mode
 def solve_reverse_range(th: Theory, target: Fraction, limit: int = 300,
                         max_scan: int = 200000) -> Dict[str, object]:
     rows: List[ReverseRow] = []
@@ -611,24 +611,24 @@ def solve_reverse_range(th: Theory, target: Fraction, limit: int = 300,
     }
 
 
-# ------------------------------------------------------------------ 反向：精确模式
+# ------------------------------------------------------------------ Reverse：textmode
 def _bad_options(group: str) -> Dict[str, Tuple[Tuple[int, int], ...]]:
     return {j: GROUP_OPTIONS[group][j] for j in _BAD_JUDGMENTS
             if j in GROUP_OPTIONS[group]}
 
 
 def _dx_delta(th: Theory, loss: int, bonus: int) -> int:
-    """一个坏音符对「目标量 X」的贡献；X = rhs 等价于达成率等于目标。"""
+    """a bad note pair「text X」oftext；X = rhs etctextinachievement rateetcintext。"""
     if th.break_bonus_score:
         return 100 * th.break_bonus_score * loss - th.all_perfect_score * bonus
     return 100 * loss
 
 
 def _exact_suffix(th: Theory, groups: List[str]) -> List[Tuple[int, int, int, int]]:
-    """每个后缀（含自身）的 (dX 负向下界, dX 上界, slo 上界, bad 上界)，用于剪枝。
+    """eachPieceSuffix（Contains Own）of (dX textTowardsLower Boundary, dX Upper Realm, slo Upper Realm, bad Upper Realm)，used fortext。
 
-    注意 dX 下界必须按「最多只有这些音符是坏音符、也可以是 0 个」来算，
-    所以只累计负的贡献（min(0, ...)·个数），否则会错误剪掉合法解。
+    note dX The lower bound must be pressed「At most these are the only notes that are bad.、It can also be 0 Piece」textcalculate，
+    So only the cumulative negative contribution（min(0, ...)·Number），Otherwise, the legal solution will be cut off by mistake。
     """
     suf: List[Tuple[int, int, int, int]] = [(0, 0, 0, 0)] * (len(groups) + 1)
     for i in range(len(groups) - 1, -1, -1):
@@ -647,12 +647,12 @@ def _exact_suffix(th: Theory, groups: List[str]) -> List[Tuple[int, int, int, in
 def _exact_table(th: Theory, max_bad: int, rhs: Fraction,
                  set_cap: int = 20000, total_cap: int = 1500000,
                  deadline: Optional[float] = None):
-    """DP：状态 (miss, good, great) -> 可达的 (X, bad_b, slo) 集合。
+    """DP：text (miss, good, great) -> Reachable (X, bad_b, slo) text。
 
-    X = 100*B*失分和 - W*坏音符奖励分（无绝赞时 X = 100*失分和），与达成率一一对应；
-    只统计「坏音符」（Great/Good/Miss）；绝赞音符里 cp/perfect 的奖励分用 slo 还原成区间。
-    每个候选元组都用「剩余音符最大/最小贡献」做目标剪枝（只对当前 rhs 有效）。
-    超出预算时返回 None（调用方退回区间判定）。
+    X = 100*B*Loss of points and - W*Bad Note Reward Points（nocritical perfecttime X = 100*Loss of points and），One-to-one correspondence with the achievement rate；
+    Stats only「Bad notes」（Great/Good/Miss）；critical perfectnotein cp/perfect ofReward Pointsuse slo textHaratextInterval。
+    eachPiecetextTuplesalluse「Max notes remaining/Minimum Contribution」Make target pruning（Only for current rhs hastext）。
+    textouttextcalculatetimereturntimes None（callusetexttimesIntervalDetermine）。
     """
     groups = [g for g in GROUP_ORDER if th.counts.get(g, 0) and _bad_options(g)]
     suf = _exact_suffix(th, groups)
@@ -722,7 +722,7 @@ def _exact_table(th: Theory, max_bad: int, rhs: Fraction,
 
 def _exact_row_ok(th: Theory, table, miss: int, good: int, great: int,
                   rhs: Fraction) -> bool:
-    """严格判定：能否把 (miss, good, great) 判定恰好打出达成率 target。"""
+    """Strict Judgment：canNoput (miss, good, great) Determine that the hit rate is just right target。"""
     tset = table.get((miss, good, great))
     if not tset:
         return False
@@ -734,7 +734,7 @@ def _exact_row_ok(th: Theory, table, miss: int, good: int, great: int,
                  + 4 * th.counts.get(GROUP_EX_BREAK, 0))
     break_notes = sum(th.counts.get(g, 0) for g in _GROUP_BAD_STEP)
     if not b:
-        # 没有绝赞：达成率只由失分决定，100 * 失分和 == 分母 * (100 - 目标)
+        # nonecritical perfect：achievement rateOnly byLost pointsDecision，100 * Loss of points and == Denominator * (100 - text)
         for x, _bad_b, _slo in tset:
             if x == rhs:
                 return True
@@ -760,15 +760,15 @@ def solve_reverse_exact(th: Theory, target: Fraction, limit: int = 300,
     scanned = 0
 
     if rhs.denominator != 1:
-        note = ("该达成率不是本谱面能精确打出的值（达成率只能取 100 - 整数/分母 的形式），"
-                "下面给出区间判定结果。")
+        note = ("theachievement rateNotextchartcantextoutofValue（achievement rateOnlyTake 100 - textnumber/Denominator oftext），"
+                "Interval judgment results are given below。")
     elif th.lattice and rhs.numerator % th.lattice:
-        note = ("该达成率不满足谱面的失分格点（失分只能是 %d 的倍数），"
-                "下面给出区间判定结果。" % th.lattice)
+        note = ("theachievement rateNotextchartofLost pointstext（Losing points can only be %d oftimesnumber），"
+                "Interval judgment results are given below。" % th.lattice)
     stats: Dict[str, bool] = {}
     if note is None:
-        # 只枚举「坏音符不超过 EXACT_MAX_BAD」的组合：超出的组合没法精确验证，
-        # 全枚举它们会白花很多时间（大谱面可能有几十万组）。
+        # Enumeration only「Bad notes no more than EXACT_MAX_BAD」ofgrouptext：textoutofgrouptext，
+        # Full enumeration. They will spend a lot of time in vain.（Large spectra may have hundreds of thousands of groups）。
         for miss, good, great in _candidate_rows(th, target, max_scan,
                                                  EXACT_MAX_BAD, stats):
             scanned += 1
@@ -778,8 +778,8 @@ def solve_reverse_exact(th: Theory, target: Fraction, limit: int = 300,
             table = _exact_table(th, max_bad_used, rhs,
                                  deadline=time.monotonic() + EXACT_TIME_BUDGET)
             if table is None:
-                note = ("判定数较大，超出精确验证的预算（最多 %d 个 Miss+Good+Great），"
-                        "下面给出区间判定结果。" % EXACT_MAX_BAD)
+                note = ("Large number of judgments，textouttextoftextcalculate（Max. %d Piece Miss+Good+Great），"
+                        "Interval judgment results are given below。" % EXACT_MAX_BAD)
     if note is not None:
         fallback = solve_reverse_range(th, target, limit=limit, max_scan=max_scan)
         fallback["note"] = note
@@ -788,10 +788,10 @@ def solve_reverse_exact(th: Theory, target: Fraction, limit: int = 300,
         return fallback
 
     if not pending and stats.get("clipped"):
-        # 一组候选都没法精确验证（坏音符都超过上限），退回区间模式并说明原因
+        # Neither set of candidates can be accurately verified（All bad notes exceed the upper limit），texttimesInterval ModetextdescriptionReason
         fallback = solve_reverse_range(th, target, limit=limit, max_scan=max_scan)
-        fallback["note"] = ("这个谱面/达成率下，坏音符（Miss+Good+Great）超过 %d 个的组合太多，"
-                            "精确验证代价过高，下面给出区间模式结果。" % EXACT_MAX_BAD)
+        fallback["note"] = ("thisPiecechart/achievement rateDown，Bad notes（Miss+Good+Great）text %d Too many combinations，"
+                            "text，Interval mode results are given below。" % EXACT_MAX_BAD)
         fallback["exact_cap"] = EXACT_MAX_BAD
         fallback["more_unverified"] = True
         return fallback
@@ -837,10 +837,10 @@ def solve_reverse(th: Theory, target: Fraction, limit: int = 300,
                   max_scan: int = 200000, mode: str = "exact") -> Dict[str, object]:
     target = Fraction(target)
     if target > th.max_achievement:
-        raise ValueError("目标达成率 %s 超过该谱面上限 %s"
+        raise ValueError("textachievement rate %s textthechartUptext %s"
                          % (target, th.max_achievement))
     if mode == "range":
         return solve_reverse_range(th, target, limit=limit, max_scan=max_scan)
     if mode != "exact":
-        raise ValueError("mode 只能是 exact 或 range")
+        raise ValueError("mode can only be exact or range")
     return solve_reverse_exact(th, target, limit=limit, max_scan=max_scan)

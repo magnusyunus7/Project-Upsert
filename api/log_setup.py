@@ -1,66 +1,66 @@
 # -*- coding: utf-8 -*-
 """
-log_setup.py —— 统一日志模块（INFO / DEBUG 双模式）
+log_setup.py —— systemOnelogtext（INFO / DEBUG Dual Mode）
 ================================================================================
 
-【两种模式】
+【Two modes】
 
-    INFO （默认）  只展示 api 脚本的运行情况和结果：
-                      === ParseQRCode 开始运行 ===
-                        [接口说明] ...
-                        [调用参数] ...
-                        [运行结果] ...
-                      === ParseQRCode 运行结束 ===
+    INFO （default）  Show only api scriptoftextandresult：
+                      === ParseQRCode Get started ===
+                        [interfacedescription] ...
+                        [calluseParameter] ...
+                        [textresult] ...
+                      === ParseQRCode run completion ===
 
-    DEBUG          在 INFO 基础上，额外展示「向 api 发送的数据」和「api 返回的数据」：
-                      -> 请求 GetUserPreviewApi
+    DEBUG          at INFO Basis，textShowcase「Towards api Data sent」and「api returntimesofdata」：
+                      -> request GetUserPreviewApi
                            URL    : https://...
-                           请求头 : {...}
-                           请求体 : {...JSON 全文...}
-                      <- 响应 GetUserPreviewApi
-                           状态码 : 200
-                           响应体 : {...JSON 全文...}
+                           requestHead : {...}
+                           request body : {...JSON Full text...}
+                      <- Response GetUserPreviewApi
+                           text : 200
+                           Response body : {...JSON Full text...}
 
-【模式从哪来】
+【modeWhere did you come from?】
 
-    优先级：  setup_logging(level=...) 显式传参  >  config.py 的 LOG_LEVEL  >  INFO
+    Priority：  setup_logging(level=...) explicitPassing ontext  >  config.py of LOG_LEVEL  >  INFO
 
-    日常只改 config.py 一行：
+    textOnlychange config.py One Row：
 
-        LOG_LEVEL = "info"      # 只看流程
-        LOG_LEVEL = "debug"     # 连收发数据一起看
+        LOG_LEVEL = "info"      # Just look at the flow
+        LOG_LEVEL = "debug"     # textreceivehairdataOnetext
 
-【日志文件（两种形式同时存在、同时写入）】
+【logfile（Two forms co-exist、Simultaneous writes）】
 
-    logs/latest.log        覆盖模式（"w"）—— 只包含【当次】主脚本运行产出的日志，
-                           下一次运行主脚本时被覆盖
-    logs/YYYY-MM-DD.log    追加模式（"a"）—— 存放【当日】产生的所有日志
+    logs/latest.log        overwritemode（"w"）—— Contains only【Current time】Log of master script run output，
+                           Overwritten the next time the master script is run
+    logs/YYYY-MM-DD.log    textPlusmode（"a"）—— Storage【Same day】All generated logs
 
-    每行都带 [YYYY-MM-DD HH:MM:SS] 时间戳。
+    eachtextallBelt [YYYY-MM-DD HH:MM:SS] timetext。
 
-【主脚本怎么用】
+【How to use the main script】
 
     from api import setup_logging, teardown_logging, ParseQRCode, UserLogin
 
     def main():
-        setup_logging("我的主脚本")     # 开头一句；api 调用从此自动记录
+        setup_logging("My Master Script")     # Beginning sentence；api calluseFromtextrecord
         try:
-            user_id, token = ParseQRCode(qr)     # 自动产出「开始运行 / 运行结束」
+            user_id, token = ParseQRCode(qr)     # textOutput「Get started / run completion」
             login = UserLogin(user_id, token)
         finally:
-            teardown_logging()                   # 结尾一句（不写也会在退出时自动收尾）
+            teardown_logging()                   # textTailOnetext（It will end automatically when you exit without writing）
 
-    api 函数不需要自己写 print，也不需要装饰器 —— api/__init__.py 在导入时就
-    统一套上了日志外壳（见 autowrap）。
+    api Functions don't need to be written by themselves print，or decorators. —— api/__init__.py At the time of import
+    systemOnetextUptextlogtext（text autowrap）。
 
-【api 脚本怎么用】
+【api scripttextuse】
 
     from api import log_info, log_debug, log_request, log_response
 
     def GetUserPreview(user_id, token, ...):
-        # 函数的第一行 docstring 会成为日志里的「[接口说明]」
-        # 例如： '''获取用户预览信息'''
-        log_info(f"请求用户预览 user_id={user_id}")   # 可选，想额外记话时才写
+        # First line of the function docstring will be in the log.「[interfacedescription]」
+        # Example： '''getFetch Userstext'''
+        log_info(f"requestusertext user_id={user_id}")   # Optional，Write only when you want to memorize extra words
 
         log_request(url=url, body=req, headers=hdr, api_name="GetUserPreviewApi")
         raw = _http_post(...)
@@ -81,7 +81,7 @@ from datetime import datetime
 from typing import Any, Callable, Iterable, Optional
 
 # =============================================================================
-# 常量与全局状态
+# Constants and Global State
 # =============================================================================
 
 LEVEL_INFO = "info"
@@ -89,14 +89,14 @@ LEVEL_DEBUG = "debug"
 
 _LEVEL_RANK = {LEVEL_INFO: 20, LEVEL_DEBUG: 10}
 
-# 项目根目录（本文件在 api/ 下，根目录是上一级）
+# itemtext（textfileat api/ Down，textisUpOnetext）
 _ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _LOGS_DIR = os.path.join(_ROOT_DIR, "logs")
 
 _SEPARATOR = "=" * 66
 _INDENT = "  "
 
-# 全局状态
+# Global State
 _session_started = False
 _session_script_name = ""
 _current_level = LEVEL_INFO
@@ -107,28 +107,28 @@ _latest_log_path: Optional[str] = None
 _date_log_file = None
 _latest_log_file = None
 
-# 被自动跟踪的 api 函数名（供横幅展示）
+# textof api Function name（For banner display）
 _tracked_api_names: list = []
-# 本次会话实际调用过的 api（按首次调用顺序）
+# textSessionActualcallusetextof api（pressfirsttextcalluseorder）
 _called_apis: list = []
 
 
 # =============================================================================
-# 模式判定
+# modeDetermine
 # =============================================================================
 
 def _normalize_level(level: Any) -> str:
-    """把各种写法的模式名归一化成 'info' / 'debug'。"""
+    """putEachtextofmodeFirst nameNormalization 'info' / 'debug'。"""
     if level is None:
         return LEVEL_INFO
     text = str(level).strip().lower()
-    if text in ("debug", "dbg", "verbose", "详细", "调试"):
+    if text in ("debug", "dbg", "verbose", "text", "debug"):
         return LEVEL_DEBUG
     return LEVEL_INFO
 
 
 def _config_level() -> str:
-    """从 config.py 读 LOG_LEVEL；读不到就用 INFO。"""
+    """From config.py read LOG_LEVEL；readNototextuse INFO。"""
     try:
         import config  # type: ignore
         return _normalize_level(getattr(config, "LOG_LEVEL", LEVEL_INFO))
@@ -137,7 +137,7 @@ def _config_level() -> str:
 
 
 def _config_value_max() -> int:
-    """从 config.py 读 LOG_VALUE_MAX（0 = 不截断）。"""
+    """From config.py read LOG_VALUE_MAX（0 = No truncation）。"""
     try:
         import config  # type: ignore
         return int(getattr(config, "LOG_VALUE_MAX", 0) or 0)
@@ -146,24 +146,24 @@ def _config_value_max() -> int:
 
 
 def get_level() -> str:
-    """返回当前日志模式（'info' / 'debug'）。"""
+    """returntimesCurrentlogmode（'info' / 'debug'）。"""
     return _current_level
 
 
 def is_debug() -> bool:
-    """当前是否 DEBUG 模式。"""
+    """Is it currently DEBUG mode。"""
     return _LEVEL_RANK.get(_current_level, 20) <= _LEVEL_RANK[LEVEL_DEBUG]
 
 
 def set_level(level: Any) -> str:
-    """运行时切换模式（一般不用，改 config.py 即可）。返回切换后的模式。"""
+    """texttimeCuttextmode（Generally not，change config.py Just do it）。returntimesCuttextAfterofmode。"""
     global _current_level
     _current_level = _normalize_level(level)
     return _current_level
 
 
 # =============================================================================
-# 日志文件
+# logfile
 # =============================================================================
 
 def _ensure_logs_dir() -> None:
@@ -179,7 +179,7 @@ def _get_latest_log_path() -> str:
 
 
 def _write_files(message: str) -> None:
-    """把一段文本写进两个日志文件（每行带时间戳）。"""
+    """putOnetextTwo log files（eachtextBelttimetext）。"""
     timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     lines = message.splitlines() or [""]
     payload = "".join(timestamp + line + "\n" for line in lines)
@@ -193,7 +193,7 @@ def _write_files(message: str) -> None:
 
 
 def _emit(message: str = "", *, console: bool = True) -> None:
-    """统一出口：控制台 + 两个日志文件。"""
+    """systemOneouttext：textStage + Two log files。"""
     if console:
         try:
             print(message)
@@ -218,19 +218,19 @@ def _close_log_files() -> None:
 
 
 # =============================================================================
-# 自动跟踪：给 api 函数套日志外壳
+# text：text api Function sleeve log shell
 # =============================================================================
 #
-# 目标：主脚本只写 setup_logging("名字") + 业务代码，
-#       调用的每个 api 函数自动产出「===函数名 开始运行=== / ===函数名 运行结束===」，
-#       调用方不必自己写装饰器，也不必自己埋点。
+# text：Main Script Write Only setup_logging("First name") + Business Code，
+#       calluseofeachPiece api Function Automatic Output「===Function name Get started=== / ===Function name run completion===」，
+#       callusetextNotextWrite Decorator，You don't have to bury it yourself.。
 #
-# 原理：api/__init__.py 在导入完各 api 脚本后调用 autowrap(globals(), _API_FUNCS)，
-#       把命名空间里的函数替换成带日志的版本 —— 于是 from api import ParseQRCode
-#       拿到的已经是包装后的函数。
+# Principle：api/__init__.py After importing each api scriptAftercalluse autowrap(globals(), _API_FUNCS)，
+#       puttextFirst nameemptytextinofFunctiontextBeltlogoftext —— So from api import ParseQRCode
+#       texttoofAlreadytextisPackagingAfterofFunction。
 
 def _describe(func: Callable) -> str:
-    """取函数 docstring 首行，作为「[接口说明]」。"""
+    """Fetch Function docstring firsttext，As「[interfacedescription]」。"""
     doc = (func.__doc__ or "").strip()
     if not doc:
         return ""
@@ -238,7 +238,7 @@ def _describe(func: Callable) -> str:
 
 
 def _make_tracked(func: Callable) -> Callable:
-    """生成带日志外壳的包装函数。"""
+    """textBeltlogtextofPackagingFunction。"""
     name = func.__name__
     summary = _describe(func)
 
@@ -247,25 +247,25 @@ def _make_tracked(func: Callable) -> Callable:
         _note_api_call(name)
 
         _emit("")
-        _emit("=== " + name + " 开始运行 ===")
+        _emit("=== " + name + " Get started ===")
         if summary:
-            _emit(_INDENT + "[接口说明] " + summary)
+            _emit(_INDENT + "[interfacedescription] " + summary)
 
-        # 调用参数：DEBUG 展开多行 JSON，INFO 记单行摘要
+        # calluseParameter：DEBUG Expand multiple rows JSON，INFO textmust
         if args:
             if is_debug():
-                _emit(_INDENT + "[位置参数]")
+                _emit(_INDENT + "[Location Parameters]")
                 _emit(_fmt_pretty(list(args)))
             else:
-                _emit(_INDENT + "[位置参数] " + ", ".join(_fmt(a) for a in args))
+                _emit(_INDENT + "[Location Parameters] " + ", ".join(_fmt(a) for a in args))
         if kwargs:
             shown = {k: v for k, v in kwargs.items() if v is not None}
             if shown:
                 if is_debug():
-                    _emit(_INDENT + "[关键字参数]")
+                    _emit(_INDENT + "[Keyword Parameters]")
                     _emit(_fmt_pretty(shown))
                 else:
-                    _emit(_INDENT + "[关键字参数] "
+                    _emit(_INDENT + "[Keyword Parameters] "
                           + ", ".join(k + "=" + _fmt(v) for k, v in shown.items()))
 
         t0 = time.monotonic()
@@ -273,19 +273,19 @@ def _make_tracked(func: Callable) -> Callable:
             result = func(*args, **kwargs)
         except BaseException as exc:
             ms = int((time.monotonic() - t0) * 1000)
-            _emit(_INDENT + "[运行结果] 异常 " + type(exc).__name__ + ": "
-                  + str(exc) + "（耗时 " + str(ms) + " ms）")
-            _emit("=== " + name + " 运行结束 ===")
+            _emit(_INDENT + "[textresult] Exceptions " + type(exc).__name__ + ": "
+                  + str(exc) + "（texttime " + str(ms) + " ms）")
+            _emit("=== " + name + " run completion ===")
             _emit("")
             raise
 
         ms = int((time.monotonic() - t0) * 1000)
-        _emit(_INDENT + "[运行结果] 成功 " + _fmt_result(result)
-              + "（耗时 " + str(ms) + " ms）")
+        _emit(_INDENT + "[textresult] Success " + _fmt_result(result)
+              + "（texttime " + str(ms) + " ms）")
         if is_debug() and result is not None:
-            _emit(_INDENT + "[返回数据]")
+            _emit(_INDENT + "[returntimesdata]")
             _emit(_fmt_pretty(result))
-        _emit("=== " + name + " 运行结束 ===")
+        _emit("=== " + name + " run completion ===")
         _emit("")
         return result
 
@@ -296,14 +296,14 @@ def _make_tracked(func: Callable) -> Callable:
 
 def autowrap(namespace: dict, names: Iterable[str]) -> list:
     """
-    给命名空间里的函数套上日志外壳（导入时调用，幂等）。
+    textFirst nameemptytextinofFunctiontextUplogtext（Called on import，Idempotent）。
 
-    参数：
-        namespace: 目标命名空间，通常是 api/__init__.py 的 globals()
-        names:     要包装的函数名序列
+    Parameter：
+        namespace: textFirst nameemptytext，textis api/__init__.py of globals()
+        names:     mustPackagingofFunction nameSequence
 
-    返回：
-        实际完成包装的函数名列表
+    returntimes：
+        List of function names that actually finished wrapping
     """
     wrapped = []
     for name in names:
@@ -326,35 +326,35 @@ def autowrap(namespace: dict, names: Iterable[str]) -> list:
 
 
 def _note_api_call(name: str) -> None:
-    """记录主脚本调用过的 api（去重，保留首次调用顺序）。"""
+    """recordMaster Scriptcallusetextof api（Deduplication，Preserve first call order）。"""
     if name not in _called_apis:
         _called_apis.append(name)
 
 
 def get_called_apis() -> list:
-    """返回本次会话实际调用过的 api 名称（按首次调用顺序）。"""
+    """returntimestextSessionActualcallusetextof api Name（pressfirsttextcalluseorder）。"""
     return list(_called_apis)
 
 
 # =============================================================================
-# 会话：初始化 / 收尾
+# Session：Initialization / receiveTail
 # =============================================================================
 
 def setup_logging(script_name: str, level: Any = None) -> str:
     """
-    初始化日志会话（主脚本开头调用一次）。
+    Initialize Log Session（Called once at the beginning of the main script）。
 
-    做三件事：
-      1. 确定日志模式（level 显式传参 > config.LOG_LEVEL > INFO）
-      2. 打开两个日志文件：日期日志（追加）+ latest.log（覆盖）
-      3. 打印会话横幅
+    Do three things：
+      1. textlogmode（level explicitPassing ontext > config.LOG_LEVEL > INFO）
+      2. textTwo log files：textlog（textPlus）+ latest.log（overwrite）
+      3. textSessiontext
 
-    参数：
-        script_name: 脚本名，显示在横幅上
-        level:       日志模式；None（默认）= 读 config.py 的 LOG_LEVEL
+    Parameter：
+        script_name: scriptFirst name，textattextUp
+        level:       logmode；None（default）= read config.py of LOG_LEVEL
 
-    返回：
-        实际生效的模式（'info' / 'debug'）
+    returntimes：
+        Patterns actually in effect（'info' / 'debug'）
     """
     global _session_started, _session_script_name, _value_max
     global _date_log_path, _latest_log_path, _date_log_file, _latest_log_file
@@ -372,8 +372,8 @@ def setup_logging(script_name: str, level: Any = None) -> str:
 
     _called_apis.clear()
 
-    _date_log_file = open(_date_log_path, "a", encoding="utf-8")      # 追加：当日全部
-    _latest_log_file = open(_latest_log_path, "w", encoding="utf-8")  # 覆盖：仅当次
+    _date_log_file = open(_date_log_path, "a", encoding="utf-8")      # textPlus：All of the day
+    _latest_log_file = open(_latest_log_path, "w", encoding="utf-8")  # overwrite：Only if times
 
     _print_banner(script_name)
     _session_started = True
@@ -381,40 +381,40 @@ def setup_logging(script_name: str, level: Any = None) -> str:
 
 
 def _print_banner(script_name: str) -> None:
-    mode_text = "DEBUG（含收发数据）" if is_debug() else "INFO（仅运行情况与结果）"
+    mode_text = "DEBUG（Includes transceiver data）" if is_debug() else "INFO（Runs and results only）"
     lines = [
         _SEPARATOR,
-        _INDENT + "日志会话开始  ——  " + script_name,
+        _INDENT + "logSessiontext  ——  " + script_name,
         _SEPARATOR,
-        _INDENT * 2 + "主脚本      : " + script_name,
-        _INDENT * 2 + "开始时间    : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        _INDENT * 2 + "日志模式    : " + mode_text,
+        _INDENT * 2 + "Master Script      : " + script_name,
+        _INDENT * 2 + "Start time    : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        _INDENT * 2 + "logmode    : " + mode_text,
         _INDENT * 2 + "Python      : " + platform.python_version()
         + " (" + platform.python_implementation() + " " + platform.machine() + ")",
-        _INDENT * 2 + "工作目录    : " + os.getcwd(),
-        _INDENT * 2 + "已挂载 api  : " + str(len(_tracked_api_names))
-        + " 个（自动跟踪，主脚本无需写日志代码）",
-        _INDENT * 2 + "当次日志    : " + str(_latest_log_path),
-        _INDENT * 2 + "日期日志    : " + str(_date_log_path),
+        _INDENT * 2 + "Working Directory    : " + os.getcwd(),
+        _INDENT * 2 + "Mounted api  : " + str(len(_tracked_api_names))
+        + " Piece（text，The main script does not need to write log code）",
+        _INDENT * 2 + "Current Log    : " + str(_latest_log_path),
+        _INDENT * 2 + "textlog    : " + str(_date_log_path),
         _SEPARATOR,
     ]
     _emit("\n".join(lines))
 
 
 def teardown_logging() -> None:
-    """结束日志会话（主脚本结尾调用；不调用也会在退出时自动收尾）。"""
+    """textlogSession（Main script end call；Automatically ends when you exit without calling）。"""
     global _session_started
     if not _session_started:
         return
 
-    lines = [_SEPARATOR, _INDENT + "本次运行调用的 api", _SEPARATOR]
+    lines = [_SEPARATOR, _INDENT + "textcalluseof api", _SEPARATOR]
     if _called_apis:
         for i, name in enumerate(_called_apis, 1):
             lines.append(_INDENT * 2 + str(i).rjust(2) + ". " + name)
     else:
-        lines.append(_INDENT * 2 + "（未调用任何 api）")
+        lines.append(_INDENT * 2 + "（notcalluseAny api）")
     lines.append(_SEPARATOR)
-    lines.append(_INDENT + "日志会话结束  ——  " + _session_script_name)
+    lines.append(_INDENT + "logSessiontext  ——  " + _session_script_name)
     lines.append(_SEPARATOR)
 
     _emit("\n".join(lines))
@@ -423,17 +423,17 @@ def teardown_logging() -> None:
 
 
 # =============================================================================
-# 值格式化
+# Value Formatting
 # =============================================================================
 
 def _truncate(text: str) -> str:
     if _value_max and len(text) > _value_max:
-        return text[:_value_max] + "...(共 " + str(len(text)) + " 字符)"
+        return text[:_value_max] + "...(of " + str(len(text)) + " Character)"
     return text
 
 
 def _fmt(value: Any) -> str:
-    """把一个值渲染成紧凑单行文本。"""
+    """putOneValuetext。"""
     if isinstance(value, str):
         return _truncate(value)
     if value is None or isinstance(value, (int, float, bool)):
@@ -455,7 +455,7 @@ def _fmt(value: Any) -> str:
 
 
 def _to_plain(value: Any) -> Any:
-    """把 dataclass / 普通对象递归转成可 JSON 化的结构。"""
+    """put dataclass / textObjecttextReturnedtext JSON Structured。"""
     if value is None or isinstance(value, (int, float, bool, str)):
         return value
     if isinstance(value, dict):
@@ -470,7 +470,7 @@ def _to_plain(value: Any) -> Any:
 
 
 def _fmt_pretty(value: Any, indent: str = "      ") -> str:
-    """把 dict / list / VO 渲染成多行缩进的 JSON。DEBUG 下完整输出，不折叠。"""
+    """put dict / list / VO textof JSON。DEBUG Next Full Output，Unfolded。"""
     data = _to_plain(value)
     if isinstance(data, str):
         stripped = data.strip()
@@ -485,70 +485,70 @@ def _fmt_pretty(value: Any, indent: str = "      ") -> str:
         text = repr(data)
 
     if _value_max and len(text) > _value_max:
-        text = text[:_value_max] + "\n" + indent + "...(共 " + str(len(text)) + " 字符，已截断)"
+        text = text[:_value_max] + "\n" + indent + "...(of " + str(len(text)) + " Character，Truncated)"
     return "\n".join(indent + line for line in text.splitlines())
 
 
 def _fmt_result(result: Any) -> str:
-    """结果的紧凑摘要（INFO 用）。"""
+    """resultoftextmust（INFO use）。"""
     if isinstance(result, list):
-        return "list(" + str(len(result)) + " 项)"
+        return "list(" + str(len(result)) + " item)"
     if isinstance(result, tuple):
-        return "tuple(" + str(len(result)) + " 项)"
+        return "tuple(" + str(len(result)) + " item)"
     if isinstance(result, dict):
-        return "dict(" + str(len(result)) + " 键)"
+        return "dict(" + str(len(result)) + " key)"
     if isinstance(result, str):
-        return repr(result) if len(result) <= 60 else "str(" + str(len(result)) + " 字符)"
+        return repr(result) if len(result) <= 60 else "str(" + str(len(result)) + " Character)"
     if hasattr(result, "__dataclass_fields__"):
-        return type(result).__name__ + "(" + str(len(result.__dataclass_fields__)) + " 字段)"
+        return type(result).__name__ + "(" + str(len(result.__dataclass_fields__)) + " Field)"
     return repr(result)
 
 
 # =============================================================================
-# 流程日志（INFO 可见）
+# textlog（INFO Visible）
 # =============================================================================
 
 def log_info(message: str) -> None:
-    """普通信息 —— 相当于「会进日志文件的 print」。"""
+    """text —— relatedWhenin「It will go into the log file. print」。"""
     _emit(str(message))
 
 
 def log_step(title: str, *, index: int = 0, total: int = 0) -> None:
-    """记一个运行步骤：log_step("扫码登录", index=1, total=5) -> [步骤 1/5] 扫码登录"""
+    """textOnetext：log_step("QR login", index=1, total=5) -> [text 1/5] QR login"""
     if index and total:
-        _emit("[步骤 " + str(index) + "/" + str(total) + "] " + title)
+        _emit("[text " + str(index) + "/" + str(total) + "] " + title)
     elif index:
-        _emit("[步骤 " + str(index) + "] " + title)
+        _emit("[text " + str(index) + "] " + title)
     else:
-        _emit("[步骤] " + title)
+        _emit("[text] " + title)
 
 
 def log_result(message: Any) -> None:
-    """记一条运行结果。"""
-    _emit("[结果] " + (message if isinstance(message, str) else _fmt(message)))
+    """textOneitemtextresult。"""
+    _emit("[result] " + (message if isinstance(message, str) else _fmt(message)))
 
 
 def log_warning(message: str) -> None:
-    """警告（不影响流程，但需要留意）。"""
-    _emit("[警告] " + str(message))
+    """text（Does not affect process，But beware.）。"""
+    _emit("[text] " + str(message))
 
 
 def log_error(message: str) -> None:
-    """错误。"""
-    _emit("[错误] " + str(message))
+    """error。"""
+    _emit("[error] " + str(message))
 
 
 def log_section(title: str) -> None:
-    """记一个分节（带分隔线），用于主脚本分段。"""
+    """textOneMinutestext（With Divider），used forMaster ScriptMinutestext。"""
     _emit("\n" + "-" * 60 + "\n" + title + "\n" + "-" * 60)
 
 
 def log_field(name: str, value: Any, *, debug_only: bool = False) -> None:
     """
-    记一个「字段: 值」；DEBUG 下 dict / list / VO 自动多行展开。
+    textOne「Field: Value」；DEBUG Down dict / list / VO text。
 
         log_field("user_id", 12345)
-        log_field("请求体", {"userId": 12345}, debug_only=True)   # 只在 DEBUG 出现
+        log_field("request body", {"userId": 12345}, debug_only=True)   # Only in DEBUG Appearance
     """
     if debug_only and not is_debug():
         return
@@ -560,14 +560,14 @@ def log_field(name: str, value: Any, *, debug_only: bool = False) -> None:
 
 
 def log_debug(message: Any) -> None:
-    """调试信息 —— 仅 DEBUG 模式输出。"""
+    """debugtext —— Only DEBUG modetextout。"""
     if not is_debug():
         return
-    _emit("[调试] " + _fmt(message))
+    _emit("[debug] " + _fmt(message))
 
 
 # =============================================================================
-# 收发数据日志（DEBUG 专属）—— api 脚本用它记录「发送的数据 / 返回的数据」
+# receivehairdatalog（DEBUG Exclusive）—— api scriptusetextrecord「Data sent / returntimesofdata」
 # =============================================================================
 
 def log_request(
@@ -578,24 +578,24 @@ def log_request(
     api_name: str = "",
 ) -> None:
     """
-    记录一次「向 api 发送的数据」（仅 DEBUG 模式输出）。
+    recordOnce「Towards api Data sent」（Only DEBUG modetextout）。
 
-    参数：
-        url:      完整请求地址
-        body:     请求体（dict / VO / JSON 字符串），展开成 JSON 全文
-        headers:  请求头（dict）
-        api_name: 接口名
+    Parameter：
+        url:      Full Request Address
+        body:     request body（dict / VO / JSON String），Expand into JSON Full text
+        headers:  requestHead（dict）
+        api_name: interfaceFirst name
     """
     if not is_debug():
         return
     _emit("")
-    _emit("-> 请求 " + api_name if api_name else "-> 请求")
+    _emit("-> request " + api_name if api_name else "-> request")
     if url:
         _emit("      URL    : " + str(url))
     if headers:
-        _emit("      请求头 : " + _fmt(headers))
+        _emit("      requestHead : " + _fmt(headers))
     if body is not None:
-        _emit("      请求体 :")
+        _emit("      request body :")
         _emit(_fmt_pretty(body))
 
 
@@ -608,32 +608,32 @@ def log_response(
     elapsed_ms: Optional[int] = None,
 ) -> None:
     """
-    记录一次「api 返回的数据」（仅 DEBUG 模式输出）。
+    recordOnce「api returntimesofdata」（Only DEBUG modetextout）。
 
-    参数：
-        status:     HTTP 状态码
-        body:       响应体（JSON 字符串 / dict / VO）
-        headers:    响应头（dict）
-        api_name:   接口名
-        elapsed_ms: 耗时（毫秒）
+    Parameter：
+        status:     HTTP text
+        body:       Response body（JSON String / dict / VO）
+        headers:    Response header（dict）
+        api_name:   interfaceFirst name
+        elapsed_ms: texttime（textseconds）
     """
     if not is_debug():
         return
     _emit("")
-    _emit("<- 响应 " + api_name if api_name else "<- 响应")
+    _emit("<- Response " + api_name if api_name else "<- Response")
     if status is not None:
-        _emit("      状态码 : " + str(status))
+        _emit("      text : " + str(status))
     if elapsed_ms is not None:
-        _emit("      耗时   : " + str(elapsed_ms) + " ms")
+        _emit("      texttime   : " + str(elapsed_ms) + " ms")
     if headers:
-        _emit("      响应头 : " + _fmt(headers))
+        _emit("      Response header : " + _fmt(headers))
     if body is not None:
-        _emit("      响应体 :")
+        _emit("      Response body :")
         _emit(_fmt_pretty(body))
 
 
 def log_payload(label: str, data: Any) -> None:
-    """记录任意报文 / 数据结构（仅 DEBUG 模式输出）。"""
+    """recordtextpacket / datatext（Only DEBUG modetextout）。"""
     if not is_debug():
         return
     _emit("")
@@ -642,15 +642,15 @@ def log_payload(label: str, data: Any) -> None:
 
 
 # =============================================================================
-# 兼容：装饰器与 logger 对象
+# Compatible：textAnd logger Object
 # =============================================================================
 
 def api_log(func: Callable) -> Callable:
     """
-    api 函数装饰器 —— 与自动跟踪等价（重复包装会被跳过）。
+    api Function Decorator —— Equivalent to auto-tracking（textPackagingMeetingstextskip）。
 
-    一般【不需要】手写：api/__init__.py 的 autowrap 已经统一套好外壳。
-    这里保留是为了让 api 脚本单独运行（python -m api.xxx）时也能记录。
+    General【Not required】Handwriting：api/__init__.py of autowrap The shell has been uniformly set。
+    thisinHoldisfortext api scriptRun separately（python -m api.xxx）timeAlsocanrecord。
     """
     if getattr(func, "__mai_logged__", False):
         return func
@@ -658,7 +658,7 @@ def api_log(func: Callable) -> Callable:
 
 
 class _Logger:
-    """兼容旧写法的 logger 对象；新代码直接用模块级函数即可。"""
+    """Compatible with legacy logger Object；textCodedirectlyusetextFunctionJust do it。"""
 
     def info(self, message: str) -> None:
         log_info(message)
@@ -683,12 +683,12 @@ _logger_instance = _Logger()
 
 
 def get_logger() -> _Logger:
-    """获取全局 logger 实例（等价于直接用模块级函数）。"""
+    """getTakeFullgame logger Example（etctextindirectlyusetextFunction）。"""
     return _logger_instance
 
 
 # =============================================================================
-# 退出时自动收尾
+# textouttimetextreceiveTail
 # =============================================================================
 
 def _auto_teardown() -> None:

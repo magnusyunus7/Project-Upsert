@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""舞萌DX (maimai DX) .ma2 谱面解析。
+"""textDX (maimai DX) .ma2 chartparse。
 
-指令 -> 音符类型 的对应表来自反编译源码
+text -> notetext ofCorrespondingtextDecompile source code
   source/Assembly-CSharp/Manager/Ma2fileRecordID.cs
-  （s_Ma2fileRecord_Data 里 Ma2Category.MA2_Note 的 102 条记录）
-计分类别的划分复刻
+  （s_Ma2fileRecord_Data in Ma2Category.MA2_Note of 102 itemrecord）
+countCategoriestextofDivideReprint
   source/Assembly-CSharp/Manager/GamePlayManager.cs  NoteType2ScoreType()
-理论分权重来自
+theoreticalMinutesweighttext
   source/Assembly-CSharp/Manager/NotesReader.cs  calcTotal()
 """
 
@@ -16,12 +16,12 @@ import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-# ---------------------------------------------------------------- 计分权重
-WEIGHT_TAP = 500      # TAP / XTP / STR / XST / TTP（Touch 与 Tap 同为 500）
+# ---------------------------------------------------------------- countMinutesweight
+WEIGHT_TAP = 500      # TAP / XTP / STR / XST / TTP（Touch And Tap Same as 500）
 WEIGHT_HOLD = 1000    # HLD / XHO / THO
 WEIGHT_SLIDE = 1500   # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_
-WEIGHT_BREAK = 2500   # BRK / BST / BRTAP / BRHLD / BRSTR / BRSI_ ... 以及 ExBreak 系
-BREAK_BONUS_THEORY = 100   # 每个绝赞(Break)的理论奖励分
+WEIGHT_BREAK = 2500   # BRK / BST / BRTAP / BRHLD / BRSTR / BRSI_ ... and ExBreak text
+BREAK_BONUS_THEORY = 100   # eachPiececritical perfect(Break)oftheoreticalReward Points
 
 CATEGORY_TAP = "Tap"
 CATEGORY_HOLD = "Hold"
@@ -43,16 +43,16 @@ CATEGORY_LABEL = {
     CATEGORY_BREAK: "Break",
 }
 
-# ------------------------------------------------- ma2 指令 -> NotesTypeID.Def
+# ------------------------------------------------- ma2 text -> NotesTypeID.Def
 NOTE_COMMAND_TYPES: Dict[str, str] = {
-    # --- 现行指令 ---
+    # --- currenttext ---
     "TAP": "Begin", "BRK": "Break", "XTP": "ExTap", "HLD": "Hold", "XHO": "ExHold",
     "STR": "Star", "BST": "BreakStar", "XST": "ExStar",
     "TTP": "TouchTap", "THO": "TouchHold",
     "SI_": "Slide", "SCL": "Slide", "SCR": "Slide", "SUL": "Slide", "SUR": "Slide",
     "SSL": "Slide", "SSR": "Slide", "SV_": "Slide", "SXL": "Slide", "SXR": "Slide",
     "SLL": "Slide", "SLR": "Slide", "SF_": "Slide",
-    # --- 旧式别名（游戏数据里真实存在）---
+    # --- textFirst name（textdatainrealtextat）---
     "NMTAP": "Begin", "BRTAP": "Break", "EXTAP": "ExTap", "BXTAP": "ExBreakTap",
     "NMHLD": "Hold", "BRHLD": "BreakHold", "EXHLD": "ExHold", "BXHLD": "ExBreakHold",
     "NMSTR": "Star", "BRSTR": "BreakStar", "EXSTR": "ExStar", "BXSTR": "ExBreakStar",
@@ -81,33 +81,33 @@ _HOLD_DEFS = frozenset(("Hold", "BreakHold", "ExHold", "ExBreakHold", "TouchHold
 _TOUCH_DEFS = frozenset(("TouchTap", "TouchHold"))
 _CONNECT_DEFS = frozenset(("ConnectSlide",))
 
-# 判定时机只有 Critical / TooLate 的 EX 音符（ExTap/ExStar/ExBreakTap/ExBreakStar）
+# The timing of the decision is only Critical / TooLate of EX note（ExTap/ExStar/ExBreakTap/ExBreakStar）
 EX_DEFS = frozenset(("ExTap", "ExStar", "ExBreakTap", "ExBreakStar"))
 
-# ---------------------------------------------------------------- 音符组
-# 「音符组」= 计分行为完全相同的一类音符：权重、可选判定、失分档位、绝赞奖励档位都一样。
-# 划分依据（反编译源码）：
-#   * 计分类型 NoteScore.EScoreType 由 GamePlayManager.NoteType2ScoreType() 决定
-#     （Break 系 -> Break，滑条 -> Slide，长按 -> Hold，其余 -> Tap/Touch）
-#   * 判定时机表 NoteJudge.EJudgeType 由各音符类决定：
-#       TapNote/StarNote   -> Tap（或 ExNote 时 ExTap）
-#       HoldNote/BreakHoldNote/TouchHoldC -> 长按结算 JudgeHoldTotal（不分 2nd/3rd 档）
-#       SlideRoot/SlideFan -> SlideOut（不分 2nd/3rd 档，也没有非 Critical 的 Perfect）
-#       BreakNote/BreakStarNote -> Break 表（Great 有 1250/1500/2000 三档）
-#   * ExTap 判定表 [-9,-9,-9,-9,-9,-9,-9,0,9,9,9,9,9,9,9] 使非 Critical 的档位全部不可达
-#     -> ExTap/ExStar（含 ExBreak 版）只能 Critical 或 Miss
-#   * ExHold/ExBreakHold 的头部用 ExTap 表，但结果还要过 JudgeHoldTotal 重映射，
-#     最终仍可得到 Critical/Perfect/Great/Good/Miss -> 与普通 Hold / BreakHold 相同
-#   * ExSlide / ExBreakSlide 的 JudgeType 恒为 SlideOut，且 isBreak() 不含 ExBreakSlide
-#     -> 计分与普通 Slide 完全一致（游戏数据里这两种指令出现次数为 0）
-GROUP_TAP = "tap"                  # TAP NMTAP STR NMSTR TTP NMTTP          权重 500
-GROUP_HOLD = "hold"                # HLD NMHLD XHO EXHLD THO NMTHO          权重 1000
-GROUP_SLIDE = "slide"              # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_ + NM/EX/CN 变体  权重 1500
-GROUP_BREAK = "break"              # BRK BRTAP BST BRSTR                    权重 2500，Great 三档、Perfect 奖励两档
-GROUP_BREAK_FLAT = "break_flat"    # BRHLD BXHLD                            权重 2500，长按判定，不分档
+# ---------------------------------------------------------------- notegroup
+# 「notegroup」= countMinutestextfortextFullrelatedSameofOnetextnote：weight、Optional Determination、Missed Gear、critical perfectRewardsfileBitallSame。
+# Classification by（Decompile source code）：
+#   * countCategoriestext NoteScore.EScoreType by GamePlayManager.NoteType2ScoreType() Decision
+#     （Break text -> Break，textitem -> Slide，hold -> Hold，Remaining -> Tap/Touch）
+#   * Determine timing table NoteJudge.EJudgeType byEachnotetextDecision：
+#       TapNote/StarNote   -> Tap（or ExNote time ExTap）
+#       HoldNote/BreakHoldNote/TouchHoldC -> holdsettlement JudgeHoldTotal（Irrespective 2nd/3rd file）
+#       SlideRoot/SlideFan -> SlideOut（Irrespective 2nd/3rd file，There is also no non- Critical of Perfect）
+#       BreakNote/BreakStarNote -> Break text（Great has 1250/1500/2000 Third Grade）
+#   * ExTap Determination table [-9,-9,-9,-9,-9,-9,-9,0,9,9,9,9,9,9,9] Make Not Critical offileBitAllNotext
+#     -> ExTap/ExStar（Contains ExBreak text）Only Critical or Miss
+#   * ExHold/ExBreakHold ofFor head ExTap text，But the results will have to go through JudgeHoldTotal text，
+#     Ultimately still available Critical/Perfect/Great/Good/Miss -> vs Normal Hold / BreakHold relatedSame
+#   * ExSlide / ExBreakSlide of JudgeType Constantly SlideOut，And isBreak() Excluding ExBreakSlide
+#     -> countMinutesvs Normal Slide Exact match（textdatainthisTwotextAppearancecountfor 0）
+GROUP_TAP = "tap"                  # TAP NMTAP STR NMSTR TTP NMTTP          weight 500
+GROUP_HOLD = "hold"                # HLD NMHLD XHO EXHLD THO NMTHO          weight 1000
+GROUP_SLIDE = "slide"              # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_ + NM/EX/CN Variants  weight 1500
+GROUP_BREAK = "break"              # BRK BRTAP BST BRSTR                    weight 2500，Great Third Grade、Perfect Reward two tiers
+GROUP_BREAK_FLAT = "break_flat"    # BRHLD BXHLD                            weight 2500，holdDetermine，No Gear Break
 GROUP_BREAK_SLIDE = "break_slide"  # BRSI_ BRSCL BRSCR BRSUL BRSUR BRSSL BRSSR BRSV_ BRSXL BRSXR BRSLL BRSLR BRSF_
-GROUP_EX = "ex"                    # XTP EXTAP XST EXSTR                    权重 500，只能 Critical / Miss
-GROUP_EX_BREAK = "ex_break"        # BXTAP BXSTR                            权重 2500，只能 Critical / Miss
+GROUP_EX = "ex"                    # XTP EXTAP XST EXSTR                    weight 500，Only Critical / Miss
+GROUP_EX_BREAK = "ex_break"        # BXTAP BXSTR                            weight 2500，Only Critical / Miss
 
 GROUP_ORDER = (GROUP_TAP, GROUP_HOLD, GROUP_SLIDE, GROUP_BREAK,
                GROUP_BREAK_FLAT, GROUP_BREAK_SLIDE, GROUP_EX, GROUP_EX_BREAK)
@@ -116,8 +116,8 @@ GROUP_LABEL = {
     GROUP_HOLD: "Hold",
     GROUP_SLIDE: "Slide",
     GROUP_BREAK: "Break",
-    GROUP_BREAK_FLAT: "Break(长按判定)",
-    GROUP_BREAK_SLIDE: "Break(滑条判定)",
+    GROUP_BREAK_FLAT: "Break(holdDetermine)",
+    GROUP_BREAK_SLIDE: "Break(textitemDetermine)",
     GROUP_EX: "EX Tap/Star",
     GROUP_EX_BREAK: "EX Break",
 }
@@ -151,19 +151,19 @@ _CATEGORY_BY_GROUP = {
 
 
 def note_group(def_name: str) -> Optional[str]:
-    """NotesTypeID.Def 名 -> 音符组；接续滑条等不计分音符返回 None。"""
+    """NotesTypeID.Def First name -> notegroup；textcontinuetextitemetcNo scorenotereturntimes None。"""
     return _GROUP_BY_DEF.get(def_name)
 
 
 def score_category(def_name: str) -> Optional[str]:
-    """复刻 GamePlayManager.NoteType2ScoreType() 的粗分类（Tap/Hold/Slide/Break）。"""
+    """Reprint GamePlayManager.NoteType2ScoreType() oftextCategories（Tap/Hold/Slide/Break）。"""
     grp = note_group(def_name)
     if grp is None:
         return None
     return _CATEGORY_BY_GROUP[grp]
 
 
-# ------------------------------------------------------------------ 谱面对象
+# ------------------------------------------------------------------ chartObject
 @dataclass
 class Chart:
     path: str = "<memory>"
@@ -174,7 +174,7 @@ class Chart:
     header: Dict[str, str] = field(default_factory=dict)
     totals: Dict[str, int] = field(default_factory=dict)
     warnings: List[str] = field(default_factory=list)
-    # 外部补充的信息（游戏路径模式）
+    # External Supplemental Information（textmode）
     music_id: Optional[int] = None
     difficulty_index: Optional[int] = None
     difficulty_name: Optional[str] = None
@@ -184,7 +184,7 @@ class Chart:
 
     @property
     def total_notes(self) -> int:
-        """计分音符总数 N（不含接续滑条）。"""
+        """countMinutesnoteTotal N（Connection slider not included）。"""
         return sum(self.group_counts.get(g, 0) for g in GROUP_ORDER)
 
     @property
@@ -192,7 +192,7 @@ class Chart:
         return self.totals.get("T_NUM_ALL")
 
     def counts(self) -> Dict[str, int]:
-        """按音符组统计（供计分模型使用）。"""
+        """pressnotegroupsystemcount（For Scoring Models）。"""
         return {g: self.group_counts.get(g, 0) for g in GROUP_ORDER}
 
     def category_summary(self) -> Dict[str, int]:
@@ -250,12 +250,12 @@ def parse_ma2_bytes(raw: bytes, path: str = "<memory>") -> Chart:
     declared = chart.declared_total
     if declared is not None and declared != chart.total_notes:
         chart.warnings.append(
-            "T_NUM_ALL=%d 与解析出的计分音符数 %d 不一致" % (declared, chart.total_notes)
+            "T_NUM_ALL=%d Number of scoring notes parsed with %d Inconsistent" % (declared, chart.total_notes)
         )
     return chart
 
 
-# ------------------------------------------------------------ 游戏路径解析
+# ------------------------------------------------------------ textparse
 DIFFICULTY_NAMES = ("Basic", "Advanced", "Expert", "Master", "Re:Master")
 _DIFFICULTY_ALIASES = {
     "basic": 0, "bas": 0, "bsc": 0, "0": 0, "00": 0,
@@ -270,19 +270,19 @@ def parse_difficulty(text) -> int:
     if isinstance(text, int):
         if 0 <= text <= 4:
             return text
-        raise ValueError("难度序号必须是 0~4")
+        raise ValueError("difficultyNo.Must be 0~4")
     key = str(text).strip().lower()
     if key in _DIFFICULTY_ALIASES:
         return _DIFFICULTY_ALIASES[key]
-    raise ValueError("无法识别的难度：%s（可用 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER，"
-                     "或直接写名字）" % text)
+    raise ValueError("notextofdifficulty：%s（Available 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE:MASTER，"
+                     "or just write your name）" % text)
 
 
 def find_music_dir(game_path: str) -> str:
-    """把「游戏根目录 / Sinmai_Data / StreamingAssets / A000」都归一化到 A000/music。"""
+    """put「text / Sinmai_Data / StreamingAssets / A000」allReturnedOnetextto A000/music。"""
     p = os.path.abspath(os.path.expanduser(game_path))
     if not os.path.isdir(p):
-        raise FileNotFoundError("路径不存在：%s" % p)
+        raise FileNotFoundError("textAbsent：%s" % p)
     if os.path.basename(p).lower() == "music" and os.path.basename(os.path.dirname(p)).upper() == "A000":
         return p
     candidates = [
@@ -296,7 +296,7 @@ def find_music_dir(game_path: str) -> str:
     for c in candidates:
         if os.path.isdir(c) and os.path.basename(c).lower() == "music":
             return c
-    raise FileNotFoundError("在 %s 下找不到 A000/music 目录" % p)
+    raise FileNotFoundError("at %s Not found under A000/music text" % p)
 
 
 def music_dir_path(music_dir: str, music_id: int) -> str:
@@ -308,7 +308,7 @@ def chart_path(music_dir: str, music_id: int, difficulty: int) -> str:
 
 
 def parse_music_xml(path: str) -> Dict[str, object]:
-    """读取 Music.xml（只用标准库），取出曲名与各难度信息。"""
+    """readTake Music.xml（Only use standard libraries），Take out song names and difficulty information。"""
     import xml.etree.ElementTree as ET
 
     info: Dict[str, object] = {"notes": []}

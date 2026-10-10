@@ -1,56 +1,56 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-netdelivery.py —— ALL.Net DLI(Download Instruction)：查 / 下 .app 与 .opt 更新包
+netdelivery.py —— ALL.Net DLI(Download Instruction)：check / Down .app And .opt updatePackage
 ================================================================================
 
-【DLI 是什么】
-    DLI = **Download Instruction**（配信指示書）。
-    机台做完 ALL.Net 认证后，AMDaemon 会再问一次「我该下什么包」：
+【DLI istext】
+    DLI = **Download Instruction**（text）。
+    machineStagetext ALL.Net textAfter，AMDaemon Will ask again「What bag should I order?」：
 
         POST http://at.sys-allnet.cn/net/delivery/instruction
-        body = title_id=SDGB&title_ver=<版本>&client_id=<Keychip 短值>
+        body = title_id=SDGB&title_ver=<text>&client_id=<Keychip shortValue>
 
-    服务器回：
+    servertimes：
 
-        result=1&uri=<patch 指示書 URL>|<option 指示書 URL>
+        result=1&uri=<patch text URL>|<option text URL>
 
-    指示書本身是个 INI（日文注释），真正要下的包写在 INSTALLn= 里：
+    textisPiece INI（text），textcurrentmustDownofPackagetextat INSTALLn= in：
 
         [COMMON]    INSTALL1=https://.../SDGB_1.56.00_..._1_1.55.01.app
         [OPTIONAL]  INSTALL1=https://.../SDGB_A031_..._0.opt
                     INSTALL2=https://.../SDGB_A005_..._0.opt
 
-    ★ 只有 INSTALLn= 才是**要下载的包**；EXISTn= 是「本机应该已经有的文件」，
-      只是文件名，不是下载项。
+    ★ Only INSTALLn= It is.**mustDownloadedPackage**；EXISTn= is「textmachineShouldAlreadytexthasoffile」，
+      Just the filename，Not a download。
 
-【协议出处】—— source/amdaemon.exe 字符串（数字是文件内偏移）
-    端点      http://at.sys-all.cn/net/delivery/instruction      @0x788198
-    库        alw_lite/src/system39/alw_api_netdeliver.c        @0x63bf80
-    阶段      ALWE_NETDELIVER_PHASE_GET_DLINST_INFO             @0x63bde0
+【Protocol Origin】—— source/amdaemon.exe String（numbertextisfiletextOffset）
+    text      http://at.sys-all.cn/net/delivery/instruction      @0x788198
+    Library        alw_lite/src/system39/alw_api_netdeliver.c        @0x63bf80
+    stage      ALWE_NETDELIVER_PHASE_GET_DLINST_INFO             @0x63bde0
               ALWE_NETDELIVER_PHASE_APP_IMAGE_INFO              @0x63be08
               ALWE_NETDELIVER_PHASE_OPT_IMAGE_INFO              @0x63be30
-    日志      "Net deliver param - dli uri : %s."                @0x63c3f8
-    状态      ALE_ABEX_STAT_DLINSTR_OK / _ERR_DLINSTR_NG ...     @0x638600
+    log      "Net deliver param - dli uri : %s."                @0x63c3f8
+    text      ALE_ABEX_STAT_DLINSTR_OK / _ERR_DLINSTR_NG ...     @0x638600
 
-【实测结论】（2026-10-06）
+【Observed Conclusions】（2026-10-06）
     title_ver=1.55  -> uri = patch(SDGB_patch_1.56...info) | option(SDGB_option_1.55...A005.info)
-    title_ver=1.56  -> uri = | option(A031)      （patch 槽为空 = 本体已最新）
-    title_ver<=1.54 -> uri = null                （服务器不认这个版本）
-    指示書里的 INSTALL 直链可以带 Range 断点续传（返回 206 + Content-Range）。
-    ★ 已被下架的历史包，源站会回 504 —— 这是服务器状态，不是脚本的问题。
+    title_ver=1.56  -> uri = | option(A031)      （patch textIs Empty = textAlreadytext）
+    title_ver<=1.54 -> uri = null                （serverNotextthisPiecetext）
+    textinof INSTALL textYesBelt Range textcontinuePassing on（returntimes 206 + Content-Range）。
+    ★ History pack that has been suspended，textMeetingstimes 504 —— this isservertext，Issue that is not scripted。
 
-【用法】
-    python netdelivery.py                       # 用 config.py 里的 Keychip 查，然后**多选下载**
-    python netdelivery.py A63E01E9580           # 指定 Keychip
-    python netdelivery.py --list                # 只列清单，不下载
-    python netdelivery.py --all                 # 全下（不交互）
-    python netdelivery.py --only 1,3            # 只下第 1、3 项（不交互）
-    python netdelivery.py --ver 1.55            # 指定上报版本（默认 config.MAI_ENCODING）
+【usage】
+    python netdelivery.py                       # use config.py inof Keychip check，textAfter**Multi-select download**
+    python netdelivery.py A63E01E9580           # specified Keychip
+    python netdelivery.py --list                # List only，Don't download
+    python netdelivery.py --all                 # Full Bottom（No interaction）
+    python netdelivery.py --only 1,3            # Only the next 1、3 item（No interaction）
+    python netdelivery.py --ver 1.55            # specifiedEscalationstext（default config.MAI_ENCODING）
     python netdelivery.py --out D:\SDGB2026\update
-    python netdelivery.py --insecure            # 关掉 TLS 校验（CDN 证书有问题时用）
+    python netdelivery.py --insecure            # Turn off TLS text（CDN texthastexttimeuse）
 
-    ★ 交互选择支持：逗号/空格分隔、区间（如 1-3）、a=全选、n=全不选、q=退出。
+    ★ Interactive Selection Support：text/emptytextMinutestext、Interval（As 1-3）、a=Select all、n=Select none、q=textout。
 """
 
 from __future__ import annotations
@@ -74,7 +74,7 @@ from authv1 import (
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 下载器用的 UA（实测有效）
+# For Downloaders UA（Measured Effective）
 DOWNLOAD_HEADERS = {"User-Agent": "SDGB;Windows/Lite"}
 
 DEFAULT_OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "download")
@@ -82,7 +82,7 @@ CHUNK = 1 << 16
 PROBE_TIMEOUT = 30
 DOWNLOAD_TIMEOUT = 60
 
-# 包类型判定（按扩展名）
+# Package Type Determination（presstextFirst name）
 KIND_BY_EXT = {
     ".app": "app",
     ".opt": "opt",
@@ -90,10 +90,10 @@ KIND_BY_EXT = {
 }
 
 KIND_TEXT = {
-    "app": "本体/补丁",
-    "opt": "选项包",
-    "pack": "资源包",
-    "?": "未知",
+    "app": "text/text",
+    "opt": "textitemPackage",
+    "pack": "textPackage",
+    "?": "nottext",
 }
 
 
@@ -103,10 +103,10 @@ KIND_TEXT = {
 
 def http_get(url, *, headers=None, stream=False, timeout=PROBE_TIMEOUT, insecure=False):
     """
-    GET，顺带处理 CDN 证书问题。
+    GET，textBeltProcess CDN text。
 
-    先按正常校验发；如果因为证书失败，再自动退回 verify=False 重发一次
-    （只影响这一次请求，不改变全局设置）。
+    First, calibrate and issue according to normal；If the certificate fails，Automatically bounce again verify=False texthairOnce
+    （Affects only once request，Don't change global settings）。
     """
     merged = dict(DOWNLOAD_HEADERS)
     if headers:
@@ -122,15 +122,15 @@ def http_get(url, *, headers=None, stream=False, timeout=PROBE_TIMEOUT, insecure
 
 
 # =============================================================================
-# 配信指示書解析
+# textparse
 # =============================================================================
 
 def parse_instruction(text):
     """
-    解析配信指示書 INI。
+    parsetext INI。
 
-    返回 (common, installs)：
-        common   = {GAME_DESC: ..., DOWNLOAD_ID: ..., ...}（[COMMON] 段）
+    returntimes (common, installs)：
+        common   = {GAME_DESC: ..., DOWNLOAD_ID: ..., ...}（[COMMON] text）
         installs = [{"section": "COMMON"/"OPTIONAL", "key": "INSTALL1", "url": ...}, ...]
     """
     common = {}
@@ -156,7 +156,7 @@ def parse_instruction(text):
 
 
 def guess_kind(url):
-    """按扩展名猜包类型。"""
+    """presstextFirst nametextPackagetext。"""
     name = url.split("?")[0].rsplit("/", 1)[-1]
     ext = os.path.splitext(name)[1].lower()
     return KIND_BY_EXT.get(ext, "?")
@@ -178,11 +178,11 @@ def human_size(num):
 
 
 # =============================================================================
-# 采集：DLI -> 指示書 -> 包清单
+# text：DLI -> text -> Package manifest
 # =============================================================================
 
 def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
-    """问 DLI，返回 (patch_info_url, option_info_url, raw_text)。"""
+    """text DLI，returntimes (patch_info_url, option_info_url, raw_text)。"""
     text = delivery_instruction(client_id, title_ver=title_ver, host=host, timeout=timeout)
     kv = {}
     for part in text.strip().split("&"):
@@ -191,12 +191,12 @@ def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
             kv[k.strip()] = v
     result = kv.get("result", "")
     if result != "1":
-        raise AllnetError("DLI 返回 result=%s（原始：%s）" % (result, text.strip()[:200]))
+        raise AllnetError("DLI returntimes result=%s（Original：%s）" % (result, text.strip()[:200]))
 
     uri = kv.get("uri", "").strip()
     if uri in ("", "null"):
-        raise AllnetError("DLI 返回 uri=%s：这个 title_ver 没有配信指示書"
-                          "（换 --ver 试试，例如 1.55）" % (uri or "(空)"))
+        raise AllnetError("DLI returntimes uri=%s：thisPiece title_ver nonetext"
+                          "（text --ver text，Example 1.55）" % (uri or "(empty)"))
 
     parts = uri.split("|")
     patch_url = parts[0].strip() if len(parts) > 0 else ""
@@ -211,9 +211,9 @@ def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
 
 def collect_packages(client_id, *, title_ver, host, timeout, insecure=False):
     """
-    走完整条链路，返回 (items, meta)。
+    textFullitemtext，returntimes (items, meta)。
 
-    items 每一项：
+    items eachOneitem：
         {"idx":1, "kind":"app", "section":"COMMON", "key":"INSTALL1",
          "url":..., "name":..., "size":int|None, "note":"", "info_name":...}
     """
@@ -239,7 +239,7 @@ def collect_packages(client_id, *, title_ver, host, timeout, insecure=False):
             time.sleep(1.5 * attempt)
         if resp is None:
             meta["instructions"].append({"url": info_url,
-                                         "error": "拉取失败（已重试 3 次）"})
+                                         "error": "textFetch failed（Retried 3 text）"})
             continue
         if resp.status_code != 200:
             meta["instructions"].append({"url": info_url, "status": resp.status_code,
@@ -273,7 +273,7 @@ def collect_packages(client_id, *, title_ver, host, timeout, insecure=False):
 
 
 def probe_all(items, *, timeout=PROBE_TIMEOUT, insecure=False):
-    """探每个包的大小 / 可用性（就地写回 item）。"""
+    """texteachPiecePackageofSize / Availability（Write back in place item）。"""
     for item in items:
         for attempt in range(1, 3):
             try:
@@ -290,27 +290,27 @@ def probe_all(items, *, timeout=PROBE_TIMEOUT, insecure=False):
                     item["size"] = int(content_length)
                     item["note"] = ""
                 elif status in (404, 504):
-                    item["note"] = "HTTP %d（源站不可用 / 该包已下架）" % status
+                    item["note"] = "HTTP %d（textNoAvailable / thePackageAlreadyDowntext）" % status
                 else:
                     item["note"] = "HTTP %d" % status
                 break
             except Exception as exc:
-                item["note"] = "探测失败：%s" % exc
+                item["note"] = "textFailed：%s" % exc
                 if attempt < 2:
                     time.sleep(1.5)
                     continue
 
 
 # =============================================================================
-# 展示与选择
+# Presentation & Selection
 # =============================================================================
 
 def print_packages(items):
     if not items:
-        print("  （指示書里没有任何 INSTALL 项）")
+        print("  （textinnoneAny INSTALL item）")
         return
     print("")
-    print("  序号  类型  大小          来源段/键              文件名")
+    print("  No.  text  Size          text/key              fileFirst name")
     print("  " + "-" * 92)
     for item in items:
         size = human_size(item["size"]) if item["size"] is not None else (item["note"] or "?")
@@ -323,14 +323,14 @@ def print_packages(items):
 
 def prompt_selection(items):
     """
-    交互多选。返回选中的 0 基下标列表；用户 q 退出时返回 None。
+    Interactive Multiple Choice。returntimestextin 0 Base subscript list；user q textouttimereturntimes None。
     """
     print("")
-    print("  可多选：输入序号，用逗号或空格分隔；支持区间（如 1-3）。")
-    print("          a = 全选    n = 都不选    q = 退出")
+    print("  Multiple choices available：textNo.，usetextoremptytextMinutestext；textInterval（As 1-3）。")
+    print("          a = Select all    n = allNotext    q = textout")
     while True:
         try:
-            raw = input("  请选择要下载的包 > ").strip()
+            raw = input("  pleasetextmustDownloadedPackage > ").strip()
         except (EOFError, KeyboardInterrupt):
             print("")
             return None
@@ -367,7 +367,7 @@ def prompt_selection(items):
                 bad.append(token)
 
         if bad:
-            print("  [x] 无效输入：%s（范围是 1-%d）" % (", ".join(bad), len(items)))
+            print("  [x] notext：%s（textis 1-%d）" % (", ".join(bad), len(items)))
             continue
 
         ordered, seen = [], set()
@@ -376,20 +376,20 @@ def prompt_selection(items):
                 seen.add(i)
                 ordered.append(i)
         if not ordered:
-            print("  [x] 没有选中任何项")
+            print("  [x] nonetextAnyitem")
             continue
         return ordered
 
 
 # =============================================================================
-# 下载
+# Download
 # =============================================================================
 
 def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=False):
     """
-    带断点续传的下载。返回 (ok, 说明)。
+    Download with breakpoint continuation。returntimes (ok, description)。
 
-    ★ 先写 dest + ".part"，下完再改名 —— 中断了下次能接着下。
+    ★ Write first dest + ".part"，Rename after —— interrupted the next time you can go on to the next。
     """
     part = dest + ".part"
     total = None
@@ -404,20 +404,20 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
                             insecure=insecure)
         except Exception as exc:
             if attempt == retries:
-                return False, "连接失败：%s" % exc
+                return False, "textFailed：%s" % exc
             time.sleep(2)
             continue
 
         if resp.status_code not in (200, 206):
             resp.close()
             if resp.status_code in (404, 504):
-                return False, "HTTP %d（源站不可用 / 该包已下架）" % resp.status_code
+                return False, "HTTP %d（textNoAvailable / thePackageAlreadyDowntext）" % resp.status_code
             if attempt == retries:
                 return False, "HTTP %d" % resp.status_code
             time.sleep(2)
             continue
 
-        # 服务器忽略 Range 直接给了全量 -> 从头写
+        # serverIgnore Range directlytextFull Amount -> Write from scratch
         if done and resp.status_code == 200:
             done = 0
 
@@ -450,20 +450,20 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
         except Exception as exc:
             resp.close()
             if attempt == retries:
-                return False, "写入中断：%s" % exc
+                return False, "Write interrupted：%s" % exc
             time.sleep(2)
             continue
         finally:
             resp.close()
 
         if written == last_shown:
-            sys.stdout.write("\n")          # 收尾换行，避免重复打一行
+            sys.stdout.write("\n")          # receiveTailtext，textOne Row
         else:
             show_progress(written, total, max(time.time() - started, 0.001), final=True)
 
         if total is not None and written != total:
             if attempt == retries:
-                return False, "长度不符：期望 %d 字节，实际 %d 字节" % (total, written)
+                return False, "lengthNotext：text %d Bytes，Actual %d Bytes" % (total, written)
             time.sleep(2)
             continue
 
@@ -472,7 +472,7 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
         os.replace(part, dest)
         return True, "%s（%s）" % (human_size(written), dest)
 
-    return False, "重试 %d 次仍失败" % retries
+    return False, "text %d textFailed" % retries
 
 
 def show_progress(done, total, elapsed, final=False):
@@ -494,31 +494,31 @@ def show_progress(done, total, elapsed, final=False):
 def build_parser():
     p = argparse.ArgumentParser(
         prog="netdelivery.py",
-        description="ALL.Net DLI：查 / 下 .app 与 .opt 更新包",
+        description="ALL.Net DLI：check / Down .app And .opt updatePackage",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "示例：\n"
-            "  python netdelivery.py                 # 查完让你多选\n"
-            "  python netdelivery.py --list          # 只列清单\n"
-            "  python netdelivery.py --all           # 全下\n"
-            "  python netdelivery.py --only 1,3      # 只下第 1、3 项\n"
-            "  python netdelivery.py --ver 1.55      # 指定上报版本\n"
+            "textExample：\n"
+            "  python netdelivery.py                 # checktext\n"
+            "  python netdelivery.py --list          # List only\n"
+            "  python netdelivery.py --all           # Full Bottom\n"
+            "  python netdelivery.py --only 1,3      # Only the next 1、3 item\n"
+            "  python netdelivery.py --ver 1.55      # specifiedEscalationstext\n"
         ),
     )
     p.add_argument("keychip", nargs="?",
-                   help="Keychip（默认取 config.py 的 KEYCHIP_ID）")
+                   help="Keychip（defaultTake config.py of KEYCHIP_ID）")
     p.add_argument("--ver", default=None,
-                   help="上报给 ALL.Net 的版本号（默认取 config.MAI_ENCODING）")
+                   help="Escalate to ALL.Net oftext（defaultTake config.MAI_ENCODING）")
     p.add_argument("--host", default=DEFAULT_HOST,
-                   help="ALL.Net 认证服务器（默认 %s）" % DEFAULT_HOST)
+                   help="ALL.Net textserver（default %s）" % DEFAULT_HOST)
     p.add_argument("--out", default=DEFAULT_OUT_DIR,
-                   help="下载目录（默认 <脚本目录>/download）")
-    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="接口超时秒数")
-    p.add_argument("--list", action="store_true", help="只列清单与直链，不下载")
-    p.add_argument("--all", action="store_true", help="全选（不交互）")
-    p.add_argument("--only", default=None, help="只下指定序号，如 1,3 或 1-3（不交互）")
-    p.add_argument("--no-probe", action="store_true", help="跳过包大小探测（更快）")
-    p.add_argument("--insecure", action="store_true", help="关掉 TLS 校验")
+                   help="Download catalog（default <scripttext>/download）")
+    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="interfacetexttimesecondsnumber")
+    p.add_argument("--list", action="store_true", help="Column Only List with Straight Chain，Don't download")
+    p.add_argument("--all", action="store_true", help="Select all（No interaction）")
+    p.add_argument("--only", default=None, help="Specify only the serial number，As 1,3 or 1-3（No interaction）")
+    p.add_argument("--no-probe", action="store_true", help="skipPackageSizetext（text）")
+    p.add_argument("--insecure", action="store_true", help="Turn off TLS text")
     return p
 
 
@@ -546,7 +546,7 @@ def resolve_title_ver(cli_value):
 
 
 def parse_only(text, count):
-    """把 --only 的文本解析成 0 基下标列表。"""
+    """put --only oftextparsetext 0 Base subscript list。"""
     picked, seen = [], set()
     for token in re.split(r"[,，、\s]+", text or ""):
         if not token:
@@ -558,10 +558,10 @@ def parse_only(text, count):
         elif token.isdigit():
             candidates = [int(token)]
         else:
-            raise ValueError("--only 里有无效项：%r" % token)
+            raise ValueError("--only inhasnotextitem：%r" % token)
         for i in candidates:
             if not (1 <= i <= count):
-                raise ValueError("--only 序号 %d 超出范围（1-%d）" % (i, count))
+                raise ValueError("--only No. %d textouttext（1-%d）" % (i, count))
             if i - 1 not in seen:
                 seen.add(i - 1)
                 picked.append(i - 1)
@@ -569,7 +569,7 @@ def parse_only(text, count):
 
 
 def save_instructions(meta, out_dir):
-    """把配信指示書原样存一份，便于事后核对。"""
+    """puttextAs istextOnetext，Convenient for post-checking。"""
     os.makedirs(out_dir, exist_ok=True)
     saved = []
     for name, text in meta["infos"].items():
@@ -591,85 +591,85 @@ def main(argv=None):
 
     raw_keychip = resolve_keychip(args.keychip)
     if not raw_keychip:
-        print("错误：没给 Keychip，config.py 里的 KEYCHIP_ID 也是空的。")
-        print("      先跑一次 python authv1.py <你的Keychip> 把 config.py 填好。")
+        print("error：text Keychip，config.py inof KEYCHIP_ID is also empty。")
+        print("      Run once first python authv1.py <YourKeychip> put config.py Fill in。")
         return 2
     try:
         client_id = parse_keychip(raw_keychip)
     except ValueError as exc:
-        print("Keychip 解析失败：%s" % exc)
+        print("Keychip parseFailed：%s" % exc)
         return 2
 
     print("=== netdelivery (ALL.Net DLI) ===")
     print("  clientId   : %s" % client_id)
     print("  title_ver  : %s" % title_ver)
     print("  server     : %s" % args.host)
-    print("  正在查询配信指示書 ...")
+    print("  currentatchecktext ...")
 
     try:
         items, meta = collect_packages(client_id, title_ver=title_ver, host=args.host,
                                        timeout=args.timeout, insecure=args.insecure)
     except (AllnetError, ValueError) as exc:
-        print("查询失败：%s" % exc)
+        print("checktextFailed：%s" % exc)
         return 1
 
     for entry in meta["instructions"]:
         if entry.get("status") == 200:
             common = entry.get("common", {})
-            print("  指示書 %s" % entry["name"])
+            print("  text %s" % entry["name"])
             for key in ("GAME_DESC", "DLFORMAT", "GAME_ID", "DOWNLOAD_ID",
                         "RELEASE_TIME", "RELEASE_TYPE"):
                 if key in common:
                     print("      %-14s %s" % (key + ":", common[key]))
         else:
-            print("  指示書 %s -> %s" % (entry["url"], entry.get("error", "?")))
+            print("  text %s -> %s" % (entry["url"], entry.get("error", "?")))
 
     if not items:
-        print("没有可下载的包。")
+        print("nonetextDownloadedPackage。")
         return 0
 
     if not args.no_probe:
-        print("  正在探测包大小 ...")
+        print("  currentattextPackageSize ...")
         probe_all(items, insecure=args.insecure)
 
     print_packages(items)
 
     if args.list:
         print("")
-        print("  直链：")
+        print("  text：")
         for item in items:
             print("    [%2d] %s" % (item["idx"], item["url"]))
         return 0
 
-    # ---- 决定下哪些 ----
+    # ---- Decide which ----
     if args.only:
         try:
             chosen = parse_only(args.only, len(items))
         except ValueError as exc:
-            print("参数错误：%s" % exc)
+            print("Parameter error：%s" % exc)
             return 2
     elif args.all:
         chosen = list(range(len(items)))
     elif not sys.stdin or not sys.stdin.isatty():
         print("")
-        print("  当前不是交互终端，未指定 --all / --only，已只列清单。")
+        print("  Currently not an interactive terminal，notspecified --all / --only，Listed only。")
         return 0
     else:
         chosen = prompt_selection(items)
         if chosen is None:
-            print("  已取消。")
+            print("  Canceled。")
             return 0
         if not chosen:
-            print("  没有选中任何项，退出。")
+            print("  nonetextAnyitem，textout。")
             return 0
 
     out_dir = args.out
     os.makedirs(out_dir, exist_ok=True)
     for path in save_instructions(meta, out_dir):
-        print("  [指示書] %s" % path)
+        print("  [text] %s" % path)
 
     print("")
-    print("  下载目录：%s" % out_dir)
+    print("  Download catalog：%s" % out_dir)
     failed = []
     for index in chosen:
         item = items[index]
@@ -678,24 +678,24 @@ def main(argv=None):
         print("  [%d/%d] %s（%s）" % (chosen.index(index) + 1, len(chosen),
                                       item["name"], KIND_TEXT.get(item["kind"], "?")))
         if item["size"] is None and item["note"]:
-            print("      跳过：%s" % item["note"])
+            print("      skip：%s" % item["note"])
             failed.append((item, item["note"]))
             continue
         started = time.time()
         ok, message = download_file(item["url"], dest, insecure=args.insecure)
         if ok:
-            print("      完成，用时 %.1f 秒 -> %s" % (time.time() - started, message))
+            print("      Done，usetime %.1f seconds -> %s" % (time.time() - started, message))
         else:
-            print("      失败：%s" % message)
+            print("      Failed：%s" % message)
             failed.append((item, message))
 
     print("")
     if failed:
-        print("  --- 结束：%d 个成功，%d 个失败 ---" % (len(chosen) - len(failed), len(failed)))
+        print("  --- text：%d successes，%d failures ---" % (len(chosen) - len(failed), len(failed)))
         for item, message in failed:
             print("      [%2d] %s -> %s" % (item["idx"], item["name"], message))
         return 1
-    print("  --- 结束：%d 个全部成功 ---" % len(chosen))
+    print("  --- text：%d All succeeded ---" % len(chosen))
     return 0
 
 

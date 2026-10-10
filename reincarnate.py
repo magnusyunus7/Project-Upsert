@@ -1,66 +1,66 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-reincarnate.py —— 账号数据迁移（转生）：把账号 A 的数据克隆到账号 B
+reincarnate.py —— textdatatext（text）：puttext A ofdatatexttotext B
 ================================================================================
 
-    ┌─ 源账号 A ─────────────────────────────────────────────┐
-    │  二维码 -> ParseQRCode -> UserLogin -> GetNeedUserData  │
-    │  或：直接读 data/<userId>.json（离线复用）              │
+    ┌─ text A ─────────────────────────────────────────────┐
+    │  QR Code -> ParseQRCode -> UserLogin -> GetNeedUserData  │
+    │  or：directlyread data/<userId>.json（textMultiplexing）              │
     └────────────────────────────────────────────────────────┘
-                            ↓  节点数据
-    ┌─ 目标账号 B ───────────────────────────────────────────┐
-    │  二维码 -> ParseQRCode -> UserPreview -> UserLogin      │
-    │  循环：                                                  │
-    │      等待 -> UpsertUserAll（一包曲目）                  │
+                            ↓  nodesdata
+    ┌─ text B ───────────────────────────────────────────┐
+    │  QR Code -> ParseQRCode -> UserPreview -> UserLogin      │
+    │  Loop：                                                  │
+    │      wait -> UpsertUserAll（Pack of tracks）                  │
     │      -> UserLogout(type=1)                              │
-    │      -> UserLogin(isContinue=true) 续关，拿新 loginId   │
-    │  收尾：最后一包登出后结束（不再续关）                    │
+    │      -> UserLogin(isContinue=true) continueOff，text loginId   │
+    │  receiveTail：End after last packet logged out（No more renewals）                    │
     └────────────────────────────────────────────────────────┘
 
 --------------------------------------------------------------------------------
-★ 每包几首：1 / 3 / 4 可以，**恰好 2 首会被服务端拒绝**
+★ eachPackagetextfirst：1 / 3 / 4 Yes，**Just in time 2 firstwill be rejected by the server**
 --------------------------------------------------------------------------------
-    真机一局（一个 credit）最多打 4 首，所以一条 UpsertUserAll 报文里的
-    userPlaylogList / userGamePlaylogList **最多 4 条**。
+    real machineOnegame（One credit）Up to dozens 4 first，So one UpsertUserAll packetinof
+    userPlaylogList / userGamePlaylogList **Max. 4 item**。
 
-    ★ 但实测：**每包恰好 2 首会被服务端拒绝**（1 / 3 / 4 首都正常）。
-      所以本脚本的分批器会**主动避开 2 首包**：
+    ★ But measured：**eachPackageJust in time 2 firstwill be rejected by the server**（1 / 3 / 4 firstallcurrenttext）。
+      So the batch batcher of the script will**Proactively avoid 2 firstPackage**：
 
-          10 首 -> [4, 4, 2] -> [4, 3, 3]
-           6 首 -> [4, 2]    -> [3, 3]
-           2 首 -> [2]       -> [1, 1]
+          10 first -> [4, 4, 2] -> [4, 3, 3]
+           6 first -> [4, 2]    -> [3, 3]
+           2 first -> [2]       -> [1, 1]
 
-    ★ 每包都必须带**非空**的 userPlaylogList —— 踩坑清单第 2 条实测：
-      留空会被服务端当成无效包**静默丢弃**（returnCode=1 但不落库）。
+    ★ eachPackageallRequiredBelt**non-empty**of userPlaylogList —— textPittextnumber 2 itemMeasured：
+      leave blankMeetingstextserverWhentextnotextPackage**text**（returnCode=1 But not out of stock.）。
 
 --------------------------------------------------------------------------------
-★ 为什么需要「续关登录」
+★ Why is it needed「continueOfflogin」
 --------------------------------------------------------------------------------
-    UpsertUserAll 的 playlogId 必须等于**本次登录**的 loginId
+    UpsertUserAll of playlogId Must be equal to**textlogin**of loginId
     （PacketUpsertUserAll.cs:31 / UserAllRequestVO）。
-    一局结束后这个会话就被消费掉了，要继续上传必须重新登录 ——
-    真机走的就是「续关」：
+    This session is consumed at the end of a game，musttextcontinueUploadRequiredtextlogin ——
+    real machinetextofis「continueOff」：
 
         Process/ContinueProcess.cs:403
             new PacketUserLogin(userID, accessCode, isContinue: true, ...)
 
-    对应本工程：UserLogin(user_id, token, is_continue=True)
-    它和普通登录的唯一区别就是 UserLoginRequestVO.isContinue = true，
-    会返回**新的 loginId / loginDateTime**，供下一局 UpsertUserAll 使用。
+    Corresponding to this project：UserLogin(user_id, token, is_continue=True)
+    The only difference between it and a normal login is that UserLoginRequestVO.isContinue = true，
+    will return**textof loginId / loginDateTime**，For the next innings UpsertUserAll Use。
 
-    ★ 登出必须用 **type=1（LogoutType.Logout）**。
-      真机抓包实证 UserLogoutApi 就是 type=1（带 delayLog）：
+    ★ logoutMust use **type=1（LogoutType.Logout）**。
+      real machinetextPackageEmpirical UserLogoutApi is type=1（Belt delayLog）：
           {"userId":...,"type":1,"delayLog":{...}}
-      续关场景下用 4（TestIn）会出问题 —— 那是「测试登入 / 顶号」的语义。
+      continueOfftextDownuse 4（TestIn）Something will go wrong —— thatis「text / text」ofsemantic。
 
 --------------------------------------------------------------------------------
-★ playlog 从哪来
+★ playlog Where did you come from?
 --------------------------------------------------------------------------------
-    GetNeedUserData 抓不到 userPlaylogList（那是逐局记录，没有对应的 Get 接口），
-    所以本脚本**从曲目记录反推合成**：
+    GetNeedUserData textNoto userPlaylogList（thatistextgamerecord，noneCorresponding Get interface），
+    So the script**Backward compositing from track recordings**：
 
-        UserMusicDetail（9 字段）          ->  UserPlaylog（110 字段）
+        UserMusicDetail（9 Field）          ->  UserPlaylog（110 Field）
         ─────────────────────────────         ─────────────────────────
         musicId                                musicId
         level                                  level
@@ -69,32 +69,32 @@ reincarnate.py —— 账号数据迁移（转生）：把账号 A 的数据克�
         scoreRank                              scoreRank / isClear
         comboStatus                            comboStatus
         syncStatus                             syncStatus
-        其余字段                              取自 config.PLAY_*（合理默认值）
+        Remaining fields                              Retrieved from config.PLAY_*（Reasonable default）
 
 --------------------------------------------------------------------------------
-用法
+usage
 --------------------------------------------------------------------------------
-    # 源数据来自二维码（会联网抓 A 的数据，并落盘到 data/<A>.json）
-    python reincarnate.py --dst-qr <B的二维码> --src-qr <A的二维码>
+    # textdatatextQR Code（Will network to catch A ofdata，and landed on data/<A>.json）
+    python reincarnate.py --dst-qr <BofQR Code> --src-qr <AofQR Code>
 
-    # 源数据来自已保存的 JSON（离线，推荐：不用反复消耗 A 的二维码）
-    python reincarnate.py --dst-qr <B的二维码> --src-json data/12345678.json
+    # textdatatextAlreadytextof JSON（text，text：No need to consume repeatedly A ofQR Code）
+    python reincarnate.py --dst-qr <BofQR Code> --src-json data/12345678.json
 
-    # ★ 真实上传
-    python reincarnate.py --dst-qr <B的二维码> --src-json data/12345678.json --send
+    # ★ realUpload
+    python reincarnate.py --dst-qr <BofQR Code> --src-json data/12345678.json --send
 
-    # 只看计划，不发包
-    python reincarnate.py --dst-qr <B的二维码> --src-json data/12345678.json --plan
+    # Just look at the plan，No Package Issued
+    python reincarnate.py --dst-qr <BofQR Code> --src-json data/12345678.json --plan
 
-    # 常用开关
-    --limit N          只迁前 N 首（试跑用）
-    --per-packet N     每包曲目数，只能是 1/3/4（默认 4；★ 2 首会被服务端拒绝）
-    --wait N           每次上传前的等待秒数（默认 5.0，0 = 不等）
-    --clone-identity   连 userName / accessCode 一起克隆（默认**保留 B 自己的**）
-    --no-continue      不续关（只发一包，调试用）
+    # Common switches
+    --limit N          Only before relocation N first（textuse）
+    --per-packet N     eachPackagetracknumber，can only be 1/3/4（default 4；★ 2 firstwill be rejected by the server）
+    --wait N           eachtextUploadagoofwaitsecondsnumber（default 5.0，0 = Unequal）
+    --clone-identity   text userName / accessCode Clone Together（default**Hold B textof**）
+    --no-continue      Do not renew the pass（Only send one bag，debuguse）
 
-★ 迁移会**真实写入**账号 B（不可撤销）。不传 --send 时只构造报文。
-★ 二维码**有效期 10 分钟**。
+★ textMeetings**realWrite**text B（Irrevocable）。Do not pass --send timeConstruct only packets。
+★ QR Code**hastext 10 Minutes**。
 """
 
 from __future__ import annotations
@@ -132,35 +132,35 @@ from api import (
 )
 from config import PLACE_ID, REGION_ID
 
-#: 真机一局最多 4 首
+#: real machineOnegameMax. 4 first
 MAX_TRACKS_PER_CREDIT = 4
 
-#: ★ 被服务端禁止的每包曲目数（实测：**恰好 2 首会被拒**）
-#:   1 / 3 / 4 首都正常，只有 2 首不行 —— 所以分批时要避开它。
+#: ★ textservertextofeachPackagetracknumber（Measured：**Just in time 2 firstMeetingstext**）
+#:   1 / 3 / 4 firstallcurrenttext，Only 2 firstNotext —— So avoid it when batching.。
 FORBIDDEN_TRACK_COUNTS = (2,)
 
-#: 允许的 --per-packet 取值
+#: Allowed --per-packet Pick a value
 ALLOWED_PER_PACKET = (1, 3, 4)
 
 
 def split_batches(total, per):
     """
-    把 total 首切成「每包 <= per」的批次，**并且不产生被禁止的 2 首包**。
+    put total firstCuttext「eachPackage <= per」oftext，**and does not produce proscribed 2 firstPackage**。
 
-    做法：先贪心按 per 切，再修正大小为 2 的批次：
+    Practice：First greedy press per Cut，Then correct the size to 2 oftext：
 
-        ① 前一批 >= 4 -> 从它借 1 首过来（前一批变 >=3，本批变 3）
-        ② 借不到（前一批只有 3，或自己就是第一批）-> 把这个 2 拆成 1 + 1
+        ① Previous batch >= 4 -> Borrow from it 1 firsttext（Previous batch change >=3，textChange 3）
+        ② Can't borrow（Previous batch only 3，or the first ones themselves.）-> putthisPiece 2 text 1 + 1
 
-    ★ 只借位是不够的 —— 前一批是 3 时借完自己变 2，等于把 2 挪了个位置。
+    ★ Borrowing is not enough —— The previous batch was 3 timetextChange 2，etcinput 2 textPieceBittext。
 
-    例：
-        10 首 per=4 -> [4, 4, 2]    -> [4, 3, 3]
-         6 首 per=4 -> [4, 2]       -> [3, 3]
-         2 首 per=4 -> [2]          -> [1, 1]
-         5 首 per=3 -> [3, 2]       -> [3, 1, 1]
-         8 首 per=3 -> [3, 3, 2]    -> [3, 3, 1, 1]
-         5 首 per=4 -> [4, 1]       （本来就合法，不动）
+    Example：
+        10 first per=4 -> [4, 4, 2]    -> [4, 3, 3]
+         6 first per=4 -> [4, 2]       -> [3, 3]
+         2 first per=4 -> [2]          -> [1, 1]
+         5 first per=3 -> [3, 2]       -> [3, 1, 1]
+         8 first per=3 -> [3, 3, 2]    -> [3, 3, 1, 1]
+         5 first per=4 -> [4, 1]       （textLegal，immovable）
     """
     if total <= 0:
         return []
@@ -177,29 +177,29 @@ def split_batches(total, per):
         if out[i] not in FORBIDDEN_TRACK_COUNTS:
             i += 1
             continue
-        # ① 前一批 >= 4 才能借（借完前一批 >= 3，本批 = 3）
+        # ① Previous batch >= 4 onlycantext（Finished borrowing the previous batch >= 3，text = 3）
         if i > 0 and out[i - 1] >= 4:
             out[i - 1] -= 1
             out[i] += 1
             i += 1
             continue
-        # ② 借不到 -> 把这个 2 拆成 1 + 1
+        # ② Can't borrow -> putthisPiece 2 text 1 + 1
         out[i] = 1
         out.insert(i + 1, 1)
         i += 2
     return out
 
-#: 默认保留目标账号自己的身份字段（不克隆过去，避免把 B 改名）
+#: defaultHoldtextoftextField（Do not clone past，textput B changeFirst name）
 IDENTITY_KEYS = ("userName", "accessCode")
 
-#: 迁移时**不**逐条传的节点（要么是位串、要么由 UpsertUserAll 自己算）
+#: texttime**No**textitemPassing onofnodes（musttextisBitstring、musttextby UpsertUserAll textcalculate）
 SKIP_NODES = (
-    "userMusicDetailList",     # 单独分批
-    "userGamePlaylogList",     # 由本脚本按曲目合成
-    "user2pPlaylog",           # 2P 记录，迁移无意义
-    "userGetPointList",        # 里程/奖励，迁移会凭空发点
-    "userTradeItemList",       # 无 Get 来源
-    "userFriendSeasonRankingList",   # 无 Get 来源
+    "userMusicDetailList",     # Separate batches
+    "userGamePlaylogList",     # bytextscriptpresstrackSynthesis
+    "user2pPlaylog",           # 2P record，textnotext
+    "userGetPointList",        # intext/Rewards，textMeetingstextemptyhairtext
+    "userTradeItemList",       # no Get text
+    "userFriendSeasonRankingList",   # no Get text
 )
 
 
@@ -234,15 +234,15 @@ def parse_args(argv):
 
 
 # =============================================================================
-# 工具
+# Tools
 # =============================================================================
 
 def _bits_for(node, items, base_items):
     """
-    按目标账号 B 的基线算 isNew* 位串：
-        B 里没有该条目 -> "1"（新增）
-        B 里已有       -> "0"（更新）
-    主键表见 upsert_user_all.DIFF_PRIMARY_KEYS。
+    presstext B ofBaselinecalculate isNew* Bitstring：
+        B innonetheitemtext -> "1"（added）
+        B inExisting       -> "0"（update）
+    Primary key table in upsert_user_all.DIFF_PRIMARY_KEYS。
     """
     keys = DIFF_PRIMARY_KEYS.get(node)
     if not keys:
@@ -259,9 +259,9 @@ def _bits_for(node, items, base_items):
 
 def play_from_detail(detail, base_play=None):
     """
-    从一条 UserMusicDetail（9 字段）反推一份 PlayData，用来合成 userPlaylog。
+    From one UserMusicDetail（9 Field）Push back one PlayData，usetextSynthesis userPlaylog。
 
-    对不上的字段保留 config.PLAY_* 的默认值（它们不在曲目记录里）。
+    Keep fields on config.PLAY_* ofdefaultValue（They're not in the track record.）。
     """
     p = PlayData() if base_play is None else base_play
     p.music_id = int(detail.get("musicId", p.music_id) or 0)
@@ -277,27 +277,27 @@ def play_from_detail(detail, base_play=None):
 
 
 def collect_nodes(src_nodes, base_nodes, clone_identity):
-    """把源账号 A 的节点整理成 extra_data（曲目/2P/奖励类除外）。"""
+    """puttext A ofnodestext extra_data（track/2P/Excluding awards）。"""
     out = {}
     for node in NODE_ORDER:
         if node in SKIP_NODES:
             continue
         if node.startswith("isNew"):
-            continue          # 位串单独算
+            continue          # Bitstring alone
         kind = NODE_TYPES.get(node)
         if kind not in ("singleton", "array", "object"):
             continue
         val = src_nodes.get(node)
         if val in (None, [], {}):
             continue
-        out[node] = json.loads(json.dumps(val))     # 深拷贝
-    # 身份字段：默认保留 B 自己的
+        out[node] = json.loads(json.dumps(val))     # text
+    # textField：defaultHold B textof
     if not clone_identity and out.get("userData"):
         for item in out["userData"]:
             if isinstance(item, dict):
                 for k in IDENTITY_KEYS:
                     item.pop(k, None)
-    # 位串：按 B 的基线算
+    # Bitstring：press B ofBaselinecalculate
     for arr, bits in ARRAY_TO_BITS.items():
         if arr not in out:
             continue
@@ -308,16 +308,16 @@ def collect_nodes(src_nodes, base_nodes, clone_identity):
 
 
 # =============================================================================
-# 主流程
+# Mainstream
 # =============================================================================
 
 def fetch_source_by_qr(qr):
-    """用源账号 A 的二维码联网抓一份数据（并自动落盘到 data/<A>.json）。"""
-    log_info("=== 源账号：联网抓取 ===")
+    """usetext A ofQR CodetextOnetextdata（and automatically drops to data/<A>.json）。"""
+    log_info("=== text：textTake ===")
     uid, token = ParseQRCode(qr)
     preview = GetUserPreview(uid, token)
     if preview.isLogin:
-        raise RuntimeError("源账号处于已登录状态，请先在机台登出")
+        raise RuntimeError("textplaceinAlreadylogintext，pleaseFirstatmachineStagelogout")
     login = UserLogin(uid, token, region_id=REGION_ID, place_id=PLACE_ID)
     try:
         raw = GetNeedUserData(uid, token=token, place_id=PLACE_ID, region_id=REGION_ID)
@@ -326,7 +326,7 @@ def fetch_source_by_qr(qr):
             UserLogout(uid, token, login.loginDateTime, logout_type=LogoutType.TestIn,
                        region_id=REGION_ID, place_id=PLACE_ID)
         except Exception as exc:
-            log_warning("源账号登出失败：" + str(exc))
+            log_warning("textlogoutFailed：" + str(exc))
     return raw
 
 
@@ -341,17 +341,17 @@ def main() -> int:
         _cfg.LOG_LEVEL = "debug"
 
     if opts["per_packet"] not in ALLOWED_PER_PACKET:
-        print("--per-packet 只能是 " + str(list(ALLOWED_PER_PACKET))
-              + " 之一（真机一局最多 4 首；★ 实测恰好 2 首会被服务端拒绝）")
+        print("--per-packet can only be " + str(list(ALLOWED_PER_PACKET))
+              + " One（real machineOnegameMax. 4 first；★ Measured just right 2 firstwill be rejected by the server）")
         return 1
 
     setup_logging("reincarnate")
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
     try:
-        # ---------------- 1. 源数据 ----------------
+        # ---------------- 1. textdata ----------------
         if opts["src_json"]:
             src_raw = json.load(open(opts["src_json"], "r", encoding="utf-8"))
-            log_info("=== 源账号：从文件读取 " + opts["src_json"] + " ===")
+            log_info("=== text：Read from file " + opts["src_json"] + " ===")
         else:
             src_raw = fetch_source_by_qr(opts["src_qr"])
 
@@ -359,28 +359,28 @@ def main() -> int:
         musics = src_nodes.get("userMusicDetailList") or []
         if opts["limit"] > 0:
             musics = musics[:opts["limit"]]
-        log_info("源数据：节点 " + str(len(src_nodes)) + " 个，曲目记录 " + str(len(musics)) + " 条")
+        log_info("textdata：nodes " + str(len(src_nodes)) + " Piece，trackrecord " + str(len(musics)) + " item")
 
         if not musics:
-            log_error("源数据里没有 userMusicDetailList，没什么可迁的。")
+            log_error("textdatainnone userMusicDetailList，textof。")
             return 4
 
-        # ---------------- 2. 目标账号 ----------------
+        # ---------------- 2. text ----------------
         Ping()
         uid, token = ParseQRCode(opts["dst_qr"])
         session.update(user_id=uid, token=token)
         preview = GetUserPreview(uid, token)
         if preview.isLogin:
-            log_error("目标账号处于已登录状态，请先在机台登出或等待会话超时")
+            log_error("textplaceinAlreadylogintext，pleaseFirstatmachineStagelogoutorwaitSessiontexttime")
             return 2
         login = UserLogin(uid, token, region_id=REGION_ID, place_id=PLACE_ID)
         session.update(login_dt=login.loginDateTime, logged_in=True)
 
         base_raw = GetNeedUserData(uid, token=token, place_id=PLACE_ID, region_id=REGION_ID)
         base_nodes = normalize_snapshot(base_raw)
-        log_info("目标账号基线已抓取")
+        log_info("textBaselineAlreadytextTake")
 
-        # ---------------- 3. 分批 ----------------
+        # ---------------- 3. Batch ----------------
         per = int(opts["per_packet"])
         sizes = split_batches(len(musics), per)
         batches = []
@@ -388,39 +388,39 @@ def main() -> int:
         for _n in sizes:
             batches.append(musics[_pos:_pos + _n])
             _pos += _n
-        log_info("计划：共 " + str(len(musics)) + " 首 -> " + str(len(batches))
-                 + " 包，每包 " + "/".join(str(n) for n in sizes[:12])
-                 + ("..." if len(sizes) > 12 else "") + " 首")
-        log_info("  ★ 已避开 2 首包（实测恰好 2 首会被服务端拒绝；1/3/4 首都正常）")
+        log_info("counttext：of " + str(len(musics)) + " first -> " + str(len(batches))
+                 + " Package，eachPackage " + "/".join(str(n) for n in sizes[:12])
+                 + ("..." if len(sizes) > 12 else "") + " first")
+        log_info("  ★ Avoided 2 firstPackage（Measured just right 2 firstwill be rejected by the server；1/3/4 firstallcurrenttext）")
 
         if opts["plan"]:
             for i, b in enumerate(batches):
-                log_info("    第 " + str(i + 1) + " 包（" + str(len(b)) + " 首）：" + ", ".join(
+                log_info("    number " + str(i + 1) + " Package（" + str(len(b)) + " first）：" + ", ".join(
                     str(x.get("musicId")) + "/L" + str(x.get("level")) for x in b))
-            log_info("--plan：只列计划，不发包")
+            log_info("--plan：Column Only Plans，No Package Issued")
             return 0
 
-        # 第一包才带非曲目节点（整账号克隆）
+        # numberOnePackageonlyBeltnon-tracknodes（text）
         shared_nodes = collect_nodes(src_nodes, base_nodes, opts["clone_identity"])
-        log_info("非曲目节点 " + str(len([k for k in shared_nodes if not k.startswith('isNew')]))
-                 + " 个将在第 1 包上传")
+        log_info("non-tracknodes " + str(len([k for k in shared_nodes if not k.startswith('isNew')]))
+                 + " will take place on the 1 Package upload")
 
-        # ---------------- 4. 逐包上传 ----------------
-        # ★ 流程（按使用方口径）：
-        #     登录 -> 等待 -> 上传 -> 登出(type=1) -> 续关登录 -> 等待 -> 上传 -> 登出 -> ...
+        # ---------------- 4. textPackage upload ----------------
+        # ★ text（pressUsetext）：
+        #     login -> wait -> Upload -> logout(type=1) -> continueOfflogin -> wait -> Upload -> logout -> ...
         #
-        # ★ 登出必须用 type=1（LogoutType.Logout）。
-        #   真机抓包实证 UserLogoutApi 就是 type=1（带 delayLog）；
-        #   续关场景下用 4（TestIn）会出问题 —— 那是「测试登入/顶号」的语义。
+        # ★ logoutMust use type=1（LogoutType.Logout）。
+        #   real machinetextPackageEmpirical UserLogoutApi is type=1（Belt delayLog）；
+        #   continueOfftextDownuse 4（TestIn）Something will go wrong —— thatis「text/text」ofsemantic。
         sent = 0
         for idx, batch in enumerate(batches):
             log_info("")
-            log_info("========== 第 " + str(idx + 1) + "/" + str(len(batches))
-                     + " 包（" + str(len(batch)) + " 首）==========")
+            log_info("========== number " + str(idx + 1) + "/" + str(len(batches))
+                     + " Package（" + str(len(batch)) + " first）==========")
 
-            # ---- 等待 ----
+            # ---- wait ----
             if opts["wait"] > 0:
-                log_info("上传前等待 " + str(opts["wait"]) + " 秒 ...")
+                log_info("Wait before uploading " + str(opts["wait"]) + " seconds ...")
                 time.sleep(opts["wait"])
 
             nodes = {}
@@ -433,7 +433,7 @@ def main() -> int:
                 nodes["isNewMusicDetailList"] = b
                 log_info("    isNewMusicDetailList = " + b)
 
-            # 合成 playlog（每首一条）与 game playlog
+            # Synthesis playlog（eachfirstOneitem）And game playlog
             playlogs = []
             game_playlogs = []
             for d in batch:
@@ -462,34 +462,34 @@ def main() -> int:
             )
             sent += 1
 
-            # ---- ★ 登出（type=1 Logout）----
-            log_info("--- 登出（type=1 Logout）---")
+            # ---- ★ logout（type=1 Logout）----
+            log_info("--- logout（type=1 Logout）---")
             try:
                 UserLogout(uid, token, login.loginDateTime,
                            logout_type=LogoutType.Logout,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_warning("登出失败（继续下一包）：" + str(exc))
+                log_warning("logoutFailed（textcontinueDownOnePackage）：" + str(exc))
             session["logged_in"] = False
 
-            # ---- ★ 续关登录：拿下一包的 loginId ----
+            # ---- ★ continueOfflogin：textDownOnePackageof loginId ----
             if idx < len(batches) - 1:
                 if opts["no_continue"]:
-                    log_warning("--no-continue：不再续关，提前结束（只发了 1 包）")
+                    log_warning("--no-continue：No more renewals，textagotext（Sent only 1 Package）")
                     break
-                log_info("--- 续关登录（isContinue=true）---")
+                log_info("--- continueOfflogin（isContinue=true）---")
                 login = UserLogin(uid, token, region_id=REGION_ID, place_id=PLACE_ID,
                                   is_continue=True)
                 session.update(login_dt=login.loginDateTime, logged_in=True)
 
         if not opts["send"]:
             log_info("")
-            log_info("[dry-run] 未发包。想真实迁移请加 --send（★ 会写入账号 B）")
+            log_info("[dry-run] notPackaging。For real migration, please add --send（★ will be added to your account B）")
             return 0
 
         log_info("")
-        log_info("★ 迁移完成：共上传 " + str(sent) + " 包 / "
-                 + str(min(len(musics), sent * per)) + " 首")
+        log_info("★ textDone：Total Uploads " + str(sent) + " Package / "
+                 + str(min(len(musics), sent * per)) + " first")
         return 0
 
     except ConfirmRequiredError:
@@ -504,7 +504,7 @@ def main() -> int:
                            logout_type=LogoutType.TestIn,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_error("[收尾] 强制登出失败（会话可能需等待服务端超时）：" + str(exc))
+                log_error("[receiveTail] Force Logout Failed（Session may need to wait for server timeout）：" + str(exc))
         teardown_logging()
 
 

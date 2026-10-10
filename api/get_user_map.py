@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-get_user_map.py —— 取用户地图进度（GetUserMapApi）
+get_user_map.py —— Take user map progress（GetUserMapApi）
 ================================================================================
 
-取玩家各地图的推进距离（真机 104 条）。
+Take the propulsion distance of the player's various maps（real machine 104 item）。
 
-对应接口：GetUserMapApi
-请求体  ：UserMapRequestVO（userId + nextIndex + maxCount=1000）
-响应    ：{userId, length, nextIndex, userMapList:[...]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserMapRequestVO.cs
+Corresponding interface：GetUserMapApi
+request body  ：UserMapRequestVO（userId + nextIndex + maxCount=1000）
+Response    ：{userId, length, nextIndex, userMapList:[...]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserMapRequestVO.cs
 
-    ★ Get 侧下发 100+ 条；Upsert 只回传「本次距离变化」的那 1 条
-      （真机：mapId=550003 的 distance 1424000 -> 1435000）。
+    ★ Get Side issuance 100+ item；Upsert Only send back「textVariation」ofthat 1 item
+      （real machine：mapId=550003 of distance 1424000 -> 1435000）。
 
-调用示例：
+call exampleExample：
     from api import GetUserMap / GetUserMapAll
 """
 
@@ -37,15 +37,15 @@ def GetUserMap(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户地图进度（单页，对应 GetUserMapApi）。
+    Take user map progress（Single Page，Corresponding GetUserMapApi）。
 
-    参数：
-        next_index: 分页起始索引（0 = 首页）
+    Parameter：
+        next_index: Pagination Start Index（0 = firsttext）
 
-    返回：
-        原始响应 dict，含 userMapList
+    returntimes：
+        Raw Response dict，Contains userMapList
     """
-    log_info("取用户地图进度：user_id=" + str(user_id) + " next_index=" + str(next_index))
+    log_info("Take user map progress：user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
         "GetUserMapApi",
         UserIdPageRequestVO(userId=user_id, nextIndex=next_index, maxCount=1000),
@@ -61,17 +61,17 @@ def GetUserMapAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户地图进度（自动翻页取全）。
+    Take user map progress（auto-pagingTakeFull）。
 
-    返回：
+    returntimes：
         {"userMapList": [...]}
     """
-    log_info("取用户地图进度（全量）：user_id=" + str(user_id))
+    log_info("Take user map progress（Full Amount）：user_id=" + str(user_id))
     items = get_all_pages(
         "GetUserMapApi", user_id, "userMapList",
         body_factory=lambda ni: UserIdPageRequestVO(
             userId=user_id, nextIndex=ni or 0, maxCount=1000),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("地图进度获取完成：" + str(len(items)) + " 条")
+    log_info("Map Progress Acquisition Complete：" + str(len(items)) + " item")
     return {"userMapList": items}

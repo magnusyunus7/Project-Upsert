@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-get_user_preview.py —— 用户预览（GetUserPreviewApi）
+get_user_preview.py —— usertext（GetUserPreviewApi）
 ================================================================================
 
-功能：刷卡后欢迎界面的数据（昵称、Rating、是否已登录、封禁状态…）。
+Features：Data of the welcome screen after swiping the card（text、Rating、isNoAlreadylogin、Ghosting Status…）。
 
-对应接口：GetUserPreviewApi
-请求体  ：{"userId":.., "segaIdAuthKey":"", "token":"..", "clientId":".."}
+Corresponding interface：GetUserPreviewApi
+request body  ：{"userId":.., "segaIdAuthKey":"", "token":"..", "clientId":".."}
           source/Assembly-CSharp/Net.VO.Mai2/UserPreviewRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketGetUserPreview.cs:20-25
-响应    ：见 UserPreviewResponseVO（23 字段，含 errorId）
+Response    ：text UserPreviewResponseVO（23 Field，Contains errorId）
 
-★ 真机调用时机：扫码拿到 userId/token 之后、UserLoginApi 之前
+★ real machinecallusetimemachine：textto userId/token After、UserLoginApi Before
    （source/2026-10-05.log:23）。
-★ 客户端行为：isLogin=True 时拒绝继续登录，避免顶号
+★ Client Behavior：isLogin=True timetextcontinuelogin，text
    （source/Assembly-CSharp/Process.Entry.State/ConfirmPlay.cs:151）。
 
-调用示例：
+call exampleExample：
     from api import GetUserPreview
     pv = GetUserPreview(12345678, "TESTTOKEN0000000000")
     print(pv.userName, pv.playerRating)
@@ -35,7 +35,7 @@ from .maimai_net import MaimaiNetClient, request_dict
 
 @dataclass
 class UserPreviewRequestVO:
-    """请求 VO（对应 UserPreviewRequestVO）。"""
+    """request VO（Corresponding UserPreviewRequestVO）。"""
     userId: int
     segaIdAuthKey: str = ""
     token: str = ""
@@ -45,10 +45,10 @@ class UserPreviewRequestVO:
 @dataclass
 class UserPreviewResponseVO:
     """
-    响应 VO（对应 UserPreviewResponseVO + 真机响应字段）。
+    Response VO（Corresponding UserPreviewResponseVO + real machineResponse Fields）。
 
-    ★ 字段顺序按 source/Assembly-CSharp/Net.VO.Mai2/UserPreviewResponseVO.cs
-      与 source/2026-10-05.log:24 的真机响应合并。
+    ★ Field order by source/Assembly-CSharp/Net.VO.Mai2/UserPreviewResponseVO.cs
+      And source/2026-10-05.log:24 ofreal machineResponseMerge。
     """
     userId: int = 0
     userName: str = ""
@@ -84,20 +84,20 @@ def GetUserPreview(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserPreviewResponseVO:
     """
-    获取用户预览信息。
+    getFetch Userstext。
 
-    参数：
-        user_id:          用户 ID（必填）
-        token:            会话令牌（必填，来自 ParseQRCode）
-        client_id:        机台短值（可选）
-        sega_id_auth_key: SEGA ID 鉴权 key（可选，通常为空）
-        timeout_ms:       超时毫秒（可选）
-        client:           可复用的 MaimaiNetClient（可选）
+    Parameter：
+        user_id:          user ID（Required）
+        token:            Session Token（Required，text ParseQRCode）
+        client_id:        machineStageshortValue（Optional）
+        sega_id_auth_key: SEGA ID text key（Optional，textIs Empty）
+        timeout_ms:       timeout milliseconds（Optional）
+        client:           Reusable MaimaiNetClient（Optional）
 
-    返回：
+    returntimes：
         UserPreviewResponseVO
     """
-    log_info("获取用户预览：user_id=" + str(user_id) + " client_id=" + client_id)
+    log_info("getFetch Userstext：user_id=" + str(user_id) + " client_id=" + client_id)
 
     raw = request_dict(
         "GetUserPreviewApi",
@@ -115,14 +115,14 @@ def GetUserPreview(
     resp = UserPreviewResponseVO(**{k: v for k, v in raw.items() if k in known})
 
     if resp.errorId != 0:
-        log_warning("服务器返回 errorId=" + str(resp.errorId))
+        log_warning("serverreturntimes errorId=" + str(resp.errorId))
     if resp.banState != 0:
-        log_warning("账号可能被封禁：banState=" + str(resp.banState))
+        log_warning("textcantext：banState=" + str(resp.banState))
     if resp.isLogin:
-        log_warning("账号处于已登录状态（isLogin=True），继续登录会顶号")
+        log_warning("textplaceinAlreadylogintext（isLogin=True），textcontinueloginMeetingstext")
 
     log_info(
-        "用户预览获取完成：userName=" + resp.userName
+        "usertextgetTakeDone：userName=" + resp.userName
         + " playerRating=" + str(resp.playerRating)
         + " isLogin=" + str(resp.isLogin)
         + " isNetMember=" + str(resp.isNetMember)
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         setup_logging("userpreview_test")
         try:
             if len(sys.argv) < 3:
-                print("用法: python -m api.get_user_preview <user_id> <token> [client_id]")
+                print("usage: python -m api.get_user_preview <user_id> <token> [client_id]")
                 return 1
             cid = sys.argv[3] if len(sys.argv) > 3 else CLIENT_ID
             pv = GetUserPreview(int(sys.argv[1]), sys.argv[2], client_id=cid)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
                 print("   " + name.ljust(18) + "= " + str(getattr(pv, name)))
             return 0
         except Exception as exc:
-            log_error("获取用户预览失败：" + str(exc))
+            log_error("getFetch UserstextFailed：" + str(exc))
             return 1
         finally:
             teardown_logging()

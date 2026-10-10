@@ -1,79 +1,79 @@
 # -*- coding: utf-8 -*-
 r"""
-upsert_user_chargelog.py —— 购买功能票 / 上传购买记录（UpsertUserChargelogApi）
+upsert_user_chargelog.py —— purchaseBuyFeature Tickets / Upload purchase history（UpsertUserChargelogApi）
 ================================================================================
 
-功能：把「买了一张功能票」这件事上报给服务器，并把该票的持有数 +1。
+Features：put「Bought a feature ticket」thistextEscalate toserver，and the number of holdings of the ticket +1。
 
-对应接口：UpsertUserChargelogApi
-请求体  ：UserChargelogRequestVO（4 字段，顺序照 C# 声明）
+Corresponding interface：UpsertUserChargelogApi
+request body  ：UserChargelogRequestVO（4 Field，ordertext C# Declaration）
           source/Assembly-CSharp/Net.VO.Mai2/UserChargelogRequestVO.cs
               public ulong userId;
               public UserChargelog userChargelog;
               public GetUserCharge userCharge;
               public long loginDateTime;
-响应    ：{returnCode, apiName}
+Response    ：{returnCode, apiName}
 
 --------------------------------------------------------------------------------
-一、真机的购买流程（源码逐行可查）
+One、real machineofpurchaseBuytext（source codetextcheck）
 --------------------------------------------------------------------------------
     Manager/TicketManager.cs:130  UseTicketPrepare(playerId, ticketId)
-        ├─ ticket.ticketKind.id == 1（付费票）
-        ├─ 从 OperationManager.GetGameChargeDataList() 找该 chargeId 的 price
-        │     （= GetGameChargeApi 的响应）
+        ├─ ticket.ticketKind.id == 1（Paid tickets）
+        ├─ From OperationManager.GetGameChargeDataList() findthe chargeId of price
+        │     （= GetGameChargeApi ofResponse）
         ├─ TicketManager.cs:207  SetBuyPaidTicketData(playerId, ticketId)
-        │     ├─ ChargeList 里已有该 chargeId -> stock++、更新 purchaseDate / validDate
-        │     └─ 没有                      -> 新增一条 stock=1
+        │     ├─ ChargeList inExistingthe chargeId -> stock++、update purchaseDate / validDate
+        │     └─ none                      -> addedOneitem stock=1
         └─ TicketManager.cs:234  RequestUserCharge(playerId)
               ├─ VOExtensions.cs:436  ExportEnableUserCharge(ticketId)
-              │     -> 取**购买后**（stock > 0）的那条 GetUserCharge
+              │     -> Take**purchaseBuyAfter**（stock > 0）ofthatitem GetUserCharge
               ├─ VOExtensions.cs:403  ExportUserChargelog(ticketId)
               │     -> chargeId = ticketId
-              │        price    = DataManager.GetTicket(ticketId).creditNum   ★ 不是 money price
+              │        price    = DataManager.GetTicket(ticketId).creditNum   ★ No money price
               │        purchaseDate = TimeManager.GetNowDateString()
-              │        playCount    = 玩家总游玩次数
-              │        playerRating = 玩家 Rating
-              │        placeId / regionId / clientId = 当前机台
-              └─ 发 UpsertUserChargelogApi
+              │        playCount    = textTotal Play Count
+              │        playerRating = text Rating
+              │        placeId / regionId / clientId = Current machine
+              └─ hair UpsertUserChargelogApi
 
-    ★ 成功后 TicketManager.cs:255 RequestSuccess 会把本地 stock 再 --，
-      因为那张票马上就被这一局用掉了。本模块只负责「买」，
-      所以默认传的是**购买后**的库存（现有 + 1）。
+    ★ After successful TicketManager.cs:255 RequestSuccess will take the local stock Again --，
+      Because that ticket was used up by this bureau right away.。textOnlytext「Buy」，
+      So the default passing is**purchaseBuyAfter**ofInventory（currenthas + 1）。
 
 --------------------------------------------------------------------------------
-二、票的有效期算法
+Two、textofhastextcalculatetext
 --------------------------------------------------------------------------------
     Manager/TicketManager.cs:564
         DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
 
-    真机验证（source/2026-10-05.log:123 的 userChargeList）：
+    real machinetext（source/2026-10-05.log:123 of userChargeList）：
         chargeId=5  purchaseDate="2026-10-04 18:22:10"
-                    -> 减 4 小时 = 10-04 14:22，加 90 天 = 2027-01-02
-                    -> validDate="2027-01-02 04:00:00"  ✅ 完全吻合
+                    -> Subtract 4 Hours = 10-04 14:22，Plus 90 days = 2027-01-02
+                    -> validDate="2027-01-02 04:00:00"  ✅ Exact match
 
 --------------------------------------------------------------------------------
-三、ticket.creditNum 从哪来
+Three、ticket.creditNum Where did you come from?
 --------------------------------------------------------------------------------
-    游戏本地主数据：
-        <游戏目录>\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket.xml
-    已抄进 TICKET_CREDIT_NUM（付费票 2/3/4/5/6 -> creditNum 1/2/3/4/5）。
+    textMaster Data：
+        <text>\Sinmai_Data\StreamingAssets\A000\ticket\ticketXXXXXX\Ticket.xml
+    copied TICKET_CREDIT_NUM（Paid tickets 2/3/4/5/6 -> creditNum 1/2/3/4/5）。
 
 --------------------------------------------------------------------------------
-四、安全闸门
+Four、Safety gate
 --------------------------------------------------------------------------------
-    本接口会**真实写入一条购买记录**，所以默认不发包：
-        UpsertUserChargelog(...)                   -> 抛 ChargelogConfirmError
-        UpsertUserChargelog(..., dry_run=True)     -> 只构造报文
-        UpsertUserChargelog(..., confirm=True)     -> 真实发送
-    全局开关：config.UPSERT_CHARGELOG_CONFIRM（默认 False）
+    textinterfaceMeetings**realWriteA purchase history**，So no packing by default.：
+        UpsertUserChargelog(...)                   -> raise ChargelogConfirmError
+        UpsertUserChargelog(..., dry_run=True)     -> Construct only packets
+        UpsertUserChargelog(..., confirm=True)     -> realSend
+    Global Switch：config.UPSERT_CHARGELOG_CONFIRM（default False）
 
 --------------------------------------------------------------------------------
-五、调用示例
+Five、call exampleExample
 --------------------------------------------------------------------------------
     from api import setup_logging, ParseQRCode, UserLogin, UserLogout,
                      LogoutType, UpsertUserChargelog
 
-    setup_logging("买票")
+    setup_logging("Buy tickets")
     user_id, token = ParseQRCode(qr)
     login = UserLogin(user_id, token)
     UpsertUserChargelog(user_id, 2, login.loginDateTime, confirm=True)
@@ -96,47 +96,47 @@ from config import (
 )
 
 # =============================================================================
-# 功能票（Ticket）主数据（原在 config.py，2026-10-06 下沉到本模块）
+# Feature Tickets（Ticket）Master Data（Originally at config.py，2026-10-06 sink to this module）
 # =============================================================================
 #
-# 依据：游戏本地主数据
+# Basis：textMaster Data
 #         Sinmai_Data/StreamingAssets/A000/ticket/ticketXXXXXX/Ticket.xml
-#       源码侧 Manager.MaiStudio.TicketData.creditNum
+#       source codeSide Manager.MaiStudio.TicketData.creditNum
 #
-# ★ 为什么需要它：
-#     UpsertUserChargelogApi（购买功能票）的 userChargelog.price 取的是
-#     **ticket.creditNum（票的信用点倍数）**，不是 GetGameChargeApi 里的 money price：
+# ★ Why you need it：
+#     UpsertUserChargelogApi（purchaseBuyFeature Tickets）of userChargelog.price Take is
+#     **ticket.creditNum（textoftextusetexttimesnumber）**，No GetGameChargeApi inof money price：
 #         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:410
 #             result.price = ticket.creditNum;
 #
-# ticketKind 含义：1=Paid(付费，可在机台买) 2=Event 3=Free 4=Link 5=ShopWeekly 6=ShopChara
+# ticketKind Meaning：1=Paid(Paid，Can be bought at the machine) 2=Event 3=Free 4=Link 5=ShopWeekly 6=ShopChara
 
 #: chargeId -> creditNum
 TICKET_CREDIT_NUM = {
     0: 0,
-    2: 1, 3: 2, 4: 3, 5: 4, 6: 5,          # 付费票：N 倍券的 creditNum = N-1
-    10005: 0, 10105: 0, 10205: 0,           # 活动票
-    11001: 0,                               # 免费 1.5 倍券
-    30001: 0, 30002: 0, 30003: 0,           # 连动 / 商店票
+    2: 1, 3: 2, 4: 3, 5: 4, 6: 5,          # Paid tickets：N Coupon multiplier's creditNum = N-1
+    10005: 0, 10105: 0, 10205: 0,           # text
+    11001: 0,                               # Free 1.5 Ticket multiplier
+    30001: 0, 30002: 0, 30003: 0,           # text / Store Tickets
 }
 
-#: 票名（只用于日志好看，不影响协议）
+#: textFirst name（For good-looking logs only，Does Not Affect Agreement）
 TICKET_NAMES = {
-    0: "使用しない",
-    2: "2倍チケット", 3: "3倍チケット", 4: "4倍チケット", 5: "5倍チケット", 6: "6倍チケット",
-    10005: "イベント5倍チケット_1", 10105: "イベント5倍チケット_2",
-    10205: "イベント5倍チケット_3", 11001: "無料1.5倍チケット",
-    30001: "連動チケット", 30002: "每周区域前进2倍票", 30003: "旅行伙伴等级提升5倍票",
+    0: "Useしない",
+    2: "2timesチケット", 3: "3timesチケット", 4: "4timesチケット", 5: "5timesチケット", 6: "6timesチケット",
+    10005: "イベント5timesチケット_1", 10105: "イベント5timesチケット_2",
+    10205: "イベント5timesチケット_3", 11001: "text1.5timesチケット",
+    30001: "textチケット", 30002: "eachtextAreaagotext2Multiplier Tickets", 30003: "textleveltext5Multiplier Tickets",
 }
 
-#: 付费票（ticketKind=1）—— 只有这些能在机台购买
+#: Paid tickets（ticketKind=1）—— Only these can be purchased at the machine
 PAID_TICKET_IDS = (2, 3, 4, 5, 6)
 
-#: 票有效期算法参数
-#:   依据 source/Assembly-CSharp/Manager/TicketManager.cs:564
+#: texthastextcalculatetextParameter
+#:   Basis source/Assembly-CSharp/Manager/TicketManager.cs:564
 #:        DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
-#:   真机验证：chargeId=5 的 purchaseDate=2026-10-04 18:22:10
-#:             -> 减 4 小时 = 10-04 14:22，加 90 天 = 2027-01-02 -> "2027-01-02 04:00:00"
+#:   real machinetext：chargeId=5 of purchaseDate=2026-10-04 18:22:10
+#:             -> Subtract 4 Hours = 10-04 14:22，Plus 90 days = 2027-01-02 -> "2027-01-02 04:00:00"
 TICKET_VALID_HOUR_OFFSET = -4
 TICKET_VALID_DAYS = 90
 
@@ -146,32 +146,32 @@ from .upsert_user_all import UpsertResponseVO, resolve_api_func
 
 
 class ChargelogConfirmError(RuntimeError):
-    """有副作用的接口被安全闸门拦下（此时**未发包**）。"""
+    """hasSide effectsofinterfacetextSafety gatetextDown（texttime**notPackaging**）。"""
 
 
 class ChargelogGuardError(RuntimeError):
     """
-    安全检查未通过（此时**未发包**）。
+    Security check failed（texttime**notPackaging**）。
 
-    ★ 目前唯一的触发条件：**账号当前已经持有功能票**。
+    ★ textagoUniqueoftexthairitemtext：**textCurrentAlready heldFeature Tickets**。
 
-      真机行为：`UseTicketPrepare` 只在「本局要用这张票」时才走购买分支，
-      而一张票买到手后会立刻被本局用掉（`RequestSuccess` 里 stock--）。
-      所以正常状态下 `userChargeList` 里的 stock 全是 0。
+      real machinetextfor：`UseTicketPrepare` Only in「this gamemustusethistickets」timeonlytextpurchaseBuyBranch，
+      andOneticketsBuytotextAfterMeetingstextthis gameusetext（`RequestSuccess` in stock--）。
+      So under normal conditions, `userChargeList` inof stock Yes to all 0。
 
-      如果账号**已经持有**一张功能票还去发购买请求，
-      服务端看到的是「重复购买 / 状态矛盾」，有**封号风险**。
-      所以本模块默认硬拦。
+      If the account**Already held**A feature ticket also sends a purchase request，
+      servertexttoofis「textpurchaseBuy / text」，has**Title Risk**。
+      So this module is hard blocked by default。
     """
 
 
 # =============================================================================
-# 一、VO（字段顺序照 source/Assembly-CSharp/Net.VO.Mai2/*.cs 声明）
+# One、VO（Field order photo source/Assembly-CSharp/Net.VO.Mai2/*.cs Declaration）
 # =============================================================================
 
 @dataclass
 class UserChargeVO:
-    """GetUserCharge —— 一张票的持有状态（GetUserCharge.cs，4 字段）。"""
+    """GetUserCharge —— Holding status of a ticket（GetUserCharge.cs，4 Field）。"""
     chargeId: int = 0
     stock: int = 0
     purchaseDate: str = ""
@@ -180,7 +180,7 @@ class UserChargeVO:
 
 @dataclass
 class UserChargelogVO:
-    """UserChargelog —— 一条购买记录（UserChargelog.cs，8 字段）。"""
+    """UserChargelog —— A purchase history（UserChargelog.cs，8 Field）。"""
     chargeId: int = 0
     price: int = 0
     purchaseDate: str = ""
@@ -193,7 +193,7 @@ class UserChargelogVO:
 
 @dataclass
 class UserChargelogRequestVO:
-    """请求 VO（UserChargelogRequestVO.cs，4 字段，顺序照声明）。"""
+    """request VO（UserChargelogRequestVO.cs，4 Field，ordertextDeclaration）。"""
     userId: int
     userChargelog: UserChargelogVO
     userCharge: UserChargeVO
@@ -201,43 +201,43 @@ class UserChargelogRequestVO:
 
 
 # =============================================================================
-# 二、工具
+# Two、Tools
 # =============================================================================
 
 def ticket_name(charge_id: int) -> str:
-    """取票名（只用于日志）。"""
-    return TICKET_NAMES.get(int(charge_id), "未知票(" + str(charge_id) + ")")
+    """Ticket Taking Name（For logs only）。"""
+    return TICKET_NAMES.get(int(charge_id), "nottext(" + str(charge_id) + ")")
 
 
 def ticket_price(charge_id: int, override: Optional[int] = None) -> int:
     """
-    取 userChargelog.price —— 即 ticket.creditNum。
+    Take userChargelog.price —— i.e. ticket.creditNum。
 
-    依据 VOExtensions.cs:410  result.price = ticket.creditNum;
-    数据来源 TICKET_CREDIT_NUM（抄自游戏 Ticket.xml）。
+    Basis VOExtensions.cs:410  result.price = ticket.creditNum;
+    datatext TICKET_CREDIT_NUM（text Ticket.xml）。
     """
     if override is not None:
         return int(override)
     if int(charge_id) not in TICKET_CREDIT_NUM:
-        log_warning("TICKET_CREDIT_NUM 里没有 chargeId=" + str(charge_id)
-                    + " —— 按 0 处理，建议补进配置")
+        log_warning("TICKET_CREDIT_NUM innone chargeId=" + str(charge_id)
+                    + " —— press 0 Process，Recommended Complementary Configuration")
         return 0
     return int(TICKET_CREDIT_NUM[int(charge_id)])
 
 
-#: 北京时间（CST = UTC+8）
-#:   依据 Manager/TimeManager.cs:9  CSToffset = new TimeSpan(8, 0, 0)
+#: Beijing Time（CST = UTC+8）
+#:   Basis Manager/TimeManager.cs:9  CSToffset = new TimeSpan(8, 0, 0)
 CST = timezone(timedelta(hours=8))
 
 
 def now_cst(now: Optional[datetime] = None) -> datetime:
     """
-    取「北京时间现在」；传了 now 就用它（视作已是北京时间）。
+    Take「Beijing time now」；Passed on. now Just use it.（textAlreadyisBeijing Time）。
 
-    ★ 为什么要显式 +8 而不是 datetime.now()：
-        TimeManager.GetNowTime() 返回 **DateTime.UtcNow**，
-        GetDateString() 再 Add(CSToffset) —— 即游戏里的日期串**恒是北京时间**，
-        与本机时区无关。脚本跑在非东八区机器上时 datetime.now() 会错。
+    ★ Why explicitly +8 andNo datetime.now()：
+        TimeManager.GetNowTime() returntimes **DateTime.UtcNow**，
+        GetDateString() Again Add(CSToffset) —— i.e the date string in the game**Heng is Beijing time**，
+        Irrelevant for native time zone。scripttextatnon-Dongba DistrictmachinetextUptime datetime.now() will be wrong。
     """
     if now is not None:
         return now
@@ -246,16 +246,16 @@ def now_cst(now: Optional[datetime] = None) -> datetime:
 
 def _now_string(now: Optional[datetime] = None) -> str:
     """
-    TimeManager.GetNowDateString() 的等价物。
+    TimeManager.GetNowDateString() ofetctext。
 
-    依据 Manager/TimeManager.cs:7,62-70：
+    Basis Manager/TimeManager.cs:7,62-70：
         DateTimeFormat = "yyyy-MM-dd HH:mm:ss.f"
         GetDateString(unix) = GetDateTime(unix).ToString("yyyy-MM-dd HH:mm:ss.f")
 
-    ★★ 注意末尾那个 **.f**（一位小数）—— 真机报文长这样：
+    ★★ notetextTailthatPiece **.f**（One decimal place）—— real machinepacketlongthistext：
            "purchaseDate":"2026-10-06 13:20:10.0"
-       少写这个 ".0" 服务端会直接 returnCode=0（实测踩过）。
-       ★ 而 validDate 用的是另一套格式（见 calc_valid_date），**不带**小数。
+       Write less about this ".0" serverMeetingsdirectly returnCode=0（Measured stepped on）。
+       ★ and validDate useofistextOnetext（text calc_valid_date），**Without**Decimal。
     """
     d = now_cst(now)
     return d.strftime("%Y-%m-%d %H:%M:%S") + "." + str(d.microsecond // 100000)
@@ -268,13 +268,13 @@ def calc_valid_date(
     days: int = TICKET_VALID_DAYS,
 ) -> str:
     """
-    算票的有效期字符串。
+    calculatetextofhastextString。
 
-    依据 TicketManager.cs:562-565：
+    Basis TicketManager.cs:562-565：
         DateTime.Now.AddHours(-4.0).AddDays(90.0).ToString("yyyy-MM-dd 04:00:00")
 
-    ★ 注意这里用的是**显式格式串**（没有 .f），所以结果形如
-      "2027-01-04 04:00:00" —— 与 purchaseDate 的 "…10.0" 不同。
+    ★ notethisinuseofis**explicittext**（none .f），So the result is
+      "2027-01-04 04:00:00" —— And purchaseDate of "…10.0" Different。
     """
     base = now_cst(now)
     d = (base + timedelta(hours=hour_offset) + timedelta(days=days)).date()
@@ -283,12 +283,12 @@ def calc_valid_date(
 
 def parse_wall_time(text: Any) -> Optional[datetime]:
     """
-    解析墙上时间串，兼容两种格式：
+    parseWall Timetext，Compatible with both formats：
 
-        "2026-10-06 13:20:10.0"   ← TimeManager.DateTimeFormat（一位小数，真机报文用这个）
-        "2026-10-06 13:20:10"     ← 无小数（服务端回给 GetUserChargeApi 的是这个）
+        "2026-10-06 13:20:10.0"   ← TimeManager.DateTimeFormat（One decimal place，real machinepacketusethisPiece）
+        "2026-10-06 13:20:10"     ← noDecimal（servertimestext GetUserChargeApi ofisthisPiece）
 
-    解析不出来返回 None。
+    parseNoouttextreturntimes None。
     """
     s = str(text or "").strip()
     if not s:
@@ -302,7 +302,7 @@ def parse_wall_time(text: Any) -> Optional[datetime]:
 
 
 def _find_charge(charge_list: Any, charge_id: int) -> Optional[Dict[str, Any]]:
-    """在 GetUserChargeApi 的 userChargeList 里找指定 chargeId。"""
+    """at GetUserChargeApi of userChargeList infindspecified chargeId。"""
     if not isinstance(charge_list, list):
         return None
     for c in charge_list:
@@ -312,7 +312,7 @@ def _find_charge(charge_list: Any, charge_id: int) -> Optional[Dict[str, Any]]:
 
 
 # =============================================================================
-# 三、主函数
+# Three、Main Function
 # =============================================================================
 
 def UpsertUserChargelog(
@@ -340,93 +340,93 @@ def UpsertUserChargelog(
     client: Optional[MaimaiNetClient] = None,
 ) -> Union[UserChargelogRequestVO, UpsertResponseVO]:
     """
-    购买一张功能票（UpsertUserChargelogApi，★ 有副作用）。
+    purchaseBuyOnefeature tickets（UpsertUserChargelogApi，★ hasSide effects）。
 
-    参数：
-        user_id:         用户 ID（必填）
-        charge_id:       要买的票 ID（必填，= GetGameChargeApi 里的 chargeId）
-                         ★ 付费票是 2/3/4/5/6（PAID_TICKET_IDS）
-        login_date_time: 登录时刻（必填，★ 必须 == UserLoginApi 的 loginDateTime）
-        charge_list:     当前票券列表（可选）。不传则自动调 GetUserChargeApi。
-                         用来算「购买后库存」和是否已有该票。
-        user_data:       当前 userData（可选）。不传则自动调 GetUserDataApi。
-                         用来填 playCount / playerRating。
-        stock:           ★ 购买后该票的库存；不传 = 现有 + 1
-        price:           ★ userChargelog.price；不传 = TICKET_CREDIT_NUM[charge_id]
-        purchase_date:   购买时刻字符串；不传 = 现在
-        valid_date:      有效期字符串；不传 = 现在-4h+90d（见 calc_valid_date）
-        play_count:      覆盖 playCount（不传则取 userData.playCount）
-        player_rating:   覆盖 playerRating（不传则取 userData.playerRating）
-        guard_purchasable: ★ 默认 True = **只允许买 GetGameChargeApi 列出来的票**
-                         （不在清单里就抛 ChargelogGuardError，未发包）。
-                         依据 TicketManager.cs:137-150 —— 真机也是先在
-                         GetGameChargeDataList() 里找到该 chargeId 才发购买请求，
-                         找不到直接 return false。服务端对未上架的票会 returnCode=0。
-                         实测：本机台只上架 chargeId=2/3，买 5 会失败。
-        game_charge_list: 可购买清单（可选）。不传则自动调 GetGameChargeApi。
-        guard_no_stock:  ★ 默认 True = **账号当前若已持有任何功能票就直接拒绝购买**
-                         （抛 ChargelogGuardError，未发包）。
-                         理由见 ChargelogGuardError 的 docstring —— 有封号风险。
-                         确认要强行购买才传 False。
-        confirm:         副作用闸门；None 时取 config.UPSERT_CHARGELOG_CONFIRM
-        dry_run:         True = 只构造并返回报文，绝不发包
+    Parameter：
+        user_id:         user ID（Required）
+        charge_id:       mustBuyoftext ID（Required，= GetGameChargeApi inof chargeId）
+                         ★ Paid tickets are 2/3/4/5/6（PAID_TICKET_IDS）
+        login_date_time: logintime（Required，★ Required == UserLoginApi of loginDateTime）
+        charge_list:     Current Ticket List（Optional）。Auto-adjust without passing GetUserChargeApi。
+                         usetextcalculate「purchaseBuyAfterInventory」and if the ticket already exists。
+        user_data:       Current userData（Optional）。Auto-adjust without passing GetUserDataApi。
+                         usetextFill in playCount / playerRating。
+        stock:           ★ purchaseBuyAfterthetextofInventory；Do not pass = currenthas + 1
+        price:           ★ userChargelog.price；Do not pass = TICKET_CREDIT_NUM[charge_id]
+        purchase_date:   purchaseBuytimeString；Do not pass = currentat
+        valid_date:      hastextString；Do not pass = currentat-4h+90d（text calc_valid_date）
+        play_count:      overwrite playCount（Take without passing userData.playCount）
+        player_rating:   overwrite playerRating（Take without passing userData.playerRating）
+        guard_purchasable: ★ default True = **Only allow to buy GetGameChargeApi Tickets listed**
+                         （Throw it away if it's not in the list ChargelogGuardError，notPackaging）。
+                         Basis TicketManager.cs:137-150 —— real machineAlsoFirstat
+                         GetGameChargeDataList() infindtothe chargeId Just issued a purchase request，
+                         findNotodirectly return false。serverYes.notUptextoftextMeetings returnCode=0。
+                         Measured：textmachineStageOnlyUptext chargeId=2/3，Buy 5 will fail。
+        game_charge_list: Purchasable list（Optional）。Auto-adjust without passing GetGameChargeApi。
+        guard_no_stock:  ★ default True = **textCurrenttextHeldAnyFeature TicketstextdirectlytextpurchaseBuy**
+                         （raise ChargelogGuardError，notPackaging）。
+                         textbytext ChargelogGuardError of docstring —— hasTitle Risk。
+                         textmusttextpurchaseBuyonlyPassing on False。
+        confirm:         Side Effects Gate；None timeTake config.UPSERT_CHARGELOG_CONFIRM
+        dry_run:         True = Construct and return packets only，textNo Package Issued
 
-    返回：
+    returntimes：
         dry_run=True  -> UserChargelogRequestVO
         dry_run=False -> UpsertResponseVO
     """
     if not login_date_time:
-        raise ValueError("缺少 login_date_time：必须传 UserLoginApi 的 loginDateTime"
+        raise ValueError("text login_date_time：Must pass UserLoginApi of loginDateTime"
                          "（PacketUploadUserChargelog.cs:23）")
 
     name = ticket_name(charge_id)
-    log_info("购买功能票：user_id=" + str(user_id) + " chargeId=" + str(charge_id)
+    log_info("purchaseBuyFeature Tickets：user_id=" + str(user_id) + " chargeId=" + str(charge_id)
              + "（" + name + "）dry_run=" + str(dry_run))
 
     if int(charge_id) not in tuple(PAID_TICKET_IDS):
-        log_warning("chargeId=" + str(charge_id) + " 不在 PAID_TICKET_IDS="
-                    + str(tuple(PAID_TICKET_IDS)) + " 里 —— 它可能不是可购买的付费票")
+        log_warning("chargeId=" + str(charge_id) + " Not in PAID_TICKET_IDS="
+                    + str(tuple(PAID_TICKET_IDS)) + " in —— It may not be a paid ticket that can be purchased")
 
-    # ---------- 1. 取当前状态 ----------
+    # ---------- 1. Take current state ----------
     if charge_list is None:
-        log_info("未传 charge_list，自动抓取当前票券 ...")
+        log_info("notPassing on charge_list，textPick up current ticket ...")
         raw = resolve_api_func("GetUserCharge")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         charge_list = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
 
     if user_data is None:
-        log_info("未传 user_data，自动抓取当前档案 ...")
+        log_info("notPassing on user_data，textTakeCurrentfiletext ...")
         raw_ud = resolve_api_func("GetUserData")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         user_data = (raw_ud.get("userData") if isinstance(raw_ud, dict) else None) or {}
 
-    # ---------- 1.4 ★ 安全检查：这张票当前**上架了吗** ----------
-    #   依据 TicketManager.cs:137-150：真机先在 GetGameChargeDataList() 里找该
-    #   chargeId，找到才 RequestUserCharge，找不到直接 return false（不买）。
-    #   服务端对未上架的票会 returnCode=0 —— 实测买 chargeId=5 就是这种情况。
+    # ---------- 1.4 ★ Security check：thisticketsCurrent**Is it on the shelf?** ----------
+    #   Basis TicketManager.cs:137-150：real machineFirstat GetGameChargeDataList() infindthe
+    #   chargeId，findtoonly RequestUserCharge，findNotodirectly return false（Don't buy）。
+    #   serverYes.notUptextoftextMeetings returnCode=0 —— Measured Buy chargeId=5 That's the situation.。
     if guard_purchasable:
         if game_charge_list is None:
-            log_info("未传 game_charge_list，自动抓取可购买清单 ...")
+            log_info("notPassing on game_charge_list，textTakePurchasable list ...")
             _gc = resolve_api_func("GetGameCharge")(
                 client_id=client_id, timeout_ms=timeout_ms, client=client)
             game_charge_list = (_gc.get("gameChargeList")
                                 if isinstance(_gc, dict) else None) or []
         avail = [int(g.get("chargeId")) for g in (game_charge_list or [])
                  if isinstance(g, dict) and g.get("chargeId") is not None]
-        log_info("当前可购买 chargeId：" + str(avail))
+        log_info("Currently Available for Purchase chargeId：" + str(avail))
         if int(charge_id) not in avail:
-            msg = ("安全检查未通过：chargeId=" + str(charge_id) + "（" + name
-                   + "）**不在当前可购买清单里**。\n"
-                   "  可购买：" + (str(avail) if avail else "（空）") + "\n"
-                   "  依据 TicketManager.cs:137-150 —— 真机也只买 GetGameChargeApi\n"
-                   "  列出来的票，找不到就不发购买请求。\n"
-                   "  服务端对未上架的票会 returnCode=0（实测过）。\n"
-                   "  确需强行购买请传 guard_purchasable=False。")
+            msg = ("Security check failed：chargeId=" + str(charge_id) + "（" + name
+                   + "）**Not in current purchasable list**。\n"
+                   "  Available for purchase：" + (str(avail) if avail else "（empty）") + "\n"
+                   "  Basis TicketManager.cs:137-150 —— real machineAlsoOnlyBuy GetGameChargeApi\n"
+                   "  Tickets listed，findNototextDo not sendpurchaseBuyrequest。\n"
+                   "  serverYes.notUptextoftextMeetings returnCode=0（Measured）。\n"
+                   "  textpurchaseBuypleasePassing on guard_purchasable=False。")
             log_error(msg)
             raise ChargelogGuardError(msg)
-        log_info("安全检查通过：chargeId=" + str(charge_id) + " 在可购买清单里")
+        log_info("Security check passed：chargeId=" + str(charge_id) + " In the purchasable list")
 
-    # ---------- 1.5 ★ 安全检查：账号当前是否已持有功能票 ----------
+    # ---------- 1.5 ★ Security check：textIs it currentlyFeature tickets held ----------
     held = [c for c in (charge_list or [])
             if isinstance(c, dict) and int(c.get("stock", 0) or 0) > 0]
     if held:
@@ -434,18 +434,18 @@ def UpsertUserChargelog(
             "chargeId=" + str(c.get("chargeId")) + "(" + ticket_name(c.get("chargeId"))
             + ") stock=" + str(c.get("stock")) + " validDate=" + str(c.get("validDate"))
             for c in held)
-        log_warning("★ 账号当前已持有 " + str(len(held)) + " 张功能票：" + desc)
+        log_warning("★ textCurrentHeld " + str(len(held)) + " feature tickets：" + desc)
         if guard_no_stock:
-            msg = ("安全检查未通过：账号当前**已持有功能票**（" + desc + "），拒绝再次购买。\n"
-                   "  原因：真机只在「本局要用这张票」时才购买，且买到手会立刻用掉"
-                   "（stock--），正常状态 stock 恒为 0。\n"
-                   "  已经持票还发购买请求，服务端看到的是重复购买，有**封号风险**。\n"
-                   "  确需强行购买请传 guard_no_stock=False。")
+            msg = ("Security check failed：textCurrent**Feature tickets held**（" + desc + "），textAgaintextpurchaseBuy。\n"
+                   "  Reason：real machineOnly in「this gamemustusethistickets」timeonlypurchaseBuy，And if you buy it, it will be used immediately."
+                   "（stock--），currenttext stock Constantly 0。\n"
+                   "  Purchase request has been issued with a ticket，servertexttoofistextpurchaseBuy，has**Title Risk**。\n"
+                   "  textpurchaseBuypleasePassing on guard_no_stock=False。")
             log_error(msg)
             raise ChargelogGuardError(msg)
-        log_warning("guard_no_stock=False —— 已跳过该检查，继续购买")
+        log_warning("guard_no_stock=False —— This check has been skipped，textcontinuepurchaseBuy")
     else:
-        log_info("安全检查通过：账号当前没有持有任何功能票")
+        log_info("Security check passed：textCurrentnonetexthasAnyFeature Tickets")
 
     existing = _find_charge(charge_list, charge_id)
     old_stock = int(existing.get("stock", 0) or 0) if existing else 0
@@ -466,23 +466,23 @@ def UpsertUserChargelog(
     if not purchase_date:
         purchase_date = _now_string(now)
     if not valid_date:
-        # ★ 真机里 purchaseDate 与 validDate 都来自同一个 DateTime.Now
-        #   （TicketManager.cs:216-219 与 :564），所以调用方若显式给了 purchaseDate，
-        #   有效期就该从**那个时刻**推，而不是从现在推。
+        # ★ real machinein purchaseDate And validDate alltextSame DateTime.Now
+        #   （TicketManager.cs:216-219 And :564），So if the caller explicitly gives purchaseDate，
+        #   hastexttheFrom**thatPiecetime**text，andNoFromcurrentattext。
         base = parse_wall_time(purchase_date)
         if base is None:
-            log_warning("purchase_date 解析不了（应为 'YYYY-MM-DD HH:MM:SS[.f]'），"
-                        "validDate 改按「现在」计算：" + str(purchase_date))
+            log_warning("purchase_date parseNotext（should be 'YYYY-MM-DD HH:MM:SS[.f]'），"
+                        "validDate changepress「currentat」countcalculate：" + str(purchase_date))
             base = now
         valid_date = calc_valid_date(base)
 
-    log_info("  票名        : " + name)
-    log_info("  库存        : " + str(old_stock) + " -> " + str(stock))
+    log_info("  textFirst name        : " + name)
+    log_info("  Inventory        : " + str(old_stock) + " -> " + str(stock))
     log_info("  price       : " + str(price) + "（= ticket.creditNum）")
     log_info("  purchaseDate: " + purchase_date)
     log_info("  validDate   : " + valid_date)
 
-    # ---------- 2. 构造请求 ----------
+    # ---------- 2. constructrequest ----------
     req = UserChargelogRequestVO(
         userId=int(user_id),
         userChargelog=UserChargelogVO(
@@ -506,23 +506,23 @@ def UpsertUserChargelog(
 
     # ---------- 3. dry-run ----------
     if dry_run:
-        log_info("[dry-run] 已构造购买报文，未发包")
-        log_debug("dry-run 报文：" + __import__("json").dumps(
+        log_info("[dry-run] Purchase message constructed，notPackaging")
+        log_debug("dry-run packet：" + __import__("json").dumps(
             req, ensure_ascii=False, default=str))
         return req
 
-    # ---------- 4. 副作用闸门 ----------
+    # ---------- 4. Side Effects Gate ----------
     effective = UPSERT_CHARGELOG_CONFIRM if confirm is None else bool(confirm)
     if not effective:
-        msg = ("UpsertUserChargelogApi 会**真实写入一条购买记录**（不可撤销）。"
-               "本脚本默认不放行。确认要发请传 confirm=True，"
-               "或改 config.UPSERT_CHARGELOG_CONFIRM = True。"
-               "只想看报文请传 dry_run=True。")
+        msg = ("UpsertUserChargelogApi Meetings**realWriteA purchase history**（Irrevocable）。"
+               "textscriptdefaultNotext。textmusthairpleasePassing on confirm=True，"
+               "or change config.UPSERT_CHARGELOG_CONFIRM = True。"
+               "I just want to see the message, please send it dry_run=True。")
         log_error(msg)
         raise ChargelogConfirmError(msg)
 
-    # ---------- 5. 发包 ----------
-    log_info("闸门已放行，开始上传购买记录 ...")
+    # ---------- 5. Packaging ----------
+    log_info("textAlreadytext，Start uploading purchase history ...")
     raw = request_dict(
         "UpsertUserChargelogApi", req,
         user_id=user_id, client_id=client_id,
@@ -533,18 +533,18 @@ def UpsertUserChargelog(
         apiName=str(raw.get("apiName", "") or ""),
     )
     if resp.returnCode != 1:
-        msg = ("购买失败：returnCode=" + str(resp.returnCode)
+        msg = ("purchaseBuyFailed：returnCode=" + str(resp.returnCode)
                + " apiName=" + resp.apiName)
         log_error(msg)
         raise RuntimeError(msg)
 
-    log_info("购买成功：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
-    log_info("  票名 " + name + " 库存 " + str(old_stock) + " -> " + str(stock))
+    log_info("purchaseBuySuccess：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
+    log_info("  textFirst name " + name + " Inventory " + str(old_stock) + " -> " + str(stock))
     return resp
 
 
 # =============================================================================
-# 四、单独运行（调试）
+# Four、Run separately（debug）
 # =============================================================================
 
 if __name__ == "__main__":
@@ -553,7 +553,7 @@ if __name__ == "__main__":
     def _main() -> int:
         setup_logging("chargelog_test")
         try:
-            log_info("构造一张 2 倍券的购买报文（不发包）")
+            log_info("constructOneZhang 2 Ticket multiplier purchase message（No Package Issued）")
             req = UpsertUserChargelog(
                 12345678, 2, 1791159576,
                 charge_list=[], user_data={"playCount": 1260, "playerRating": 15000},
@@ -561,10 +561,10 @@ if __name__ == "__main__":
             )
             log_info("userChargelog = " + str(req.userChargelog))
             log_info("userCharge    = " + str(req.userCharge))
-            log_info("validDate 算法自检：")
-            log_info("  2026-10-04 18:22:10 买 5 倍券 -> "
+            log_info("validDate calculatetext：")
+            log_info("  2026-10-04 18:22:10 Buy 5 Ticket multiplier -> "
                      + calc_valid_date(datetime(2026, 10, 4, 18, 22, 10))
-                     + "（真机是 2027-01-02 04:00:00）")
+                     + "（real machine is 2027-01-02 04:00:00）")
             return 0
         finally:
             teardown_logging()

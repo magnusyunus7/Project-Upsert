@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-get_user_course.py —— 取用户课题模式成绩（GetUserCourseApi）
+get_user_course.py —— Take the results of the user's topic mode（GetUserCourseApi）
 ================================================================================
 
-取玩家的 COURSE（课题）模式通关记录（真机 16 条）。
+Take Player COURSE（text）modetextOffrecord（real machine 16 item）。
 
-对应接口：GetUserCourseApi
-请求体  ：UserCourseRequestVO（userId + nextIndex，**没有 maxCount**）
-响应    ：{userId, length, nextIndex, userCourseList:[...]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserCourseRequestVO.cs
-          source/2026-10-05.log:55  请求体就是 {"userId":..,"nextIndex":0}
+Corresponding interface：GetUserCourseApi
+request body  ：UserCourseRequestVO（userId + nextIndex，**none maxCount**）
+Response    ：{userId, length, nextIndex, userCourseList:[...]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserCourseRequestVO.cs
+          source/2026-10-05.log:55  request bodyis {"userId":..,"nextIndex":0}
 
-调用示例：
+call exampleExample：
     from api import GetUserCourse
 """
 
@@ -35,12 +35,12 @@ def GetUserCourse(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户课题模式成绩（单页，对应 GetUserCourseApi）。
+    Take the results of the user's topic mode（Single Page，Corresponding GetUserCourseApi）。
 
-    返回：
-        原始响应 dict，含 userCourseList
+    returntimes：
+        Raw Response dict，Contains userCourseList
     """
-    log_info("取用户课题成绩：user_id=" + str(user_id) + " next_index=" + str(next_index))
+    log_info("Take the user's subject score：user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
         "GetUserCourseApi",
         UserCourseRequestVO(userId=user_id, nextIndex=next_index),
@@ -56,16 +56,16 @@ def GetUserCourseAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户课题成绩（自动翻页取全）。
+    Take the user's subject score（auto-pagingTakeFull）。
 
-    返回：
+    returntimes：
         {"userCourseList": [...]}
     """
-    log_info("取用户课题成绩（全量）：user_id=" + str(user_id))
+    log_info("Take the user's subject score（Full Amount）：user_id=" + str(user_id))
     items = get_all_pages(
         "GetUserCourseApi", user_id, "userCourseList",
         body_factory=lambda ni: UserCourseRequestVO(userId=user_id, nextIndex=ni or 0),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("课题成绩获取完成：" + str(len(items)) + " 条")
+    log_info("textResultsgetTakeDone：" + str(len(items)) + " item")
     return {"userCourseList": items}

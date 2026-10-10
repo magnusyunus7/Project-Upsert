@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-get_user_item.py —— 取用户道具（GetUserItemApi）
+get_user_item.py —— Pick up user items（GetUserItemApi）
 ================================================================================
 
-取玩家各类道具的库存（真机按 kind 分 12 次请求）。
+Take inventory of players' various items（real machinepress kind Minutes 12 textrequest）。
 
-对应接口：GetUserItemApi
-请求体  ：UserItemRequestVO（userId + nextIndex + maxCount=100）
-响应    ：{userId, length, nextIndex, itemKind, userItemList:[{itemKind,itemId,stock,isValid}]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserItemRequestVO.cs
+Corresponding interface：GetUserItemApi
+request body  ：UserItemRequestVO（userId + nextIndex + maxCount=100）
+Response    ：{userId, length, nextIndex, itemKind, userItemList:[{itemKind,itemId,stock,isValid}]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserItemRequestVO.cs
 
 --------------------------------------------------------------------------------
-★★ 首发 nextIndex 必须带哨兵值（最容易踩的坑）
+★★ firsthair nextIndex Must have Sentinel value（The easiest pit to step on）
 --------------------------------------------------------------------------------
 source/Assembly-CSharp/Net.Packet.Mai2/PacketGetUserItem.cs:17-24
 
     public PacketGetUserItem(ulong userId, long itemId, ...)
     {
-        Create(GetNetQuery(userId, itemId * 10000000000L));   // <- 首包哨兵
+        Create(GetNetQuery(userId, itemId * 10000000000L));   // <- firstPackagetext
     }
-    // Proc(): nextIndex != 0 时继续翻页
+    // Proc(): nextIndex != 0 timetextcontinuetext
 
-真机日志 source/2026-10-05.log:32 也是 nextIndex=10000000000。
-传 0 会被服务端拒绝（HTTP 500）。
+real machinelog source/2026-10-05.log:32 Also nextIndex=10000000000。
+Passing on 0 will be rejected by the server（HTTP 500）。
 
-★ 请求体里**没有 itemKind 字段** —— 类别是靠 nextIndex 的哨兵值表达的：
-    第 1 页 nextIndex = kind * 1e10
-    后续翻页沿用响应回的 nextIndex
+★ request bodyin**none itemKind Field** —— textistext nextIndex oftextValuetextof：
+    number 1 text nextIndex = kind * 1e10
+    Subsequent page flips follow a response back of nextIndex
 
-调用示例：
+call exampleExample：
     from api import GetUserItem, GetUserItemAll
 """
 
@@ -53,21 +53,21 @@ def GetUserItem(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户某一类道具（对应 GetUserItemApi）。
+    Fetching a certain type of props from a user（Corresponding GetUserItemApi）。
 
-    参数：
-        user_id:   用户 ID（必填）
-        item_kind: 道具类别（必填）：1=名牌 2=称号 3=头像 4=礼物 5=乐曲 …
-        next_index: 分页索引；**None（默认）表示首页**，会自动换算成
-                    item_kind * 10000000000 的哨兵值。
+    Parameter：
+        user_id:   user ID（Required）
+        item_kind: text（Required）：1=Designer Tags 2=text 3=Avatar 4=text 5=Music …
+        next_index: Paged Index；**None（default）textfirsttext**，will be automatically converted to
+                    item_kind * 10000000000 oftextValue。
 
-    返回：
-        原始响应 dict，含 userItemList
+    returntimes：
+        Raw Response dict，Contains userItemList
     """
     if next_index is None:
         next_index = item_kind * ITEM_NEXT_INDEX_FACTOR
 
-    log_info("取用户道具：user_id=" + str(user_id) + " item_kind=" + str(item_kind)
+    log_info("Pick up user items：user_id=" + str(user_id) + " item_kind=" + str(item_kind)
              + " nextIndex=" + str(next_index))
 
     return _get(
@@ -86,16 +86,16 @@ def GetUserItemAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户全部道具（按 ITEM_KINDS 逐个类别抓取，并自动翻页）。
+    Fetch all user items（press ITEM_KINDS textcategoriestextTake，and automatically flip the page）。
 
-    参数：
-        item_kinds: 类别列表（可选，默认 ITEM_KINDS）
+    Parameter：
+        item_kinds: textList（Optional，default ITEM_KINDS）
 
-    返回：
-        {"userItemList": [...]}，已合并所有类别与分页
+    returntimes：
+        {"userItemList": [...]}，Merged all categories and pagination
     """
     kinds = list(item_kinds) if item_kinds else list(ITEM_KINDS)
-    log_info("取用户全部道具：user_id=" + str(user_id) + " kinds=" + str(kinds))
+    log_info("Fetch all user items：user_id=" + str(user_id) + " kinds=" + str(kinds))
 
     merged: List[Dict[str, Any]] = []
     for kind in kinds:
@@ -114,11 +114,11 @@ def GetUserItemAll(
             merged.extend(items)
 
             next_index = int(resp.get("nextIndex") or 0)
-            log_debug("item_kind=" + str(kind) + " 第 " + str(page) + " 页："
-                      + str(len(items)) + " 条，nextIndex=" + str(next_index))
+            log_debug("item_kind=" + str(kind) + " number " + str(page) + " text："
+                      + str(len(items)) + " item，nextIndex=" + str(next_index))
             if page >= 200:
-                log_warning("item_kind=" + str(kind) + " 翻页超过 200 页，已中止")
+                log_warning("item_kind=" + str(kind) + " text 200 text，Aborted")
                 break
 
-    log_info("道具获取完成：" + str(len(merged)) + " 条")
+    log_info("textgetTakeDone：" + str(len(merged)) + " item")
     return {"userItemList": merged}

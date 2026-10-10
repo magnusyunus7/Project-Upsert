@@ -1,54 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-authv1.py —— ALL.Net(alAbEx v4) 机台认证：Keychip -> clientId / regionId / placeId / placeName / regionName
+authv1.py —— ALL.Net(alAbEx v4) machineStagetext：Keychip -> clientId / regionId / placeId / placeName / regionName
 ==========================================================================================================
 
-【解决什么问题】
-    config.py 第二节那六个值
+【text】
+    config.py numberTwotextthatSatvalues
         KEYCHIP_ID / CLIENT_ID / REGION_ID / PLACE_ID / PLACE_NAME / REGION_NAME
-    全部来自 **AMDaemon 开机时向 ALL.Net 认证服务器要的结果**。
-    游戏服务器（maimai-gm.wahlap.com）**没有任何接口**会返回它们 ——
-    所以本工程此前只能手工从真机报文里抄（见 config.py 里那段吐槽）。
+    All from **AMDaemon On startup, toward ALL.Net textservermustofresult**。
+    textserver（maimai-gm.wahlap.com）**noneAnyinterface**will return them ——
+    So in the past, this project could only be copied manually from the real machine message.（text config.py inthattext）。
 
-    本脚本把 AMDaemon 的这一步原样重做了一遍。
+    textscriptput AMDaemon ofthisOnetextAs istextOnetext。
 
-【协议出处】—— 全部能在 source/amdaemon.exe 的字符串里对上（数字是文件内偏移）
-    端点      http://at.sys-all.cn/net/initialize                    @0x788170
-    备用      http://at.sys-allnet.cn/net/initialize                 实测同样可用
-    库        alAbEx_lite Ver 4.00.01  (src/lib/alabex_pv4_lite)     @0x784a31
-    请求体    "title_id=%s&title_ver=%s&client_id=%s"                @0x7882b8
-    请求头    Pragma: DFI                                            @0x7883cc
+【Protocol Origin】—— All can be used in source/amdaemon.exe ofStringinYes.Up（numbertextisfiletextOffset）
+    text      http://at.sys-all.cn/net/initialize                    @0x788170
+    Alternate      http://at.sys-allnet.cn/net/initialize                 Measurements are also available
+    Library        alAbEx_lite Ver 4.00.01  (src/lib/alabex_pv4_lite)     @0x784a31
+    request body    "title_id=%s&title_ver=%s&client_id=%s"                @0x7882b8
+    requestHead    Pragma: DFI                                            @0x7883cc
               User-Agent: <...>Windows/Lite                          @0x788508
-    响应字段  result= uri1= uri2= name= nickname= region0=
+    Response Fields  result= uri1= uri2= name= nickname= region0=
               region_name0..3= place_id= setting= country=
               location_type= client_timezone= res_ver= uri=
               utc_time= token=                                       @0x784ae8-0x788fd0
-    信封      AES-128-CBC + 16 字节前缀块 + PKCS7
-              （exe @0x63a100 提到 alAbExSetOption(ALE_ABEX_OPTION_AES_KEY)）
+    Envelope      AES-128-CBC + 16 Byte Prefix Block + PKCS7
+              （exe @0x63a100 textto alAbExSetOption(ALE_ABEX_OPTION_AES_KEY)）
 
-【信封细节】实测确认
-    请求 = AES-CBC( 16 字节全 0 前缀 || 明文 )，IV = 16 字节全 0
-    响应 = 16 字节 IV || AES-CBC 密文
+【Envelope Details】Actual measurement confirmation
+    request = AES-CBC( 16 Byte Full 0 Prefix || text )，IV = 16 Byte Full 0
+    Response = 16 Bytes IV || AES-CBC Ciphertext
 
-【响应码】
-    result= 1   成功
-    result=-2   机台不存在（client_id 未被收录；小写也会走到这里）
-    result=-3   参数格式错（例如把 15 位完整 Keychip 当 client_id 发出去）
+【Response code】
+    result= 1   Success
+    result=-2   machineStageAbsent（client_id nottextreceivetext；Lowercase goes here, too.）
+    result=-3   Wrong parameter format（For example, putting 15 Bit complete Keychip When client_id Send out）
 
-【用法】
-    python authv1.py A63E01E9580                # 查（打印结果）
-    python authv1.py A63E-01C30471007           # 带连字符的完整 Keychip 也行
-    python authv1.py A63E01E9580 --json         # 机器可读
-    python authv1.py A63E01E9580 --write        # 强制写回 config.py
-    python authv1.py A63E01E9580 --no-write     # 强制不写
-    python authv1.py --batch keychip.csv        # 批量查（CSV 第一列是 Keychip）
+【usage】
+    python authv1.py A63E01E9580                # check（textresult）
+    python authv1.py A63E-01C30471007           # Full with hyphens Keychip It's okay.
+    python authv1.py A63E01E9580 --json         # machinetextread
+    python authv1.py A63E01E9580 --write        # Force Writeback config.py
+    python authv1.py A63E01E9580 --no-write     # Force Do Not Write
+    python authv1.py --batch keychip.csv        # textcheck（CSV numberOneColumnsis Keychip）
 
-    ★ 是否写回 config.py，默认看 config.py 里的 AUTHV1_WRITE_CONFIG 开关。
+    ★ isNoWriteback config.py，defaulttext config.py inof AUTHV1_WRITE_CONFIG Switch。
 
-【也当协议库用】
+【Also used as a protocol library】
     from authv1 import allnet_post, initialize, delivery_instruction, parse_keychip
-    netdelivery.py 就是这么用它的。
+    netdelivery.py That's how you use it.。
 """
 
 from __future__ import annotations
@@ -70,11 +70,11 @@ from Crypto.Util.Padding import pad
 
 
 # =============================================================================
-# 协议常量
+# Protocol Constants
 # =============================================================================
 
-# ALL.Net 认证服务器（国服 SDGB）。两个域名指向不同机房，实测都能用；
-# 默认用 sys-allnet.cn（与 maimai-gm.wahlap.com 同机房，链路更短）。
+# ALL.Net textserver（National uniform SDGB）。Two domains point to different machine rooms，The actual test can be used；
+# defaultuse sys-allnet.cn（And maimai-gm.wahlap.com Same machine room，textshort）。
 ALLNET_HOSTS = (
     "http://at.sys-allnet.cn",
     "http://at.sys-all.cn",
@@ -86,13 +86,13 @@ PATH_DELIVERY_INSTRUCTION = "/net/delivery/instruction"
 
 TITLE_ID = "SDGB"
 
-# ALE_ABEX_OPTION_AES_KEY 对应的 16 字节密钥。
-# 出处：exe @0x63a100 有 alAbExSetOption(ALE_ABEX_OPTION_AES_KEY)；
-#       密钥本体在 exe 里不是明文串，此处取值经真实请求验证有效。
+# ALE_ABEX_OPTION_AES_KEY Corresponding 16 Byte Key。
+# Source：exe @0x63a100 has alAbExSetOption(ALE_ABEX_OPTION_AES_KEY)；
+#       Key ontology in exe inNotext，textplacePick a valuetextrealrequesttexthastext。
 AES_KEY = bytes([47, 63, 106, 111, 43, 34, 76, 38, 92, 67, 114, 57, 40, 61, 107, 71])
 AES_IV = bytes(16)
 
-# 请求头。依据：exe 里 "Pragma" + "DFI"(@0x7883cc) 与 "Windows/Lite"(@0x788508)。
+# requestHead。Basis：exe in "Pragma" + "DFI"(@0x7883cc) And "Windows/Lite"(@0x788508)。
 HEADERS = {
     "User-Agent": "SDGB;Windows/Lite",
     "Pragma": "DFI",
@@ -101,40 +101,40 @@ HEADERS = {
 
 DEFAULT_TIMEOUT = 20
 
-# client_id 恒为 11 位大写十六进制（Keychip 15 位去掉连字符后的前 11 位）
+# client_id Constantly 11 Bits Uppercase Hex（Keychip 15 Bit Before After Hyphen Removed 11 Bit）
 CLIENT_ID_LEN = 11
 CLIENT_ID_RE = re.compile(r"^[0-9A-F]{" + str(CLIENT_ID_LEN) + r"}$")
 
-# 上报给 ALL.Net 的版本号。真机 1.56 ROM 实测仍报 1.55（与 Mai-Encoding 一致）；
-# 默认取 config.MAI_ENCODING，取不到就退回这个字面量。
+# Escalate to ALL.Net oftext。real machine 1.56 ROM Actual measurement is still reported 1.55（And Mai-Encoding Match）；
+# defaultTake config.MAI_ENCODING，Return this literal if you can't get it。
 DEFAULT_TITLE_VER = "1.55"
 
 RESULT_TEXT = {
-    "1": "成功",
-    "-1": "通用错误",
-    "-2": "机台不存在（client_id 未被 ALL.Net 收录）",
-    "-3": "参数格式错误（client_id 必须是 11 位短值）",
+    "1": "Success",
+    "-1": "textuseerror",
+    "-2": "machineStageAbsent（client_id nottext ALL.Net receivetext）",
+    "-3": "Wrong parameter format（client_id Must be 11 Bit Short）",
 }
 
 
 class AllnetError(RuntimeError):
-    """ALL.Net 交互失败（网络 / 信封 / 业务码非 1）。"""
+    """ALL.Net Interaction failed（network / Envelope / Business code is not 1）。"""
 
 
 # =============================================================================
-# 信封：AES-128-CBC
+# Envelope：AES-128-CBC
 # =============================================================================
 
 def encode_request(text: str) -> bytes:
-    """明文 -> 线上字节流：16 字节全 0 前缀 + PKCS7 + AES-128-CBC(IV=0)。"""
+    """text -> textUpBytestext：16 Byte Full 0 Prefix + PKCS7 + AES-128-CBC(IV=0)。"""
     body = AES_IV + text.encode("utf-8")
     return AES.new(AES_KEY, AES.MODE_CBC, AES_IV).encrypt(pad(body, AES.block_size))
 
 
 def decode_response(raw: bytes) -> str:
-    """线上字节流 -> 明文：前 16 字节是 IV，其后是 AES-128-CBC 密文。"""
+    """textUpBytestext -> text：ago 16 Bytes are IV，followed by AES-128-CBC Ciphertext。"""
     if len(raw) < 32 or len(raw) % AES.block_size:
-        raise AllnetError("响应长度异常：%d 字节（应 >=32 且为 16 的倍数）" % len(raw))
+        raise AllnetError("Abnormal response length：%d Bytes（should >=32 and is 16 oftimesnumber）" % len(raw))
     plain = AES.new(AES_KEY, AES.MODE_CBC, raw[:16]).decrypt(raw[16:])
     n = plain[-1]
     if 1 <= n <= AES.block_size:
@@ -144,10 +144,10 @@ def decode_response(raw: bytes) -> str:
 
 def allnet_post(path, body, *, host=DEFAULT_HOST, timeout=DEFAULT_TIMEOUT, retries=3):
     """
-    POST 一条加密请求，返回解密后的明文（形如 "result=1&place_id=..."）。
+    POST One encryption request，returntimesdecryptAfteroftext（Shape like "result=1&place_id=..."）。
 
-    ★ 实测 at.sys-allnet.cn 偶尔会直接掐断连接（RemoteDisconnected），
-      所以这里对**网络层**失败做退避重试；业务码非 1 不重试。
+    ★ Measured at.sys-allnet.cn Occasionally disconnects directly（RemoteDisconnected），
+      So here's the right**networktext**Failed Retreat Retry；Business code is not 1 Don't retry。
     """
     url = host.rstrip("/") + path
     payload = encode_request(body)
@@ -160,21 +160,21 @@ def allnet_post(path, body, *, host=DEFAULT_HOST, timeout=DEFAULT_TIMEOUT, retri
             if attempt < retries:
                 time.sleep(1.5 * attempt)
                 continue
-            raise AllnetError("请求 %s 失败（已重试 %d 次）：%s" % (url, retries, exc)) from exc
+            raise AllnetError("request %s Failed（Retried %d text）：%s" % (url, retries, exc)) from exc
 
         if resp.status_code != 200:
             if resp.status_code >= 500 and attempt < retries:
                 last_error = "HTTP %d" % resp.status_code
                 time.sleep(1.5 * attempt)
                 continue
-            raise AllnetError("请求 %s 返回 HTTP %d" % (url, resp.status_code))
+            raise AllnetError("request %s returntimes HTTP %d" % (url, resp.status_code))
         return decode_response(resp.content)
 
-    raise AllnetError("请求 %s 失败：%s" % (url, last_error))
+    raise AllnetError("request %s Failed：%s" % (url, last_error))
 
 
 def parse_kv(text: str) -> dict:
-    """把 "result=1&place_id=146b&name=%E5%AE%89..." 解析成 dict（值做 URL 解码）。"""
+    """put "result=1&place_id=146b&name=%E5%AE%89..." parsetext dict（Value Done URL text）。"""
     out = {}
     for part in text.strip().split("&"):
         if not part or "=" not in part:
@@ -190,49 +190,49 @@ def parse_kv(text: str) -> dict:
 
 def parse_keychip(raw: str) -> str:
     """
-    把用户给的 Keychip 归一化成 client_id（11 位大写短值）。
+    putusertextof Keychip Normalization client_id（11 Bits Uppercase Short Value）。
 
-    接受三种写法：
-        完整带连字符  "A63E-01C30471007"
-        完整连写      "A63E01C30471007"
-        短值          "A63E01C3047"
+    textThreetext：
+        Full hyphenation  "A63E-01C30471007"
+        Full Continuous Writing      "A63E01C30471007"
+        shortValue          "A63E01C3047"
 
-    ★ 为什么一定要截前 11 位：实测把完整 15 位当 client_id 发出去，
-      ALL.Net 回 result=-3（格式错）。
+    ★ Why must it be cut off? 11 Bit：Measured handle complete 15 Bit when client_id Send out，
+      ALL.Net times result=-3（text）。
     """
     s = re.sub(r"[\s\-]", "", str(raw)).upper()
     if len(s) < CLIENT_ID_LEN:
-        raise ValueError("Keychip 太短：%r（至少 %d 位）" % (raw, CLIENT_ID_LEN))
+        raise ValueError("Keychip Too short：%r（text %d Bit）" % (raw, CLIENT_ID_LEN))
     cid = s[:CLIENT_ID_LEN]
     if not CLIENT_ID_RE.match(cid):
-        raise ValueError("Keychip 非法：%r（应为十六进制大写）" % raw)
+        raise ValueError("Keychip non-text：%r（Hexadecimal uppercase expected）" % raw)
     return cid
 
 
 def make_keychip(client_id: str, place_id) -> str:
     """
-    按本工程约定拼回完整 Keychip：
-        前 4 位 + "-" + 第 5 位起 + placeId
-    例：A63E01C3047 + 1007 -> A63E-01C30471007
+    presstexttimesFull Keychip：
+        ago 4 Bit + "-" + number 5 Bit from + placeId
+    Example：A63E01C3047 + 1007 -> A63E-01C30471007
     """
     cid = str(client_id).upper()
     return "%s-%s%d" % (cid[:4], cid[4:], int(place_id))
 
 
 # =============================================================================
-# 两个接口
+# Two interfaces
 # =============================================================================
 
 def initialize(client_id, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
                timeout=DEFAULT_TIMEOUT):
-    """POST /net/initialize —— 机台认证，返回原始明文。"""
+    """POST /net/initialize —— machineStagetext，returntimesOriginaltext。"""
     body = "title_id=%s&title_ver=%s&client_id=%s" % (TITLE_ID, title_ver, client_id)
     return allnet_post(PATH_INITIALIZE, body, host=host, timeout=timeout)
 
 
 def delivery_instruction(client_id, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
                          timeout=DEFAULT_TIMEOUT):
-    """POST /net/delivery/instruction —— DLI，返回原始明文（含 uri= 配信指示書地址）。"""
+    """POST /net/delivery/instruction —— DLI，returntimesOriginaltext（Contains uri= text）。"""
     body = "title_id=%s&title_ver=%s&client_id=%s" % (TITLE_ID, title_ver, client_id)
     return allnet_post(PATH_DELIVERY_INSTRUCTION, body, host=host, timeout=timeout)
 
@@ -240,10 +240,10 @@ def delivery_instruction(client_id, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT
 def query_keychip(keychip, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
                   timeout=DEFAULT_TIMEOUT, raw_ok=False):
     """
-    查一台机台的身份。返回 dict（含 ok / result / 各字段）。
+    checkOneStagemachineStageoftext。returntimes dict（Contains ok / result / Various fields）。
 
-    ★ raw_ok=False 时，result != 1 直接抛 AllnetError（CLI 用）；
-      raw_ok=True 时照样返回，由调用方自己看 result（批量用）。
+    ★ raw_ok=False time，result != 1 directlyraise AllnetError（CLI use）；
+      raw_ok=True timetextreturntimes，bycallusetext result（textuse）。
     """
     cid = parse_keychip(keychip)
     text = initialize(cid, title_ver=title_ver, host=host, timeout=timeout)
@@ -267,17 +267,17 @@ def query_keychip(keychip, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
     info = {
         "ok": result == "1",
         "result": result,
-        "result_text": RESULT_TEXT.get(result, "未知返回码 %s" % result),
+        "result_text": RESULT_TEXT.get(result, "nottextreturntimestext %s" % result),
         "title_id": TITLE_ID,
         "title_ver": title_ver,
         "host": host,
-        # --- 六个值里的五个（KEYCHIP_ID 是推导值）---
+        # --- Five of the six values（KEYCHIP_ID istextValue）---
         "client_id": cid,
         "region_id": region_id,
         "place_id": place_id,
         "place_name": kv.get("name", ""),
         "region_name": region_names[0] if region_names else "",
-        # --- 附送 ---
+        # --- text ---
         "nickname": kv.get("nickname", ""),
         "region_names": region_names,
         "country": kv.get("country", ""),
@@ -297,42 +297,42 @@ def query_keychip(keychip, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
         info["keychip"] = ""
 
     if not info["ok"] and not raw_ok:
-        raise AllnetError("ALL.Net 返回 result=%s（%s）" % (result, info["result_text"]))
+        raise AllnetError("ALL.Net returntimes result=%s（%s）" % (result, info["result_text"]))
     return info
 
 
 # =============================================================================
-# 写回 config.py
+# Writeback config.py
 # =============================================================================
 
 CONFIG_FILENAME = "config.py"
 
-# 写回哪些键（KEYCHIP_ID 是推导值，不写）
+# Which keys to write back（KEYCHIP_ID istextValue，Don't Write）
 WRITEBACK_KEYS = ("CLIENT_ID", "REGION_ID", "PLACE_ID", "PLACE_NAME", "REGION_NAME")
 
 
 def _replace_assignment(text, name, literal):
-    """把 config.py 里唯一一行 NAME = ... 换成 NAME = literal。"""
+    """put config.py inUniqueOne Row NAME = ... text NAME = literal。"""
     pattern = re.compile(r"^(%s[ \t]*=[ \t]*).*$" % re.escape(name), re.M)
     new_text, count = pattern.subn(lambda m: m.group(1) + literal, text, count=1)
     if count != 1:
-        raise AllnetError("config.py 里找不到唯一的 %s = ... 赋值行（找到 %d 处）" % (name, count))
+        raise AllnetError("config.py infindNotoUniqueof %s = ... textValuetext（findto %d place）" % (name, count))
     return new_text
 
 
 def write_back_config(info, *, config_path=None, quiet=False):
     """
-    把查询结果写回 config.py。
+    putchecktextresultWriteback config.py。
 
-    安全措施：
-        1. 先 ast.parse 语法自检，写坏了就不落盘
-        2. 落盘前把原文件备份成 config.py.bak
-        3. 保留原文件的换行风格（LF / CRLF）
+    Safety measures：
+        1. First ast.parse text，If it is badly written, it will not be placed on
+        2. falltextagoputHarafiletext config.py.bak
+        3. Preserve the line feed style of the original file（LF / CRLF）
     """
     path = config_path or os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                        CONFIG_FILENAME)
     if not os.path.isfile(path):
-        raise AllnetError("找不到 config.py：%s" % path)
+        raise AllnetError("findNoto config.py：%s" % path)
 
     with open(path, "rb") as fp:
         raw = fp.read()
@@ -352,20 +352,20 @@ def write_back_config(info, *, config_path=None, quiet=False):
     try:
         ast.parse(text)
     except SyntaxError as exc:
-        raise AllnetError("改写后 config.py 语法不合法，已放弃写入：%s" % exc) from exc
+        raise AllnetError("changetextAfter config.py textNoLegal，Writing discarded：%s" % exc) from exc
 
     shutil.copy2(path, path + ".bak")
     with open(path, "wb") as fp:
         fp.write(text.replace("\n", newline).encode("utf-8"))
 
     if not quiet:
-        print("  [已写回] %s" % path)
-        print("  [已备份] %s.bak" % path)
+        print("  [Written back] %s" % path)
+        print("  [Backed up] %s.bak" % path)
     return path
 
 
 def config_switch_enabled(config_path=None):
-    """读 config.py 里的 AUTHV1_WRITE_CONFIG 开关。读不到就当作关。"""
+    """read config.py inof AUTHV1_WRITE_CONFIG Switch。readNototextWhentextOff。"""
     path = config_path or os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                        CONFIG_FILENAME)
     try:
@@ -385,25 +385,25 @@ def config_switch_enabled(config_path=None):
 
 
 # =============================================================================
-# 输出
+# textout
 # =============================================================================
 
 def format_report(info) -> str:
-    """人类可读的结果块。"""
+    """Human Readable Result Block。"""
     lines = []
-    lines.append("=== authv1 机台身份查询 ===")
-    lines.append("  Keychip  (完整)  : %s" % (info["keychip"] or "(查不到)"))
-    lines.append("  clientId (短值)  : %s        <- 游戏服务器 clientId" % info["client_id"])
+    lines.append("=== authv1 machineStagetextchecktext ===")
+    lines.append("  Keychip  (Full)  : %s" % (info["keychip"] or "(checkNoto)"))
+    lines.append("  clientId (shortValue)  : %s        <- textserver clientId" % info["client_id"])
     lines.append("  placeId          : %s" % info["place_id"])
     lines.append("  placeName        : %s" % info["place_name"])
     lines.append("  regionId         : %s" % info["region_id"])
     lines.append("  regionName       : %s" % info["region_name"])
-    lines.append("  --- 附送 ---")
-    lines.append("  游戏服务器        : %s" % info["game_server_uri"])
-    lines.append("  机台昵称          : %s" % info["nickname"])
-    lines.append("  国家/地区         : %s" % info["country"])
-    lines.append("  认证时间(UTC)     : %s  时区 %s" % (info["utc_time"], info["client_timezone"]))
-    lines.append("  ALL.Net 返回码    : %s（%s）" % (info["result"], info["result_text"]))
+    lines.append("  --- text ---")
+    lines.append("  textserver        : %s" % info["game_server_uri"])
+    lines.append("  machineStagetext          : %s" % info["nickname"])
+    lines.append("  Country/Region         : %s" % info["country"])
+    lines.append("  texttimetext(UTC)     : %s  timetext %s" % (info["utc_time"], info["client_timezone"]))
+    lines.append("  ALL.Net returntimestext    : %s（%s）" % (info["result"], info["result_text"]))
     return "\n".join(lines)
 
 
@@ -414,27 +414,27 @@ def format_report(info) -> str:
 def build_parser():
     p = argparse.ArgumentParser(
         prog="authv1.py",
-        description="ALL.Net(alAbEx v4) 机台认证：Keychip -> clientId/regionId/placeId/placeName/regionName",
+        description="ALL.Net(alAbEx v4) machineStagetext：Keychip -> clientId/regionId/placeId/placeName/regionName",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "示例：\n"
+            "textExample：\n"
             "  python authv1.py A63E01E9580\n"
             "  python authv1.py A63E-01C30471007 --json\n"
             "  python authv1.py A63E01E9580 --write\n"
             "  python authv1.py --batch source/keychip.csv --limit 10\n"
         ),
     )
-    p.add_argument("keychip", nargs="?", help="Keychip（完整带连字符 / 完整连写 / 11 位短值都行）")
+    p.add_argument("keychip", nargs="?", help="Keychip（Full hyphenation / Full Continuous Writing / 11 Any bit short value is fine）")
     p.add_argument("--batch", metavar="CSV",
-                   help="批量查询：CSV 文件，默认读第一列（表头含 Keychip 时自动跳过）")
-    p.add_argument("--limit", type=int, default=0, help="批量模式最多查多少条（0 = 不限）")
-    p.add_argument("--ver", default=None, help="上报给 ALL.Net 的版本号（默认取 config.MAI_ENCODING）")
-    p.add_argument("--host", default=DEFAULT_HOST, help="ALL.Net 认证服务器（默认 %s）" % DEFAULT_HOST)
-    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="单次请求超时秒数")
-    p.add_argument("--json", action="store_true", help="输出 JSON")
+                   help="textchecktext：CSV file，defaultreadnumberOneColumns（textHeadContains Keychip timetextskip）")
+    p.add_argument("--limit", type=int, default=0, help="textmodeMax.checktextitem（0 = Unlimited）")
+    p.add_argument("--ver", default=None, help="Escalate to ALL.Net oftext（defaultTake config.MAI_ENCODING）")
+    p.add_argument("--host", default=DEFAULT_HOST, help="ALL.Net textserver（default %s）" % DEFAULT_HOST)
+    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="Number of seconds to time out a single request")
+    p.add_argument("--json", action="store_true", help="textout JSON")
     g = p.add_mutually_exclusive_group()
-    g.add_argument("--write", action="store_true", help="强制把结果写回 config.py")
-    g.add_argument("--no-write", action="store_true", help="强制不写回 config.py")
+    g.add_argument("--write", action="store_true", help="Force write back results config.py")
+    g.add_argument("--no-write", action="store_true", help="Force No Writeback config.py")
     return p
 
 
@@ -442,7 +442,7 @@ def resolve_title_ver(cli_value):
     if cli_value:
         return str(cli_value)
     try:
-        import config  # noqa: F401  同目录
+        import config  # noqa: F401  Same directory
         return str(getattr(config, "MAI_ENCODING", DEFAULT_TITLE_VER))
     except Exception:
         return DEFAULT_TITLE_VER
@@ -462,14 +462,14 @@ def main(argv=None):
 
     if not args.keychip:
         build_parser().print_help()
-        print("\n错误：请给一个 Keychip，或用 --batch 指定 CSV。")
+        print("\nerror：pleasetextOne Keychip，or with --batch specified CSV。")
         return 2
 
     try:
         info = query_keychip(args.keychip, title_ver=title_ver,
                              host=args.host, timeout=args.timeout)
     except (AllnetError, ValueError) as exc:
-        print("查询失败：%s" % exc)
+        print("checktextFailed：%s" % exc)
         return 1
 
     if args.json:
@@ -482,16 +482,16 @@ def main(argv=None):
         try:
             write_back_config(info)
         except AllnetError as exc:
-            print("写回失败：%s" % exc)
+            print("Writeback failed：%s" % exc)
             return 1
     elif not args.json:
-        print("  [未写回] 想让它自动写回：把 config.py 的 AUTHV1_WRITE_CONFIG 改成 True，"
-              "或加 --write")
+        print("  [notWriteback] want it to write back automatically：put config.py of AUTHV1_WRITE_CONFIG changetext True，"
+              "or add --write")
     return 0
 
 
 def decide_write(args):
-    """--write / --no-write 优先，否则看 config.py 的开关。"""
+    """--write / --no-write Priority，Otherwise, look. config.py ofSwitch。"""
     if args.write:
         return True
     if args.no_write:
@@ -500,7 +500,7 @@ def decide_write(args):
 
 
 def _disp_width(text):
-    """按终端显示宽度算长度：中日韩全角字符占 2 列。"""
+    """presstextcalculatelength：CJK Full-width Characters Occupies 2 Columns。"""
     import unicodedata
     width = 0
     for ch in str(text):
@@ -516,7 +516,7 @@ def _pad(text, width):
 def run_batch(args, title_ver):
     path = args.batch
     if not os.path.isfile(path):
-        print("找不到 CSV：%s" % path)
+        print("findNoto CSV：%s" % path)
         return 2
 
     rows = []
@@ -531,9 +531,9 @@ def run_batch(args, title_ver):
     if args.limit > 0:
         rows = rows[: args.limit]
 
-    print("=== authv1 批量查询（%d 台，版本 %s）===" % (len(rows), title_ver))
+    print("=== authv1 textchecktext（%d Stage，text %s）===" % (len(rows), title_ver))
     header = "  ".join([_pad("clientId", 13), _pad("result", 6), _pad("placeId", 8),
-                        _pad("regionId", 8), _pad("区域", 8), "店铺名"])
+                        _pad("regionId", 8), _pad("Area", 8), "Store Name"])
     print(header)
     ok = 0
     results = []
@@ -555,7 +555,7 @@ def run_batch(args, title_ver):
             _pad(info["region_name"], 8),
             str(info["place_name"]),
         ]))
-    print("--- 成功 %d / %d ---" % (ok, len(rows)))
+    print("--- Success %d / %d ---" % (ok, len(rows)))
     return 0
 
 

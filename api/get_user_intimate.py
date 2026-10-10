@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-get_user_intimate.py —— 取用户搭档亲密度（GetUserIntimateApi）
+get_user_intimate.py —— Take the intimacy of the user's partner（GetUserIntimateApi）
 ================================================================================
 
-取玩家与各搭档的亲密度（真机 2 条）。
+Take the intimacy of the player with each partner（real machine 2 item）。
 
-对应接口：GetUserIntimateApi
-请求体  ：UserIdRequestVO
-响应    ：{userId, length, userIntimateList:[{partnerId,intimateLevel,intimateCountRewarded}]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserIntimateRequestVO.cs
+Corresponding interface：GetUserIntimateApi
+request body  ：UserIdRequestVO
+Response    ：{userId, length, userIntimateList:[{partnerId,intimateLevel,intimateCountRewarded}]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserIntimateRequestVO.cs
 
-调用示例：
+call exampleExample：
     from api import GetUserIntimate
 """
 
@@ -33,11 +33,11 @@ def GetUserIntimate(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户搭档亲密度（对应 GetUserIntimateApi）。
+    Take the intimacy of the user's partner（Corresponding GetUserIntimateApi）。
 
-    返回：
-        原始响应 dict，含 userIntimateList
+    returntimes：
+        Raw Response dict，Contains userIntimateList
     """
-    log_info("取用户搭档亲密度：user_id=" + str(user_id))
+    log_info("Take the intimacy of the user's partner：user_id=" + str(user_id))
     return _get("GetUserIntimateApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

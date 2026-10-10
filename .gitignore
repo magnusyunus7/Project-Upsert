@@ -1,37 +1,37 @@
-# ---- 运行产物 ----
-# 每账号一份用户数据快照（<userId>.json）
+# ---- text ----
+# eachtextOnetextuserdataSnapshot（<userId>.json）
 data/
 logs/
 __pycache__/
 *.pyc
 *.pyo
 
-# ---- 本地查证用（含 SEGA 二进制 / 反编译代码 / 真机日志，不入库）----
+# ---- textchecktextuse（Contains SEGA Binary / Decompile code / real machinelog，No warehousing）----
 source/
 
-# ---- 私有配置：只提交 config.py.example，不提交 config.py ----
+# ---- texthastext：Submit only config.py.example，Don't Submit config.py ----
 config.py
 
-# ---- 文档单独放 docs 分支，主分支不含 ----
+# ---- textfiletext docs Branch，Main branch does not contain ----
 docs/
 
-# ---- .NET 构建产物 ----
+# ---- .NET text ----
 gamehook/bin/
 gamehook/obj/
 
-# ---- netdelivery 下载目录（.app / .opt 更新包很大，不入库）----
+# ---- netdelivery Download catalog（.app / .opt updatePackagetext，No warehousing）----
 download/
 
-# ---- get_auth_list：clientId 遍历脚本与其产物（默认不入库、不推送）----
-#   产物默认落在 data/ 下（data/ 本就已经整目录忽略）；
-#   authentication.* 再兜一层，防止用 --csv/--state 指到别处
+# ---- get_auth_list：clientId textscriptAndtext（defaultNo warehousing、Don't push）----
+#   Product defaults to data/ Down（data/ textAlreadytextIgnore）；
+#   authentication.* Pull another layer，textuse --csv/--state texttotextplace
 get_auth_list.py
 authentication.*
 
-# ---- extra_data 用的节点 JSON（含账号数据，不入库）----
+# ---- extra_data useofnodes JSON（Includes account data，No warehousing）----
 extra*.json
 
-# ---- 编辑器 / 系统 ----
+# ---- text / textsystem ----
 .vs/
 .vscode/
 .idea/

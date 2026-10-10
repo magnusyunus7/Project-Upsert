@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-get_user_kaleidx_scope.py —— 取 KALEIDX 门进度（GetUserKaleidxScopeApi / GetGameKaleidxScopeApi）
+get_user_kaleidx_scope.py —— Take KALEIDX text（GetUserKaleidxScopeApi / GetGameKaleidxScopeApi）
 ================================================================================
 
-对应接口：
-    GetUserKaleidxScopeApi  请求体 UserIdRequestVO（userId）
-                            响应   {userId, userKaleidxScopeList:[...]}
-    GetGameKaleidxScopeApi  请求体 **空对象 {}**（GameKaleidxScopeRequestVO 没有任何字段）
-                            响应   {gameKaleidxScopeList:[{gateId, phaseId}]}
-依据：
+Corresponding interface：
+    GetUserKaleidxScopeApi  request body UserIdRequestVO（userId）
+                            Response   {userId, userKaleidxScopeList:[...]}
+    GetGameKaleidxScopeApi  request body **emptyObject {}**（GameKaleidxScopeRequestVO noneAnyField）
+                            Response   {gameKaleidxScopeList:[{gateId, phaseId}]}
+Basis：
     source/Assembly-CSharp/Net.VO.Mai2/UserKaleidxScopeRequestVO.cs
-    source/Assembly-CSharp/Net.VO.Mai2/GameKaleidxScopeRequestVO.cs（空类）
+    source/Assembly-CSharp/Net.VO.Mai2/GameKaleidxScopeRequestVO.cs（emptytext）
     source/Assembly-CSharp/Net.VO.Mai2/GameKaleidxScopeResponseVO.cs
     source/2026-10-05.log:15,119
 
-★★ 重要区分（曾导致 userData 取空）
+★★ textmustDistinguish（textlead to userData Empty）
 --------------------------------------------------------------------------------
-GameKaleidxScopeResponseVO 里**只有** gameKaleidxScopeList 字段，没有 userData。
-玩家档案 userData 的正确来源是 GetUserDataApi（见 get_user_data.py）。
+GameKaleidxScopeResponseVO in**Only** gameKaleidxScopeList Field，none userData。
+textfiletext userData ofcurrenttextis GetUserDataApi（text get_user_data.py）。
 
-真机日志里「GetGameKaleidxScope 的响应带 userData」是抓包工具把时间相邻的
-两条响应合并显示造成的假象 —— 不要据此给 GetGameKaleidxScopeApi 发 userId，
-多发字段会让服务端返回空内容。
+real machinelogin「GetGameKaleidxScope ofResponseBelt userData」istextPackageToolsputtimetextrelatedtextof
+Illusion caused by merging two responses —— Do not give accordingly GetGameKaleidxScopeApi hair userId，
+Multiple fields will cause the server to return empty content。
 
-调用示例：
+call exampleExample：
     from api import GetUserKaleidxScope, GetGameKaleidxScope
 """
 
@@ -46,12 +46,12 @@ def GetUserKaleidxScope(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取玩家 KALEIDX 门进度（对应 GetUserKaleidxScopeApi）。
+    Pick player KALEIDX text（Corresponding GetUserKaleidxScopeApi）。
 
-    返回：
-        原始响应 dict，含 userKaleidxScopeList
+    returntimes：
+        Raw Response dict，Contains userKaleidxScopeList
     """
-    log_info("取玩家 KALEIDX 门进度：user_id=" + str(user_id))
+    log_info("Pick player KALEIDX text：user_id=" + str(user_id))
     return _get("GetUserKaleidxScopeApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)
 
@@ -63,13 +63,13 @@ def GetGameKaleidxScope(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取全服 KALEIDX 门开放进度（对应 GetGameKaleidxScopeApi）。
+    Take a full serving KALEIDX text（Corresponding GetGameKaleidxScopeApi）。
 
-    ★ 请求体是空对象 {} —— 该 RequestVO 一个字段都没有，**不要传 userId**。
+    ★ request bodyisemptyObject {} —— the RequestVO None of the fields，**Do not pass userId**。
 
-    返回：
-        原始响应 dict，含 gameKaleidxScopeList
+    returntimes：
+        Raw Response dict，Contains gameKaleidxScopeList
     """
-    log_info("取全服 KALEIDX 门进度")
+    log_info("Take a full serving KALEIDX text")
     return _get("GetGameKaleidxScopeApi", EmptyRequestVO(), 0,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

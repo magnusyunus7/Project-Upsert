@@ -1,47 +1,47 @@
 # -*- coding: utf-8 -*-
 """
-api 包 —— 统一导出
+api Package —— systemOneExport
 ================================================================================
 
-主脚本只需要 from api import ... 就能拿到全部功能。
+The master script only needs from api import ... you get all the features.。
 
-★ 本文件在导入时就给下面 _API_FUNCS 里列出的每个函数套上「日志外壳」，
-  所以主脚本拿到的已经是带日志的版本 —— 调用时会自动产出：
+★ textfileAt the time of importtextBelow _API_FUNCS inListofeachPieceFunctiontextUp「logtext」，
+  So the main script has already got a logged version. —— callusetimeMeetingstextOutput：
 
-      === ParseQRCode 开始运行 ===
-        [接口说明] 解析二维码并换取 userId 与 token。
-        [位置参数] 'SGWCMAID2610022219463A297AF4CA...'
-        [运行结果] 成功 tuple(2 项)（耗时 412 ms）
-      === ParseQRCode 运行结束 ===
+      === ParseQRCode Get started ===
+        [interfacedescription] parseQR CodetextTake userId And token。
+        [Location Parameters] 'SGWCMAID2610022219463A297AF4CA...'
+        [textresult] Success tuple(2 item)（texttime 412 ms）
+      === ParseQRCode run completion ===
 
-  主脚本**不需要**写装饰器，也不需要自己埋点。
+  Master Script**Not required**Write Decorator，You don't have to bury it yourself.。
 
 --------------------------------------------------------------------------------
-目录结构（一个 api 一个脚本）
+text（One api A script）
 --------------------------------------------------------------------------------
-  基础设施
-    log_setup.py             统一日志（INFO / DEBUG 双模式）
-    maimai_net.py            网络核心（AES / deflate / URL 混淆 / Cookie）
-    user_getter_common.py    取数脚本公共底座（请求 VO / _get / 翻页）
+  Infrastructure
+    log_setup.py             systemOnelog（INFO / DEBUG Dual Mode）
+    maimai_net.py            networktext（AES / deflate / URL obfuscation / Cookie）
+    user_getter_common.py    Taking the number of feet from the common base（request VO / _get / text）
 
-  会话链路
-    chime.py                     扫码登录 -> userId + token
-    get_game_settings.py         GetGameSettingApi（游戏设置）
-    ping.py                      心跳探活
-    get_user_preview.py          GetUserPreviewApi（用户预览）
-    userlogin.py                 UserLoginApi（正式登录 -> loginId + loginDateTime）
-    userlogout.py                UserLogoutApi（登出）
+  Session Link
+    chime.py                     QR login -> userId + token
+    get_game_settings.py         GetGameSettingApi（text）
+    ping.py                      Heartbeat Probe Alive
+    get_user_preview.py          GetUserPreviewApi（usertext）
+    userlogin.py                 UserLoginApi（currenttextlogin -> loginId + loginDateTime）
+    userlogout.py                UserLogoutApi（logout）
 
-  上传 / 结算（有副作用的接口）
-    upsert_user_all.py           ★ UpsertUserAllApi（上传成绩）
-    upsert_user_chargelog.py     UpsertUserChargelogApi（购买功能票）
-    get_need_user_data.py        ★ 结算快照编排（统一调用下面的取数脚本），
-                                 并把结果落盘到 <工程根>/data/<userId>.json
+  Upload / settlement（hasSide effectsofinterface）
+    upsert_user_all.py           ★ UpsertUserAllApi（Upload Grades）
+    upsert_user_chargelog.py     UpsertUserChargelogApi（purchaseBuyFeature Tickets）
+    get_need_user_data.py        ★ settlementSnapshot orchestration（systemOnecalluseBelowofFetch Script），
+                                 and trail the results to <Engineering Root>/data/<userId>.json
 
-  ★ 命名约定：服务端 API 名里带 Get 的，**脚本名与函数名一律带 get / Get**
-    （不要模棱两可）。所以下面这些文件全是 get_ 开头。
+  ★ Naming conventions：server API Nameside Belt Get of，**scriptFirst nameAndFunction nameAlwaysBelt get / Get**
+    （Don't be ambiguous）。So the following documents are all get_ Beginning。
 
-  取数 —— GetUser*（一个接口一个脚本）
+  Take number —— GetUser*（One interface, one script）
     get_user_data.py             GetUserDataApi
     get_user_extend.py           GetUserExtendApi
     get_user_option.py           GetUserOptionApi
@@ -67,28 +67,28 @@ api 包 —— 统一导出
     get_user_recommend_music.py  GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi
     get_user_new_item.py         GetUserNewItemListApi
 
-  取数 —— GetGame*
+  Take number —— GetGame*
     get_game_settings.py         GetGameSettingApi
     get_game_charge.py           GetGameChargeApi
 """
 
 from .log_setup import (
-    # 会话
+    # Session
     setup_logging,
     teardown_logging,
-    # 自动跟踪
+    # text
     autowrap,
     get_called_apis,
-    # 模式
+    # mode
     get_level,
     set_level,
     is_debug,
     LEVEL_INFO,
     LEVEL_DEBUG,
-    # 装饰器 / 兼容
+    # text / Compatible
     api_log,
     get_logger,
-    # 流程日志（INFO 可见）
+    # textlog（INFO Visible）
     log_info,
     log_step,
     log_result,
@@ -97,18 +97,18 @@ from .log_setup import (
     log_section,
     log_field,
     log_debug,
-    # 收发数据日志（DEBUG 专属）
+    # receivehairdatalog（DEBUG Exclusive）
     log_request,
     log_response,
     log_payload,
 )
 
 # ---------------------------------------------------------------------------
-# 1) 网络核心
+# 1) networktext
 # ---------------------------------------------------------------------------
 
 from .maimai_net import (
-    # 协议常量（原在 config.py，已下沉到 maimai_net.py）
+    # Protocol Constants（Originally at config.py，Dropped to maimai_net.py）
     BASE_URL,
     AES_KEY,
     AES_IV,
@@ -138,12 +138,12 @@ from .maimai_net import (
 )
 
 # ---------------------------------------------------------------------------
-# 2) 会话链路
+# 2) Session Link
 # ---------------------------------------------------------------------------
 
 from .chime import (
     ParseQRCode,
-    # aimedb / QR 常量（原在 config.py，已下沉到 chime.py）
+    # aimedb / QR Constant（Originally at config.py，Dropped to chime.py）
     AIMEDB_HOST,
     AIMEDB_PORT,
     AIMEDB_PATH,
@@ -190,7 +190,7 @@ from .userlogout import (
 )
 
 # ---------------------------------------------------------------------------
-# 3) 上传成绩
+# 3) Upload Grades
 # ---------------------------------------------------------------------------
 
 from .upsert_user_all import (
@@ -210,7 +210,7 @@ from .upsert_user_all import (
     UpsertUserAllError,
     ConfirmRequiredError,
     PatchError,
-    # 节点结构
+    # nodestext
     NODE_TYPES,
     NODE_ORDER,
     BITS_TO_ARRAY,
@@ -218,7 +218,7 @@ from .upsert_user_all import (
     DIFF_PRIMARY_KEYS,
     MAY_BE_EMPTY_NODES,
     DEFAULT_EMPTY_NODES,
-    # 组包辅助
+    # groupPackagetext
     empty_node,
     empty_user_all,
     coerce_node_value,
@@ -232,7 +232,7 @@ from .upsert_user_all import (
     validate_user_playlog,
     validate_before_send,
     apply_play_effects,
-    # ★ 额外 JSON 合并 / 落库回查
+    # ★ text JSON Merge / fallLibrarytimescheck
     load_extra_data,
     merge_extra_data,
     verify_upsert_landing,
@@ -241,7 +241,7 @@ from .upsert_user_all import (
     calc_play_special,
     normalize_snapshot,
     wait_send_cooldown,
-    # 字段表
+    # Field table
     PLAYLOG_FIELDS,
     PLAYLOG_BOOL_FIELDS,
     PLAYLOG_STRING_FIELDS,
@@ -261,7 +261,7 @@ from .get_need_user_data import (
     load_snapshot,
     summarize_snapshot,
     DEFAULT_SNAPSHOT_NODES,
-    # ★ 用户数据落盘（<工程根>/data/<userId>.json）
+    # ★ userdatafalltext（<Engineering Root>/data/<userId>.json）
     PROJECT_ROOT,
     DATA_DIR,
     user_data_path,
@@ -271,7 +271,7 @@ from .get_need_user_data import (
 )
 
 from .upsert_user_chargelog import (
-    # 票券主数据（原在 config.py，已下沉到 upsert_user_chargelog.py）
+    # textMaster Data（Originally at config.py，Dropped to upsert_user_chargelog.py）
     TICKET_CREDIT_NUM,
     TICKET_NAMES,
     PAID_TICKET_IDS,
@@ -291,7 +291,7 @@ from .upsert_user_chargelog import (
 )
 
 # ---------------------------------------------------------------------------
-# 4) 取数公共底座
+# 4) Take the number of common bases
 # ---------------------------------------------------------------------------
 
 from .user_getter_common import (
@@ -315,7 +315,7 @@ from .user_getter_common import (
 )
 
 # ---------------------------------------------------------------------------
-# 5) 取数脚本（一个接口一个脚本）
+# 5) Fetch Script（One interface, one script）
 # ---------------------------------------------------------------------------
 
 from .get_user_data import GetUserData
@@ -351,25 +351,25 @@ from .get_user_new_item import GetUserNewItemList, UserNewItemListRequestVO
 from .get_game_charge import GetGameCharge, GameChargeRequestVO
 
 # ---------------------------------------------------------------------------
-# 6) 需要日志跟踪的 api 函数（新增 api 时把函数名加到这里）
+# 6) needlogtextof api Function（added api timeputFunction namePlustothisin）
 # ---------------------------------------------------------------------------
 
 _API_FUNCS = (
-    # --- 会话链路 ---
+    # --- Session Link ---
     "ParseQRCode",
     "GetGameSettings",
     "Ping",
     "GetUserPreview",
     "UserLogin",
     "UserLogout",
-    # --- 上传成绩 ---
+    # --- Upload Grades ---
     "UpsertUserAll",
     "build_play_from_config",
     "derive_play_characters",
     "merge_extra_data",
     "verify_upsert_landing",
     "build_user_all",
-    # --- 购买功能票 ---
+    # --- purchaseBuyFeature Tickets ---
     "UpsertUserChargelog",
     "ticket_name",
     "ticket_price",
@@ -386,35 +386,35 @@ _API_FUNCS = (
     "GetNeedUserData",
     "summarize_snapshot",
     "GetUserNewItemList",
-    # --- 取数：单接口 ---
+    # --- Take number：Single Interface ---
     "GetUserData",              # GetUserDataApi
     "GetUserExtend",            # GetUserExtendApi
     "GetUserOption",            # GetUserOptionApi
     "GetUserCharacter",         # GetUserCharacterApi
     "GetUserGhost",             # GetUserGhostApi
-    "GetUserMap",               # GetUserMapApi（单页）
-    "GetUserMapAll",            # GetUserMapApi（全量）
-    "GetUserLoginBonus",        # GetUserLoginBonusApi（单页）
-    "GetUserLoginBonusAll",     # GetUserLoginBonusApi（全量）
+    "GetUserMap",               # GetUserMapApi（Single Page）
+    "GetUserMapAll",            # GetUserMapApi（Full Amount）
+    "GetUserLoginBonus",        # GetUserLoginBonusApi（Single Page）
+    "GetUserLoginBonusAll",     # GetUserLoginBonusApi（Full Amount）
     "GetUserRating",            # GetUserRatingApi
-    "GetUserItem",              # GetUserItemApi（单类）
-    "GetUserItemAll",           # GetUserItemApi（全量）
-    "GetUserMusicDetail",       # GetUserMusicApi（单页）
-    "GetUserMusicDetailAll",    # GetUserMusicApi（全量）
-    "GetUserCourse",            # GetUserCourseApi（单页）
-    "GetUserCourseAll",         # GetUserCourseApi（全量）
+    "GetUserItem",              # GetUserItemApi（Single Class）
+    "GetUserItemAll",           # GetUserItemApi（Full Amount）
+    "GetUserMusicDetail",       # GetUserMusicApi（Single Page）
+    "GetUserMusicDetailAll",    # GetUserMusicApi（Full Amount）
+    "GetUserCourse",            # GetUserCourseApi（Single Page）
+    "GetUserCourseAll",         # GetUserCourseApi（Full Amount）
     "GetUserCharge",            # GetUserChargeApi
-    "GetUserFavorite",          # GetUserFavoriteApi（单类）
-    "GetUserFavoriteAll",       # GetUserFavoriteApi（全量）
+    "GetUserFavorite",          # GetUserFavoriteApi（Single Class）
+    "GetUserFavoriteAll",       # GetUserFavoriteApi（Full Amount）
     "GetUserActivity",          # GetUserActivityApi
     "GetUserMissionData",       # GetUserMissionDataApi
     "GetUserIntimate",          # GetUserIntimateApi
     "GetUserShopStock",         # GetUserShopStockApi
-    "GetUserFavoriteItem",      # GetUserFavoriteItemApi（单页）
-    "GetUserFavoriteItemAll",   # GetUserFavoriteItemApi（全量）
+    "GetUserFavoriteItem",      # GetUserFavoriteItemApi（Single Page）
+    "GetUserFavoriteItemAll",   # GetUserFavoriteItemApi（Full Amount）
     "GetUserRivalData",         # GetUserRivalDataApi
-    "GetUserRivalMusic",        # GetUserRivalMusicApi（单页）
-    "GetUserRivalMusicAll",     # GetUserRivalMusicApi（全量）
+    "GetUserRivalMusic",        # GetUserRivalMusicApi（Single Page）
+    "GetUserRivalMusicAll",     # GetUserRivalMusicApi（Full Amount）
     "GetUserFriendBonus",       # GetUserFriendBonusApi
     "GetUserKaleidxScope",      # GetUserKaleidxScopeApi
     "GetGameKaleidxScope",      # GetGameKaleidxScopeApi
@@ -422,35 +422,35 @@ _API_FUNCS = (
     "GetUserRecommendRateMusic",     # GetUserRecommendRateMusicApi
     "GetUserRecommendSelectMusic",   # GetUserRecommendSelectMusicApi
     "GetUserNewItemList",       # GetUserNewItemListApi
-    # --- 取数：游戏侧 ---
+    # --- Take number：textSide ---
     "GetGameCharge",         # GetGameChargeApi
 )
 
 # ---------------------------------------------------------------------------
-# 7) 导入即包装：保证 from api import X 拿到的是带日志的版本
+# 7) Import and Wrap：Warranty from api import X texttoofisBeltlogoftext
 # ---------------------------------------------------------------------------
 
 autowrap(globals(), _API_FUNCS)
 
 # ---------------------------------------------------------------------------
-# 8) 统一导出
+# 8) systemOneExport
 # ---------------------------------------------------------------------------
 
 __all__ = [
-    # ---- 日志：会话 ----
+    # ---- log：Session ----
     "setup_logging", "teardown_logging",
-    # ---- 日志：自动跟踪 ----
+    # ---- log：text ----
     "autowrap", "get_called_apis",
-    # ---- 日志：模式 ----
+    # ---- log：mode ----
     "get_level", "set_level", "is_debug", "LEVEL_INFO", "LEVEL_DEBUG",
-    # ---- 日志：装饰器 / 兼容 ----
+    # ---- log：text / Compatible ----
     "api_log", "get_logger",
-    # ---- 日志：流程 ----
+    # ---- log：text ----
     "log_info", "log_step", "log_result", "log_warning", "log_error",
     "log_section", "log_field",
-    # ---- 日志：收发数据 ----
+    # ---- log：receivehairdata ----
     "log_debug", "log_request", "log_response", "log_payload",
-    # ---- 网络核心 ----
+    # ---- networktext ----
     "MaimaiNetClient", "MaimaiNetError", "get_default_client", "close_default_client",
     "request", "request_dict", "request_vo",
     "obfuscate_api_name", "build_api_url", "build_user_agent", "adler32",
@@ -458,7 +458,7 @@ __all__ = [
     "vo_to_json", "vo_from_json",
     "local_utc_offset_seconds", "login_date_time_now",
     "EmptyRequestVO", "UserIdRequestVO", "ReturnCodeVO",
-    # ---- 会话链路 ----
+    # ---- Session Link ----
     "ParseQRCode",
     "GetGameSettings", "GameSetting", "GameSettingRequestVO", "GameSettingResponseVO",
     "is_maintenance", "is_ping_disabled",
@@ -468,10 +468,10 @@ __all__ = [
     "UserLogout", "LogoutType", "DelayLog", "RequestAPI",
     "UserLogoutRequestVO", "UserLogoutRequest2VO", "UserLogoutResponseVO",
     "create_empty_delay_log", "create_delay_log_from_stats", "DELAY_LOG_SLOTS",
-    # ---- 上传成绩 ----
+    # ---- Upload Grades ----
     "UpsertUserAll", "PlayData", "build_play_from_config", "derive_play_characters",
     "load_extra_data", "merge_extra_data", "verify_upsert_landing",
-    # ---- 购买功能票 ----
+    # ---- purchaseBuyFeature Tickets ----
     "UpsertUserChargelog", "ChargelogConfirmError", "ChargelogGuardError",
     "UserChargeVO", "UserChargelogVO", "UserChargelogRequestVO",
     "ticket_name", "ticket_price", "calc_valid_date", "parse_wall_time", "now_cst",
@@ -489,19 +489,19 @@ __all__ = [
     "JUDGE_TYPES", "JUDGE_BOXES",
     "USER_DATA_DROP_KEYS", "USER_OPTION_DROP_KEYS", "USER_CHARACTER_KEEP_KEYS",
     "USER_MUSIC_DETAIL_DROP_KEYS", "USER_CHARGE_DROP_KEYS", "USER_MISSION_DROP_KEYS",
-    # ---- 快照编排 ----
+    # ---- Snapshot orchestration ----
     "GetNeedUserData", "save_snapshot", "load_snapshot",
     "summarize_snapshot", "DEFAULT_SNAPSHOT_NODES",
     "PROJECT_ROOT", "DATA_DIR", "user_data_path",
     "save_user_data", "load_user_data", "list_saved_user_ids",
-    # ---- 取数公共底座 ----
+    # ---- Take the number of common bases ----
     "GetterEmptyRequestVO", "GetterUserIdRequestVO", "UserIdPageRequestVO",
     "UserLoginBonusRequestVO", "UserItemRequestVO", "UserMusicRequestVO",
     "UserCourseRequestVO", "UserFavoriteRequestVO", "UserFavoriteItemRequestVO",
     "UserShopStockRequestVO", "UserRivalRequestVO", "UserRivalMusicRequestVO",
     "get_all_pages",
     "ITEM_KINDS", "ITEM_NEXT_INDEX_FACTOR", "FAVORITE_ITEM_KINDS", "RIVAL_MUSIC_LEVELS",
-    # ---- 取数脚本 ----
+    # ---- Fetch Script ----
     "GetUserData", "GetUserExtend", "GetUserOption", "GetUserCharacter", "GetUserGhost",
     "GetUserMap", "GetUserMapAll",
     "GetUserLoginBonus", "GetUserLoginBonusAll",
@@ -521,7 +521,7 @@ __all__ = [
     "GetUserRecommendRateMusic", "GetUserRecommendSelectMusic",
     "GetUserNewItemList", "UserNewItemListRequestVO",
     "GetGameCharge", "GameChargeRequestVO",
-    # --- 协议常量（原在 config.py，已下沉到各 api 模块）---
+    # --- Protocol Constants（Originally at config.py，Dropped to each api text）---
     "BASE_URL", "AES_KEY", "AES_IV", "OBFUSCATE_PARAM",
     "AIMEDB_HOST", "AIMEDB_PORT", "AIMEDB_PATH",
     "QR_SIGN_KEY", "QR_OPEN_GAME_ID", "QR_TITLE_KEY", "QR_USER_AGENT",

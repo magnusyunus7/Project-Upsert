@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-get_need_user_data.py —— 结算快照编排（统一调用各取数脚本）
+get_need_user_data.py —— settlementSnapshot orchestration（systemOnecalluseScripts for each fetch）
 ================================================================================
 
-功能：一键抓取 UpsertUserAll 需要的全部基线数据，整理成「节点字典」。
+Features：One-click grab UpsertUserAll needofAllBaselinedata，text「nodesDictionary」。
 
-★ 本模块**只做编排**，取数逻辑都在各自的 api 脚本里（get_user_data.py / get_user_map.py …）。
+★ text**Choreography only**，The fetching logic is all in their own api scriptin（get_user_data.py / get_user_map.py …）。
 
 --------------------------------------------------------------------------------
-为什么需要快照
+Why snapshots are needed
 --------------------------------------------------------------------------------
-服务器对 userData 是**整表覆盖**语义，对差分节点是**只回传变化项**语义。
-要把本局的变化正确表达出来，必须先有一份「登录时的服务器状态」作基线，
-再把本局的影响叠加到基线上 —— 这就是快照的作用。
+serverYes. userData is**textoverwrite**semantic，Pair differential nodes are**Only return variations**semantic。
+mustputthis gameofVariationcurrenttextouttext，Must have one first「logintimeofservertext」As baseline，
+and then superimpose the impact of the game on the baseline. —— thisisSnapshotoftextuse。
 
-真机对照（source/2026-10-05.log）：
+real machineControl（source/2026-10-05.log）：
 
-    | 节点                | Get 侧（基线）    | Upsert 侧（本局后）  |
+    | nodes                | Get Side（Baseline）    | Upsert Side（this gameAfter）  |
     |---------------------|-------------------|----------------------|
     | userData.playCount  | 1257              | 1258        (+1)     |
-    | userMapList         | 104 条            | 仅 1 条（distance 变）|
-    | userMusicDetailList | 739 组            | 仅 1 条（playCount+1）|
-    | userItemList        | 1070 条           | []（无变化）         |
+    | userMapList         | 104 item            | Only 1 item（distance Change）|
+    | userMusicDetailList | 739 group            | Only 1 item（playCount+1）|
+    | userItemList        | 1070 item           | []（noVariation）         |
 
 --------------------------------------------------------------------------------
-调用示例
+call exampleExample
 --------------------------------------------------------------------------------
     from api import GetNeedUserData
 
     snapshot = GetNeedUserData(user_id, token=token)
-    # 之后直接传给 UpsertUserAll(snapshot=snapshot, ...)
+    # Then pass it directly to UpsertUserAll(snapshot=snapshot, ...)
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ from config import CLIENT_ID, PLACE_ID, PLAY_SHOP_ITEM_IDS, REGION_ID, TIMEOUT_M
 from .log_setup import log_debug, log_info, log_warning
 from .maimai_net import MaimaiNetClient
 
-# 各取数脚本（一个接口一个脚本）
+# Scripts for each fetch（One interface, one script）
 from .get_user_data import GetUserData
 from .get_user_extend import GetUserExtend
 from .get_user_option import GetUserOption
@@ -67,35 +67,35 @@ from .get_user_kaleidx_scope import GetUserKaleidxScope
 
 
 # =============================================================================
-# 落盘目录：<工程根>/data/<userId>.json
+# falltext：<Engineering Root>/data/<userId>.json
 # =============================================================================
 
-#: 工程根目录（本文件在 <root>/api/ 下）
+#: Engineering Root Directory（textfileat <root>/api/ Down）
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
 
-#: 用户数据目录：<工程根>/data
+#: userdatatext：<Engineering Root>/data
 DATA_DIR: Path = PROJECT_ROOT / "data"
 
 
 def user_data_path(user_id: int) -> Path:
-    """用户数据的落盘路径：<工程根>/data/<userId>.json"""
+    """userdataoffalltext：<Engineering Root>/data/<userId>.json"""
     return DATA_DIR / (str(int(user_id)) + ".json")
 
 
 def save_user_data(snapshot: Dict[str, Any], user_id: int,
                    path: Optional[str] = None) -> str:
     """
-    把 GetNeedUserData 抓到的数据写到 <工程根>/data/<userId>.json。
+    put GetNeedUserData texttoofdatatextto <Engineering Root>/data/<userId>.json。
 
-    ★ **新数据总是覆盖老数据**（不是追加、也不是合并）。
-    ★ 目录不存在会自动创建。
+    ★ **textdatatextisoverwritetextdata**（Not Append、It's not a merger）。
+    ★ textAbsentMeetingstext。
 
-    参数：
-        snapshot: GetNeedUserData 的返回值
-        user_id:  用户 ID（决定文件名）
-        path:     自定义路径（可选，默认走 data/<userId>.json）
+    Parameter：
+        snapshot: GetNeedUserData ofreturntimesValue
+        user_id:  user ID（Decide file name）
+        path:     text（Optional，defaulttext data/<userId>.json）
 
-    返回：实际写入的文件路径
+    returntimes：File path actually written
     """
     target = Path(path) if path else user_data_path(user_id)
     try:
@@ -103,34 +103,34 @@ def save_user_data(snapshot: Dict[str, Any], user_id: int,
         with open(str(target), "w", encoding="utf-8") as fp:
             json.dump(snapshot, fp, ensure_ascii=False, indent=2, default=str)
     except Exception as exc:
-        log_warning("用户数据落盘失败（不影响本次运行）：" + str(exc))
+        log_warning("userdatafalltextFailed（Does not affect this run）：" + str(exc))
         return str(target)
     size = 0
     try:
         size = os.path.getsize(str(target))
     except Exception:
         pass
-    log_info("用户数据已保存（覆盖）：" + str(target) + "  " + str(size) + " 字节")
+    log_info("userdataAlreadytext（overwrite）：" + str(target) + "  " + str(size) + " Bytes")
     return str(target)
 
 
 def load_user_data(user_id: int, path: Optional[str] = None) -> Dict[str, Any]:
     """
-    读回 <工程根>/data/<userId>.json。
+    readtimes <Engineering Root>/data/<userId>.json。
 
-    找不到文件时抛 FileNotFoundError（调用方自行决定要不要回退到联网抓取）。
+    findNotofiletimeraise FileNotFoundError（callusetextDecisionmustDon'tFallback totextTake）。
     """
     target = Path(path) if path else user_data_path(user_id)
     if not target.exists():
-        raise FileNotFoundError("用户数据文件不存在：" + str(target))
+        raise FileNotFoundError("userdatafileAbsent：" + str(target))
     with open(str(target), "r", encoding="utf-8") as fp:
         data = json.load(fp)
-    log_info("用户数据已加载：" + str(target))
+    log_info("userdataLoaded：" + str(target))
     return data
 
 
 def list_saved_user_ids() -> List[int]:
-    """列出 data/ 下已保存的全部 userId（按文件名解析，跳过解析失败的）。"""
+    """List data/ All saved under userId（pressfileFirst nameparse，skipparseFailedof）。"""
     if not DATA_DIR.exists():
         return []
     out: List[int] = []
@@ -144,8 +144,8 @@ def list_saved_user_ids() -> List[int]:
     return sorted(out)
 
 
-#: 默认要抓的节点（顺序即抓取顺序）
-#: ★ 只列 UpsertUserAll 真正需要的；纯展示类接口（排行/活动/大会…）不在此列。
+#: defaultmusttextofnodes（orderi.e.textTakeorder）
+#: ★ Columns only UpsertUserAll textcurrentneedof；textShowcasetextinterface（text/text/Competition…）Not in this column。
 DEFAULT_SNAPSHOT_NODES: tuple = (
     "userData",
     "userExtend",
@@ -185,56 +185,56 @@ def GetNeedUserData(
     save_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    抓取结算所需的全部基线数据。
+    textTakesettlementtextofAllBaselinedata。
 
-    参数：
-        user_id:       用户 ID（必填）
-        token:         会话令牌（可选，多数取数接口不需要）
-        client_id:     机台短值
-        place_id:      店铺 ID
-        region_id:     区域 ID
-        shop_item_ids: 商店商品清单（可选，默认 config.PLAY_SHOP_ITEM_IDS）
-        nodes:         要抓的节点（可选，默认 DEFAULT_SNAPSHOT_NODES）
-        timeout_ms:    超时毫秒
-        client:        可复用的 MaimaiNetClient
-        strict:        True = 任一接口失败就抛异常；
-                       False（默认）= 记录失败并跳过，保证链路不崩
-        save:          True（默认）= 抓完自动落盘到 <工程根>/data/<userId>.json
-                       （★ 新数据总是覆盖老数据）
-        save_path:     自定义落盘路径（可选，给了就忽略 save 的默认路径规则）
+    Parameter：
+        user_id:       user ID（Required）
+        token:         Session Token（Optional，Most fetch interfaces do not require）
+        client_id:     machineStageshortValue
+        place_id:      Store ID
+        region_id:     Area ID
+        shop_item_ids: Store Product List（Optional，default config.PLAY_SHOP_ITEM_IDS）
+        nodes:         musttextofnodes（Optional，default DEFAULT_SNAPSHOT_NODES）
+        timeout_ms:    timeout milliseconds
+        client:        Reusable MaimaiNetClient
+        strict:        True = Exception thrown if either interface fails；
+                       False（default）= recordFailedtextskip，Ensure that the link does not collapse
+        save:          True（default）= textfalltextto <Engineering Root>/data/<userId>.json
+                       （★ textdatatextisoverwritetextdata）
+        save_path:     textfalltext（Optional，textIgnore save ofdefaulttextThen）
 
-    返回：
+    returntimes：
         {
-          "userData":       <GetUserDataApi 原始响应>,
-          "userExtend":     <GetUserExtendApi 原始响应>,
-          "userMapList":    {"userMapList": [...]},       # 已摊平/翻页
-          "userMusicDetailList": {"userMusicList": [...]},# 已摊平成单条
+          "userData":       <GetUserDataApi Raw Response>,
+          "userExtend":     <GetUserExtendApi Raw Response>,
+          "userMapList":    {"userMapList": [...]},       # Flattened/text
+          "userMusicDetailList": {"userMusicList": [...]},# Flattened into single strips
           ...
           "_failed": [ {"node":.., "error":..}, ... ]
         }
-        这个结构可以直接传给 UpsertUserAll(snapshot=...)，也可 json 落盘。
+        thisPiecetextYesdirectlyPass to UpsertUserAll(snapshot=...)，Alternatively json falltext。
     """
     wanted = list(nodes) if nodes else list(DEFAULT_SNAPSHOT_NODES)
-    log_info("抓取结算快照：user_id=" + str(user_id) + " 节点数=" + str(len(wanted)))
+    log_info("textTakesettlementSnapshot：user_id=" + str(user_id) + " nodesnumber=" + str(len(wanted)))
 
     raw: Dict[str, Any] = {}
     failed: List[Dict[str, str]] = []
 
     def _call(node: str, fn, *args, **kwargs):
-        """逐节点容错：单个接口失败不影响整体。"""
+        """textnodestext：Failure of a single interface does not affect the overall。"""
         try:
             raw[node] = fn(*args, **kwargs)
             return True
         except Exception as exc:
             failed.append({"node": node, "error": type(exc).__name__ + ": " + str(exc)})
-            log_warning("节点 " + node + " 抓取失败：" + type(exc).__name__ + ": " + str(exc))
+            log_warning("nodes " + node + " textFetch failed：" + type(exc).__name__ + ": " + str(exc))
             if strict:
                 raise
             return False
 
     common = dict(client_id=client_id, timeout_ms=timeout_ms, client=client)
 
-    # ---- 逐个抓取（顺序与 DEFAULT_SNAPSHOT_NODES 一致）----
+    # ---- textPiecetextTake（orderAnd DEFAULT_SNAPSHOT_NODES Match）----
     if "userData" in wanted:
         _call("userData", GetUserData, user_id, **common)
 
@@ -269,9 +269,9 @@ def GetNeedUserData(
         _call("userChargeList", GetUserCharge, user_id, **common)
 
     if "userFavoriteList" in wanted:
-        # ★ 该接口额外带一份**原始** itemKind 副本（_raw），
-        #   供 UpsertUserAll 生成 isNewFavoriteList 位串用
-        #   —— 真机 itemKind=10 回的是 null，正是它产生了位串里的 "1"。
+        # ★ theinterfacetextBeltOnetext**Original** itemKind Copy（_raw），
+        #   For UpsertUserAll text isNewFavoriteList For bit strings
+        #   —— real machine itemKind=10 back is null，currentistextGeneratetextIn the bit string "1"。
         if _call("userFavoriteList", GetUserFavoriteAll, user_id, **common):
             fav_raw = (raw.get("userFavoriteList") or {}).get("_raw")
             if fav_raw:
@@ -281,8 +281,8 @@ def GetNeedUserData(
         _call("userActivityList", GetUserActivity, user_id, **common)
 
     if "userMissionDataList" in wanted:
-        # ★ 该接口的响应里同时带着 userWeeklyData（周界），
-        #   它是 Upsert 侧 userWeeklyData 节点的来源，会被自动提取。
+        # ★ theinterfaceofResponding toSametimeBelttext userWeeklyData（Perimeter），
+        #   It is Upsert Side userWeeklyData nodesoftext，will be automatically extracted。
         _call("userMissionDataList", GetUserMissionData, user_id, **common)
 
     if "userIntimateList" in wanted:
@@ -294,7 +294,7 @@ def GetNeedUserData(
             _call("userShopItemStockList", GetUserShopStock, user_id,
                   shop_item_id_list=ids, **common)
         else:
-            log_debug("未配置 PLAY_SHOP_ITEM_IDS，跳过商店库存节点")
+            log_debug("nottext PLAY_SHOP_ITEM_IDS，skiptextInventorynodes")
 
     if "userFavoritemusicList" in wanted:
         _call("userFavoritemusicList", GetUserFavoriteItemAll, user_id, 1, **common)
@@ -307,42 +307,42 @@ def GetNeedUserData(
 
     raw["_failed"] = failed
     raw["_userId"] = int(user_id)
-    log_info("结算快照抓取完成：成功 " + str(len(raw) - 2) + " 个节点，失败 "
-             + str(len(failed)) + " 个")
+    log_info("settlementSnapshottextTakeDone：Success " + str(len(raw) - 2) + " nodes，Failed "
+             + str(len(failed)) + " Piece")
 
-    # ★ 落盘：<工程根>/data/<userId>.json（覆盖式）
+    # ★ falltext：<Engineering Root>/data/<userId>.json（overwritetext）
     if save or save_path:
         try:
             save_user_data(raw, user_id, path=save_path)
         except Exception as exc:
-            log_warning("用户数据落盘失败（不影响本次运行）：" + str(exc))
+            log_warning("userdatafalltextFailed（Does not affect this run）：" + str(exc))
 
     return raw
 
 
 def save_snapshot(snapshot: Dict[str, Any], path: str) -> str:
-    """把快照写到 JSON 文件（便于离线复用 / 人工核对）。"""
+    """putSnapshottextto JSON file（Easy to reuse offline / Manual Reconciliation）。"""
     with open(path, "w", encoding="utf-8") as fp:
         json.dump(snapshot, fp, ensure_ascii=False, indent=2, default=str)
-    log_info("快照已保存：" + path)
+    log_info("Snapshot saved：" + path)
     return path
 
 
 def load_snapshot(path: str) -> Dict[str, Any]:
-    """从 JSON 文件读回快照。"""
+    """From JSON filereadtimesSnapshot。"""
     with open(path, "r", encoding="utf-8") as fp:
         data = json.load(fp)
-    log_info("快照已加载：" + path)
+    log_info("Snapshot loaded：" + path)
     return data
 
 
 def summarize_snapshot(snapshot: Dict[str, Any]) -> Dict[str, int]:
     """
-    统计快照各节点的条数，便于快速核对（返回 {节点名: 条数}）。
+    systemcountSnapshotEachnodesofitemnumber，Convenient for quick checks（returntimes {nodesFirst name: itemnumber}）。
 
-    条数含义：
-        userData 这类单元素数组 -> 1
-        userMusicDetailList 这类列表 -> 摊平后的条数
+    itemnumberMeaning：
+        userData thistextArray of elements -> 1
+        userMusicDetailList thistextList -> textAfterofitemnumber
     """
     out: Dict[str, int] = {}
     for node, value in (snapshot or {}).items():
@@ -351,7 +351,7 @@ def summarize_snapshot(snapshot: Dict[str, Any]) -> Dict[str, int]:
         if isinstance(value, list):
             out[node] = len(value)
         elif isinstance(value, dict):
-            # 从响应里挑出列表
+            # Pick list from response
             found = False
             for key, sub in value.items():
                 if isinstance(sub, list):
@@ -366,7 +366,7 @@ def summarize_snapshot(snapshot: Dict[str, Any]) -> Dict[str, int]:
 
 
 # =============================================================================
-# 单独运行（调试）
+# Run separately（debug）
 # =============================================================================
 
 if __name__ == "__main__":
@@ -378,7 +378,7 @@ if __name__ == "__main__":
         setup_logging("get_need_user_data_test")
         try:
             if len(sys.argv) < 2:
-                print("用法: python -m api.get_need_user_data <user_id> [--token TOKEN] [--save 路径]")
+                print("usage: python -m api.get_need_user_data <user_id> [--token TOKEN] [--save text]")
                 return 1
 
             user_id = int(sys.argv[1])
@@ -400,12 +400,12 @@ if __name__ == "__main__":
             summary = summarize_snapshot(snap)
             print("")
             for node, count in summary.items():
-                print("   " + node.ljust(28) + "= " + str(count) + " 条")
+                print("   " + node.ljust(28) + "= " + str(count) + " item")
             if save_path:
                 save_snapshot(snap, save_path)
             return 0
         except Exception as exc:
-            log_error("抓取快照失败：" + str(exc))
+            log_error("textTakeSnapshotFailed：" + str(exc))
             return 1
         finally:
             teardown_logging()

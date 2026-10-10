@@ -1,110 +1,110 @@
 # -*- coding: utf-8 -*-
 """
-upsert_user_all.py —— 上传成绩（UpsertUserAllApi）
+upsert_user_all.py —— Upload Grades（UpsertUserAllApi）
 ================================================================================
 
-功能：把一局游玩的完整结算数据写进服务器。这是**唯一有副作用**的接口。
+Features：putOnegameplayofFullsettlementdatatextserver。this is**The only one with side effects**ofinterface。
 
-对应接口：UpsertUserAllApi
-请求体  ：UserAllRequestVO（7 个顶层字段 + upsertUserAll 的 36 个节点）
+Corresponding interface：UpsertUserAllApi
+request body  ：UserAllRequestVO（7 top-level fields + upsertUserAll of 36 nodes）
           source/Assembly-CSharp/Net.VO.Mai2/UserAllRequestVO.cs
           source/Assembly-CSharp/Net.Packet.Mai2/PacketUpsertUserAll.cs:22-35
 
 --------------------------------------------------------------------------------
-一、顶层结构（7 字段）
+One、top-leveltext（7 Field）
 --------------------------------------------------------------------------------
-    userId          用户 ID
-    playlogId       ★ 必须 == UserLoginApi 的 loginId
-    isEventMode     是否活动模式
-    isFreePlay      是否免费游玩
-    loginDateTime   ★ 必须 == UserLoginApi 的 loginDateTime
-    userPlaylogList 本局成绩明细（110 字段 × N 条）
-    upsertUserAll   36 个节点的全量用户数据
+    userId          user ID
+    playlogId       ★ Required == UserLoginApi of loginId
+    isEventMode     isNotextmode
+    isFreePlay      isNoFreeplay
+    loginDateTime   ★ Required == UserLoginApi of loginDateTime
+    userPlaylogList this gameResultsdetails（110 Field × N item）
+    upsertUserAll   36 Full amount of user data for nodes
 
-    playlogId / loginDateTime 都不是本接口产生的，它们来自 UserLoginApi。
-    发错登录 ID 服务端会直接拒；中途换了登录会话必须重新登录。
+    playlogId / loginDateTime allNotextinterfaceGenerateof，They come from UserLoginApi。
+    Wrong login sent ID serverMeetingsdirectlytext；Changed login session midway Must login again。
 
 --------------------------------------------------------------------------------
-二、upsertUserAll 的 36 个节点（4 种形态）
+Two、upsertUserAll of 36 nodes（4 textMorphology）
 --------------------------------------------------------------------------------
-依据 source/Assembly-CSharp/Net.VO.Mai2/UserAll.cs，并用真机报文
-source/2026-10-05.log:123 逐节点核对：
+Basis source/Assembly-CSharp/Net.VO.Mai2/UserAll.cs，and use the real machine message
+source/2026-10-05.log:123 textnodestextYes.：
 
-    单元素数组  4 个  userData / userExtend / userOption / userRatingList
-    对象        2 个  userWeeklyData / user2pPlaylog      ★ 不是数组
-    位串       11 个  isNew*                              长度 == 对应数组条数
-    普通数组   19 个  其余
+    Array of elements  4 Piece  userData / userExtend / userOption / userRatingList
+    Object        2 Piece  userWeeklyData / user2pPlaylog      ★ Not an array
+    Bitstring       11 Piece  isNew*                              length == Number of corresponding array entries
+    textnumbergroup   19 Piece  Remaining
 
     4 + 2 + 11 + 19 = 36
 
 --------------------------------------------------------------------------------
-三、★ 本模块的核心思路：快照基线 + 本局演算 + 差分
+Three、★ textoftext：Snapshot Baseline + this gametextcalculate + Differential
 --------------------------------------------------------------------------------
-真机不是把 Get 下来的整表原样回传，而是「只回传变化的那几条」。
-把 source/2026-10-05.log 里同一账号的 Get 侧与 Upsert 侧对照：
+real machineNoput Get The entire table is returned as is.，andis「Only return those few changes」。
+put source/2026-10-05.log inSame accountof Get Side vs. Upsert Side control：
 
-    | 节点                  | Get 侧（登录时）      | Upsert 侧（结算时）      |
+    | nodes                  | Get Side（logintime）      | Upsert Side（settlementtime）      |
     |-----------------------|----------------------|--------------------------|
     | userData.playCount    | 1257                 | 1258        (+1)         |
     | userData.currentPlay  | 185                  | 186         (+1)         |
     | userMusicDetailList   | 143/level4 playCount=7 | 143/level4 playCount=8 |
     | userMapList           | 550003 distance=1424000 | distance=1435000 (+11000) |
-    | userCharacterList     | 5 只                 | 5 只，每只 level +1      |
-    | userItemList          | 1070 条              | []          （无变化）    |
-    | userCourseList        | 16 条                | []          （无变化）    |
+    | userCharacterList     | 5 Only                 | 5 Only，eachOnly level +1      |
+    | userItemList          | 1070 item              | []          （noVariation）    |
+    | userCourseList        | 16 item                | []          （noVariation）    |
 
-    ★ 结论：**服务器对 userData 是整表覆盖语义** —— 把 Get 下来的旧值原样发回去，
-      写入后「看起来什么都没发生」，这就是「returnCode=1 但没落库」的根因。
-      差分节点若为空，服务端也看不出本局有任何变化。
+    ★ text：**serverYes. userData istextoverwritesemantic** —— put Get Send back the old value as it came down，
+      After Write「textNothing happened」，thisis「returnCode=1 But it fell into the vault」oftext。
+      Differential node if empty，serverAlsotextNooutthis gamehasAnyVariation。
 
-    ⚠ 本工程的默认值与上表（真机）**有意不同**：
-      config.PLAY_USER_PLAY_COUNT_GAIN = 0（默认）
-        -> userData.playCount / currentPlayCount **保持不变**，不复刻真机的 +1。
-        想复刻真机就把它改成 1。
-      其它增量同理：PLAY_MUSIC_PLAY_COUNT_GAIN / PLAY_MAP_DISTANCE_GAIN /
-      PLAY_CHARACTER_EXP_GAIN 默认都是 0。
+    ⚠ textofdefaultValueAndUptext（real machine）**hastextDifferent**：
+      config.PLAY_USER_PLAY_COUNT_GAIN = 0（default）
+        -> userData.playCount / currentPlayCount **Stay the same**，Never engrave the real machine again +1。
+        If you want to reproduce the real machine, change it to 1。
+      Other incremental similarities：PLAY_MUSIC_PLAY_COUNT_GAIN / PLAY_MAP_DISTANCE_GAIN /
+      PLAY_CHARACTER_EXP_GAIN defaultallis 0。
 
-所以本模块的流程是：
+So the process for this module is：
 
-    1. 从 snapshot（登录后抓的 Get 响应）建立**基线**
-    2. 按本局数据（play）演算出**新状态**，并对差分节点算 (新 - 基线)
-    3. 用 patch 做精确覆盖
-    4. 生成 11 条位串（长度自动对齐对应数组）
-
---------------------------------------------------------------------------------
-四、安全闸门
---------------------------------------------------------------------------------
-本接口有副作用，默认**不发包**：
-
-    UpsertUserAll(...)                 -> 抛 ConfirmRequiredError（未发包）
-    UpsertUserAll(..., dry_run=True)   -> 只构造并返回报文
-    UpsertUserAll(..., confirm=True)   -> 真实发送
-
-全局开关见 config.UPSERT_CONFIRM。
+    1. From snapshot（loginAftertextof Get Response）Create**Baseline**
+    2. pressthis game data（play）textcalculateout**text**，and count the differential nodes (text - Baseline)
+    3. use patch Do a precise overlay
+    4. text 11 itemBitstring（lengthtextYes.textCorresponding array）
 
 --------------------------------------------------------------------------------
-五、调用示例
+Four、Safety gate
+--------------------------------------------------------------------------------
+textinterfacehasSide effects，default**No Package Issued**：
+
+    UpsertUserAll(...)                 -> raise ConfirmRequiredError（notPackaging）
+    UpsertUserAll(..., dry_run=True)   -> Construct and return packets only
+    UpsertUserAll(..., confirm=True)   -> realSend
+
+See global switch config.UPSERT_CONFIRM。
+
+--------------------------------------------------------------------------------
+Five、call exampleExample
 --------------------------------------------------------------------------------
     from api import (setup_logging, ParseQRCode, GetUserPreview, UserLogin,
                      GetNeedUserData, UpsertUserAll, build_play_from_config)
 
-    setup_logging("结算")
+    setup_logging("settlement")
     user_id, token = ParseQRCode(qr)
     GetUserPreview(user_id, token)
     login = UserLogin(user_id, token)
 
-    # 1) 登录后立刻抓基线快照（差分的基准）
+    # 1) loginAftertextBaseline Snapshot（Benchmark of Difference）
     snapshot = GetNeedUserData(user_id, token=token)
 
-    # 2) 组装本局数据（默认读 config.py 的 PLAY_*）
+    # 2) grouptextthis game data（defaultread config.py of PLAY_*）
     play = build_play_from_config()
 
-    # 3) 先看报文
+    # 3) Read the message first
     req = UpsertUserAll(user_id, login.loginId,
                         login_date_time=login.loginDateTime,
                         snapshot=snapshot, play=play, dry_run=True)
 
-    # 4) 确认无误后真实上传
+    # 4) textnotextAfterrealUpload
     UpsertUserAll(user_id, login.loginId,
                   login_date_time=login.loginDateTime,
                   snapshot=snapshot, play=play, confirm=True)
@@ -133,29 +133,29 @@ from config import (
 )
 
 # =============================================================================
-# 机台硬件标志位（原 PLAY_SPECIAL_NUM，2026-10-06 下沉到本模块）
+# machineStagetextBit（Hara PLAY_SPECIAL_NUM，2026-10-06 sink to this module）
 # =============================================================================
 #
-# 依据：source/Assembly-CSharp/Manager/GameManager.cs 的 CalcSpecialNum()
+# Basis：source/Assembly-CSharp/Manager/GameManager.cs of CalcSpecialNum()
 #       [CalcSpecialNum] = 1024   (SpecialAP=False  IsFreedomMode=False)
-#       1024 = 0x400，即除「无条件置位」那一位外全部为 0 —— 正好是一台标准 ACA 机台。
+#       1024 = 0x400，i.e. divide by「noitemtextBit」thatOneBittextAllfor 0 —— currenttextisOneStagestandard ACA machineStage。
 #
-#   ★ 反推验证：真机 playSpecial = 892014272
-#         位反转32(892014272) = 57726124 = 27900 * 2069 + 1024
-#         余数恰好 1024，与抓到的 CalcSpecialNum 完全吻合。
+#   ★ Reverse inference validation：real machine playSpecial = 892014272
+#         Bit inversion32(892014272) = 57726124 = 27900 * 2069 + 1024
+#         The remainder is just right 1024，with caught CalcSpecialNum Exact match。
 PLAY_SPECIAL_NUM = 1024
 
-#: ★ 机台本地游玩计数器：无法从服务器推导，按用户要求**恒为 2**
+#: ★ machineStagetextplaycountnumbertext：notextFromservertext，pressusermusttext**Constantly 2**
 PLAY_LOCAL_PLAY_COUNT = 2
 
-#: ★ afterGradeRank 恒为 1
+#: ★ afterGradeRank Constantly 1
 PLAY_AFTER_GRADE_RANK = 1
 
-#: ★ 是否在 userMusicDetailList 里搜同 (musicId, level) 来推导 beforeGrade / afterGrade。
-#:   ⚠ 源码实证这三个字段其实是**段位（Dan）**（VOExtensions.cs:1419-1421），
-#:     真机无段位账号一律 0 / 0 / 1。
-#:     False = **一律 0**（默认，与真机一致 —— 使用方已确认走这条）
-#:     True  = 从曲目记录推（仅调试用）
+#: ★ isNoat userMusicDetailList intextSame (musicId, level) text beforeGrade / afterGrade。
+#:   ⚠ source codeEmpiricalthisThreefieldstextis**textBit（Dan）**（VOExtensions.cs:1419-1421），
+#:     real machinenotextBittextAlways 0 / 0 / 1。
+#:     False = **Always 0**（default，Consistent with the real machine —— The user has confirmed that this）
+#:     True  = Push from track recordings（For debugging only）
 DERIVE_GRADE_FROM_MUSIC_DETAIL = False
 
 from .log_setup import log_debug, log_error, log_info, log_warning
@@ -168,40 +168,40 @@ from .maimai_net import (
 
 
 # =============================================================================
-# 异常
+# Exceptions
 # =============================================================================
 
 class UpsertUserAllError(RuntimeError):
-    """服务端返回 returnCode != 1。"""
+    """serverreturntimes returnCode != 1。"""
 
 
 class ConfirmRequiredError(RuntimeError):
-    """有副作用的接口被安全闸门拦下（此时**未发包**）。"""
+    """hasSide effectsofinterfacetextSafety gatetextDown（texttime**notPackaging**）。"""
 
 
 class PatchError(ValueError):
-    """节点名或节点形态不合法。"""
+    """nodesFirst nameornodesMorphologyNoLegal。"""
 
 
 # =============================================================================
-# 一、36 个节点的类型表
+# One、36 type table of nodes
 # =============================================================================
 #
-#   "singleton" : 数组，恒 1 元素（userData / userExtend / userOption / userRatingList）
-#   "object"    : ★ 单个对象，不是数组（userWeeklyData / user2pPlaylog）
-#   "array"     : 普通数组
-#   "bits"      : 字符串位串，长度 == 对应数组条数
+#   "singleton" : numbergroup，Heng 1 Element（userData / userExtend / userOption / userRatingList）
+#   "object"    : ★ Single Object，Not an array（userWeeklyData / user2pPlaylog）
+#   "array"     : textnumbergroup
+#   "bits"      : String bit string，length == Number of corresponding array entries
 #
 NODE_TYPES: Dict[str, str] = {
-    # ---- 单元素数组（4）----
+    # ---- Array of elements（4）----
     "userData": "singleton",
     "userExtend": "singleton",
     "userOption": "singleton",
     "userRatingList": "singleton",
-    # ---- 对象，非数组（2）★ ----
+    # ---- Object，non-numbergroup（2）★ ----
     "userWeeklyData": "object",
     "user2pPlaylog": "object",
-    # ---- 普通数组（19）----
+    # ---- textnumbergroup（19）----
     "userCharacterList": "array",
     "userGhost": "array",
     "userMapList": "array",
@@ -221,7 +221,7 @@ NODE_TYPES: Dict[str, str] = {
     "userTradeItemList": "array",
     "userFavoritemusicList": "array",
     "userKaleidxScopeList": "array",
-    # ---- 位串（11）----
+    # ---- Bitstring（11）----
     "isNewCharacterList": "bits",
     "isNewMapList": "bits",
     "isNewLoginBonusList": "bits",
@@ -235,7 +235,7 @@ NODE_TYPES: Dict[str, str] = {
     "isNewKaleidxScopeList": "bits",
 }
 
-#: 位串 -> 对应数组（依据 UserAll.cs 的字段命名与真机报文核对）
+#: Bitstring -> Corresponding array（Basis UserAll.cs ofFieldtextFirst nameAndreal machinepackettextYes.）
 BITS_TO_ARRAY: Dict[str, str] = {
     "isNewCharacterList": "userCharacterList",
     "isNewMapList": "userMapList",
@@ -252,7 +252,7 @@ BITS_TO_ARRAY: Dict[str, str] = {
 
 ARRAY_TO_BITS: Dict[str, str] = {v: k for k, v in BITS_TO_ARRAY.items()}
 
-#: 节点在报文里的顺序（照 UserAll.cs 的字段声明顺序）
+#: nodesatpacketinoforder（text UserAll.cs ofFieldDeclarationorder）
 NODE_ORDER: Tuple[str, ...] = (
     "userData", "userExtend", "userOption", "userCharacterList", "userGhost",
     "userMapList", "userLoginBonusList", "userRatingList", "userItemList",
@@ -267,27 +267,27 @@ NODE_ORDER: Tuple[str, ...] = (
     "isNewFavoritemusicList", "isNewKaleidxScopeList",
 )
 
-#: 需要算差分的节点 -> 主键字段（用于生成位串的 "0"/"1"）
+#: needcalculateDifferentialofnodes -> Primary Key Field（used fortextBitstringof "0"/"1"）
 #:
-#: ★ 判断依据 = 真机 Get 侧与 Upsert 侧的条数对照（source/2026-10-05.log）：
+#: ★ Basis for Judgment = real machine Get Side vs. Upsert Number of bars on side comparison（source/2026-10-05.log）：
 #:
-#:     | 节点                | Get 侧 | Upsert 侧 | 是否差分 |
+#:     | nodes                | Get Side | Upsert Side | isNoDifferential |
 #:     |---------------------|--------|-----------|----------|
-#:     | userCharacterList   | 312    | 5         | 是       |
-#:     | userMapList         | 104    | 1         | 是       |
-#:     | userMusicDetailList | 739    | 1         | 是       |
-#:     | userLoginBonusList  | 38     | 0         | 是       |
-#:     | userCourseList      | 16     | 0         | 是       |
-#:     | userItemList        | 1070   | 0         | 是       |
-#:     | userIntimateList    | 2      | 0         | 是       |
-#:     | userChargeList      | 3      | **3**     | ★ 否！整表回传 |
+#:     | userCharacterList   | 312    | 5         | is       |
+#:     | userMapList         | 104    | 1         | is       |
+#:     | userMusicDetailList | 739    | 1         | is       |
+#:     | userLoginBonusList  | 38     | 0         | is       |
+#:     | userCourseList      | 16     | 0         | is       |
+#:     | userItemList        | 1070   | 0         | is       |
+#:     | userIntimateList    | 2      | 0         | is       |
+#:     | userChargeList      | 3      | **3**     | ★ No！textCallback |
 #:
-#: userChargeList 是**整表回传**（真机原样发了 3 条），不能当差分处理，
-#: 否则会被误收敛成空数组。
+#: userChargeList is**textCallback**（real machineAs ishairtext 3 item），Cannot be treated as difference，
+#: Otherwise, it will be mistakenly converged into an empty array。
 DIFF_PRIMARY_KEYS: Dict[str, Tuple[str, ...]] = {
     "userCharacterList": ("characterId",),
     "userMapList": ("mapId",),
-    "userLoginBonusList": ("bonusId",),   # 本次签到那条 -> 位串 "1"
+    "userLoginBonusList": ("bonusId",),   # texttothatitem -> Bitstring "1"
     "userItemList": ("itemKind", "itemId"),
     "userMusicDetailList": ("musicId", "level"),
     "userCourseList": ("courseId",),
@@ -298,17 +298,17 @@ DIFF_PRIMARY_KEYS: Dict[str, Tuple[str, ...]] = {
     "userFavoritemusicList": ("musicId",),
 }
 
-#: 整表回传、不做差分的节点（真机原样发出全部条目）
+#: textCallback、Node without difference（real machineAs ishairoutAllitemtext）
 FULL_TABLE_NODES: Tuple[str, ...] = (
     "userChargeList",
 )
 
-#: 无变化时可以留空的节点
-#:   依据：真机报文 source/2026-10-05.log:123 里 userItemList / userCourseList /
+#: noVariationtimeYesleave blankofnodes
+#:   Basis：real machinepacket source/2026-10-05.log:123 in userItemList / userCourseList /
 #:        userKaleidxScopeList / userIntimateList / userShopItemStockList /
 #:        userTradeItemList / userFriendSeasonRankingList / userFavoritemusicList /
-#:        userGhost / userLoginBonusList / userGetPointList 全是 []，
-#:        服务端照样返回 returnCode=1 —— 空数组是被接受的。
+#:        userGhost / userLoginBonusList / userGetPointList Yes to all []，
+#:        servertextreturntimes returnCode=1 —— emptynumbergroupistextof。
 MAY_BE_EMPTY_NODES: Tuple[str, ...] = (
     "userGhost", "userMapList", "userLoginBonusList", "userItemList",
     "userMusicDetailList", "userCourseList", "userFriendSeasonRankingList",
@@ -318,98 +318,98 @@ MAY_BE_EMPTY_NODES: Tuple[str, ...] = (
     "userCharacterList", "userRatingList",
 )
 
-#: 默认恒空的节点（本局不产生的数据）
+#: defaultHengemptyofnodes（this gameNoGenerateofdata）
 #:
-#: ★ userGetPointList 与 userLoginBonusList 都在此列 —— 这两个节点是
-#:   **登录奖励发放**才会产生的，普通游玩结算不需要回传：
+#: ★ userGetPointList And userLoginBonusList allattextColumns —— thistextnodesis
+#:   **loginRewardshairtext**will arise.，textplaysettlementNot requiredCallback：
 #:
-#:   - userGetPointList（里程/点数明细）
-#:     真机 39 次 UpsertUserAll 样本里 **25 次为空（64%）**，
-#:     只有发生登录奖励/任务奖励时才非空（如 getKind=1 point=200）。
-#:     留空 => 服务端不累加 point，账户点数保持不变。
+#:   - userGetPointList（intext/textnumberdetails）
+#:     real machine 39 text UpsertUserAll textin **25 textIs Empty（64%）**，
+#:     Only login rewards occur/Not empty when rewarding a task（As getKind=1 point=200）。
+#:     leave blank => serverNotextPlus point，textnumberStay the same。
 #:
-#:   - userLoginBonusList（签到奖励）
-#:     同理，只有本次登录触发了新签到才回传那一条（isCurrent=true）。
-#:     留空 => isNewLoginBonusList 也是空串。
+#:   - userLoginBonusList（texttoRewards）
+#:     Empathy，Only return that one when a new check-in is triggered by this login（isCurrent=true）。
+#:     leave blank => isNewLoginBonusList is also an empty string。
 #:
-#:   ★ 连带影响（正常现象）：留空后 userData.point 的增量就无从解释，
-#:     所以 point 保持基线值不变。这是「不发放点数」的必然结果。
+#:   ★ textBeltImpact（currenttextcurrenttext）：leave blankAfter userData.point ofIncrementtextnoFromtext，
+#:     So point Keep baseline value unchanged。this is「Do not issue credits」oftextresult。
 DEFAULT_EMPTY_NODES: Tuple[str, ...] = (
-    "userGhost",            # 源码 VOExtensions.cs:235 只在 NeedSave 时回传
-    "userGetPointList",     # 登录奖励才产生；普通结算留空
-    "userLoginBonusList",   # 登录奖励才产生；普通结算留空
-    "userTradeItemList",    # 无 Get 来源
-    "userFriendSeasonRankingList",   # 无 Get 来源
-    "userFavoritemusicList",         # 源码是条件回传，真机恒 []
+    "userGhost",            # source code VOExtensions.cs:235 Only in NeedSave timeCallback
+    "userGetPointList",     # loginRewardsonlyGenerate；textsettlementleave blank
+    "userLoginBonusList",   # loginRewardsonlyGenerate；textsettlementleave blank
+    "userTradeItemList",    # no Get text
+    "userFriendSeasonRankingList",   # no Get text
+    "userFavoritemusicList",         # source codeisitemtextCallback，real machineHeng []
 )
 
 
 # =============================================================================
-# 二、字段裁剪表（Get 侧 -> Upsert 侧要丢掉的字段）
+# Two、Field crop table（Get Side -> Upsert Fields to be discarded on the side）
 # =============================================================================
 #
-# 依据：把真机 Get 侧响应与 Upsert 侧报文逐字段比对得出。
+# Basis：putreal machine Get Side response vs. Upsert Side reports are compared by field。
 
-#: userData：Get 侧有、Upsert 侧没有的字段
+#: userData：Get Side has、Upsert Fields without side
 USER_DATA_DROP_KEYS: Tuple[str, ...] = (
     "friendCode", "nameplateId", "trophyId",
     "cmLastEmoneyCredit", "cmLastEmoneyBrand",
 )
 
-#: userOption：Upsert 侧没有 tempoVolume
+#: userOption：Upsert Side No tempoVolume
 USER_OPTION_DROP_KEYS: Tuple[str, ...] = ("tempoVolume",)
 
-#: userExtend：Upsert 侧**多出**这两个字段（Get 侧没有），必须补上
-#:   真机 Upsert 侧 16 键 vs Get 侧 14 键，差的就是这两个
+#: userExtend：Upsert Side**Extra**thistextfields（Get Side No），Must be supplemented
+#:   real machine Upsert Side 16 key vs Get Side 14 key，The difference is these two.
 USER_EXTEND_EXTRA_KEYS: Tuple[str, ...] = ("isPhotoAgree", "isGotoCodeRead")
 
-#: ★ userRating.udemae：服务端 Get 响应里有一批**首字母大写的重复字段**
-#:   （source/2026-10-05.log:87 的 Get 响应里 npcWinNum 与 NpcWinNum 并存，共 23 键），
-#:   但真机 Upsert 报文里**只有小写的 16 键**（source/2026-10-05.log:123）。
-#:   源码 Net.VO.Mai2/UserUdemae.cs 只声明了小写的 16 个字段，
-#:   所以这批大写字段是服务端的冗余输出，回传时必须裁掉 —— 否则：
-#:     ① 报文里出现源码不存在的字段
-#:     ② 请求体比真机大 119 字节
+#: ★ userRating.udemae：server Get There is a batch in the response**firsttextUppercaseoftextField**
+#:   （source/2026-10-05.log:87 of Get Responding to npcWinNum And NpcWinNum Coexistence，of 23 key），
+#:   But the real machine Upsert packetin**Lowercase only 16 key**（source/2026-10-05.log:123）。
+#:   source code Net.VO.Mai2/UserUdemae.cs Lowercase only 16 fields，
+#:   So this batch of uppercase fields is the redundant output of the server，Must be truncated on return —— Otherwise：
+#:     ① packetinAppearancesource codeAbsentofField
+#:     ② request bodytextreal machinetext 119 Bytes
 USER_RATING_UDEMAE_DROP_KEYS: Tuple[str, ...] = (
     "MaxLoseNum", "NpcTotalWinNum", "NpcTotalLoseNum",
     "NpcMaxWinNum", "NpcMaxLoseNum", "NpcWinNum", "NpcLoseNum",
 )
 
-#: userCharacterList：只保留这 4 个字段
+#: userCharacterList：Keep only this 4 fields
 USER_CHARACTER_KEEP_KEYS: Tuple[str, ...] = (
     "characterId", "level", "awakening", "useCount",
 )
 
-#: userMusicDetailList：丢掉 extNum2
+#: userMusicDetailList：Discard extNum2
 USER_MUSIC_DETAIL_DROP_KEYS: Tuple[str, ...] = ("extNum2",)
 
-#: userChargeList：丢掉 extNum1
+#: userChargeList：Discard extNum1
 USER_CHARGE_DROP_KEYS: Tuple[str, ...] = ("extNum1",)
 
-#: userMissionDataList / userWeeklyData：丢掉 userId
+#: userMissionDataList / userWeeklyData：Discard userId
 USER_MISSION_DROP_KEYS: Tuple[str, ...] = ("userId",)
 
 
 # =============================================================================
-# 三、基础工具
+# Three、Basic Tools
 # =============================================================================
 
 def _strip_keys(item: Any, drop: Sequence[str]) -> Any:
-    """从 dict 里删掉指定字段（返回新 dict）。"""
+    """From dict inDeletespecifiedField（returntimestext dict）。"""
     if not isinstance(item, dict):
         return item
     return {k: v for k, v in item.items() if k not in drop}
 
 
 def _keep_keys(item: Any, keep: Sequence[str]) -> Any:
-    """只保留指定字段（返回新 dict）。"""
+    """Keep only specified fields（returntimestext dict）。"""
     if not isinstance(item, dict):
         return item
     return {k: v for k, v in item.items() if k in keep}
 
 
 def empty_node(node: str) -> Any:
-    """按节点类型返回空值。"""
+    """pressnodestextreturntimesemptyValue。"""
     kind = NODE_TYPES.get(node)
     if kind == "bits":
         return ""
@@ -419,32 +419,32 @@ def empty_node(node: str) -> Any:
 
 
 def empty_user_all() -> Dict[str, Any]:
-    """构造全空的 36 节点骨架。"""
+    """constructFullemptyof 36 nodestext。"""
     return {node: empty_node(node) for node in NODE_ORDER}
 
 
 def coerce_node_value(node: str, value: Any) -> Any:
     """
-    把值强制成该节点应有的形态；传错直接抛 PatchError。
+    putValuetextthenodesshouldhasofMorphology；Error transmission direct throwing PatchError。
 
-    ★ 这是刻意的防呆：userWeeklyData / user2pPlaylog 传数组、
-      userData 传 dict，都是很容易犯又很难查的错。
+    ★ this istextoftext：userWeeklyData / user2pPlaylog Transfer array、
+      userData Passing on dict，allistextcheckoftext。
     """
     kind = NODE_TYPES.get(node)
     if kind is None:
-        raise PatchError("未知节点名：" + str(node))
+        raise PatchError("nottextnodesFirst name：" + str(node))
 
     if value is None:
         return empty_node(node)
 
     if kind == "bits":
         if not isinstance(value, str):
-            raise PatchError("节点 " + node + " 是位串，必须传 str，收到 " + type(value).__name__)
+            raise PatchError("nodes " + node + " isBitstring，Must pass str，receiveto " + type(value).__name__)
         return value
 
     if kind == "object":
         if not isinstance(value, dict):
-            raise PatchError("节点 " + node + " 是对象（不是数组），必须传 dict，收到 "
+            raise PatchError("nodes " + node + " isObject（Not an array），Must pass dict，receiveto "
                              + type(value).__name__)
         return value
 
@@ -453,21 +453,21 @@ def coerce_node_value(node: str, value: Any) -> Any:
             return [value]
         if isinstance(value, list):
             return value
-        raise PatchError("节点 " + node + " 必须是 dict 或 list，收到 " + type(value).__name__)
+        raise PatchError("nodes " + node + " Must be dict or list，receiveto " + type(value).__name__)
 
     # array
     if isinstance(value, dict):
         return [value]
     if isinstance(value, list):
         return value
-    raise PatchError("节点 " + node + " 必须是 list，收到 " + type(value).__name__)
+    raise PatchError("nodes " + node + " Must be list，receiveto " + type(value).__name__)
 
 
 def sync_bits_to_arrays(user_all: Dict[str, Any]) -> None:
     """
-    位串长度与对应数组条数不一致时，按 "0" 补齐/截断（就地修改）。
+    When the bit string length is inconsistent with the corresponding array number，press "0" text/Truncation（In-place modification）。
 
-    ★ 长度不符服务端会误判「哪些是新增」。
+    ★ lengthNotextserverMeetingstext「Which ones are new」。
     """
     for bits, arr in BITS_TO_ARRAY.items():
         items = user_all.get(arr)
@@ -478,21 +478,21 @@ def sync_bits_to_arrays(user_all: Dict[str, Any]) -> None:
         if not isinstance(cur, str):
             cur = ""
         if len(cur) != want:
-            # 已有多余字符时截断；不足时补 "0"
+            # Truncate when there are already extra characters；Replenish when insufficient "0"
             user_all[bits] = (cur + "0" * want)[:want] if cur else "0" * want
 
 
 # =============================================================================
-# 四、差分
+# Four、Differential
 # =============================================================================
 
 def _norm(item: Any) -> str:
-    """把一条记录规范化成可比较的字符串。"""
+    """putOneitemrecordtextofString。"""
     return json.dumps(item, ensure_ascii=False, sort_keys=True, default=str)
 
 
 def _primary_key(item: Any, keys: Sequence[str]) -> Tuple:
-    """取主键值。"""
+    """Take primary key value。"""
     if not isinstance(item, dict):
         return (str(item),)
     return tuple(item.get(k) for k in keys)
@@ -504,21 +504,21 @@ def build_delta(
     compare_keys: Optional[Sequence[str]] = None,
 ) -> Tuple[List[Any], str]:
     """
-    复刻 VOExtensions.BuildListData 的差分语义。
+    Reprint VOExtensions.BuildListData ofDifferentialsemantic。
 
-    规则（source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:309-324）：
-        1. 逐字段比较：本地这条与服务器**任何**一条都不完全相同 -> 算「变化」，要回传
-           （源码是 nsrc.Except(osrc)，退化成全字段比较）
-        2. compare_keys 只用于**算位串**，不参与剔除
-        3. 位串："0" = 主键在服务器已存在（更新）；"1" = 全新（新增）
+    textThen（source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:309-324）：
+        1. textFieldtext：textthisitemAndserver**Any**None of them are exactly the same -> calculate「Variation」，mustCallback
+           （source codeis nsrc.Except(osrc)，textFullFieldtext）
+        2. compare_keys Only for**calculateBitstring**，Not involved in culling
+        3. Bitstring："0" = Primary key already exists on the server（update）；"1" = New（added）
 
-    参数：
-        local:        本地新状态（游玩后应有的值）
-        server:       服务器旧快照（差分基线）
-        compare_keys: 主键字段名（用于生成位串）
+    Parameter：
+        local:        text（playAftershouldhasofValue）
+        server:       servertextSnapshot（Differential Baseline）
+        compare_keys: Primary Key Field Name（used fortextBitstring）
 
-    返回：
-        (要回传的条目列表, 位串)
+    returntimes：
+        (mustCallbackofitemtextList, Bitstring)
     """
     server_norm = {_norm(s) for s in server}
     server_keys = set()
@@ -529,7 +529,7 @@ def build_delta(
     flags: List[str] = []
     for item in local:
         if _norm(item) in server_norm:
-            continue                      # 与服务器某条完全一致 -> 无变化
+            continue                      # Exactly as one of the server entries -> noVariation
         delta.append(item)
         if compare_keys:
             flags.append("0" if _primary_key(item, compare_keys) in server_keys else "1")
@@ -544,28 +544,28 @@ def build_favorite_delta(
     assume_missing: Sequence[int] = (),
 ) -> Tuple[List[Any], str]:
     """
-    收藏夹专用差分（复刻 VOExtensions.cs:345-367）。
+    receivetextuseDifferential（Reprint VOExtensions.cs:345-367）。
 
-    ★ 与普通差分不同：**不做剔除，恒返回完整条目**（真机是 5 条）。
+    ★ Different from normal difference：**Do not cull，Constantly returns full entries**（real machine is 5 item）。
 
-    位串规则（按真机 source/2026-10-05.log:123 的 "22212" 反推）：
-        "2" = 服务器侧有对应 itemKind（无论内容是否一致）
-        "1" = 服务器侧查不到该 itemKind
+    Bit String Rules（pressreal machine source/2026-10-05.log:123 of "22212" Reverse）：
+        "2" = serverSide hasCorresponding itemKind（notextContentisNoMatch）
+        "1" = serverSidecheckNotothe itemKind
 
-    ★ 关键：**优先用 Get 侧最原始的响应建索引**，不要先用 get_user_favorite.py
-      的「补 itemKind」逻辑归一化 —— 真机里 itemKind=10 的响应回的是
-      {"itemKind":null, "itemIdList":[]}，正因为查不到才自然产生 "1"。
+    ★ Critical：**Priority use Get Side most primitive response indexing**，Don't use it first get_user_favorite.py
+      of「text itemKind」textReturnedOnetext —— real machinein itemKind=10 ofThe response is
+      {"itemKind":null, "itemIdList":[]}，currenttextforcheckNotoonlytextGenerate "1"。
 
-    参数：
-        local:          本地收藏列表（已补 itemKind，5 条）
-        server:         服务器收藏列表。传**原始** Get 响应时 itemKind=null
-                        的那条会自然产生 "1"（不需要 assume_missing）。
-        assume_missing: 「服务端恒回 null」的 itemKind 集合。
-                        ★ 仅当 server 是**被归一化过**的列表
-                          （itemKind 已被补齐、看不出原始 null）时才需要传，
-                          否则会把本该是 "1" 的那位算成 "2"。
-                          调用方在拿不到原始响应时传 FAVORITE_MISSING_KINDS，
-                          拿得到原始响应时就别传。
+    Parameter：
+        local:          textreceivetextList（Made up itemKind，5 item）
+        server:         serverreceivetextList。Passing on**Original** Get On Response itemKind=null
+                        ofthatitemMeetingstextGenerate "1"（Not required assume_missing）。
+        assume_missing: 「serverHeng Hui null」of itemKind text。
+                        ★ Only if server is**textReturnedOnetext**ofList
+                          （itemKind Completed、textNooutOriginal null）timeonlyneedPassing on，
+                          Otherwise, it will put what should have been "1" ofthatBitcalculatetext "2"。
+                          callusetextattextNotoRaw ResponsetimePassing on FAVORITE_MISSING_KINDS，
+                          textGetRaw ResponsetimetextPassing on。
     """
     server_kinds = set()
     for s in server:
@@ -578,9 +578,9 @@ def build_favorite_delta(
     for item in local:
         out.append(item)
         kind = item.get("itemKind") if isinstance(item, dict) else None
-        # "1" 的条件（任一成立）：
-        #   a) 服务器侧确实没有该 itemKind（原始响应里是 null）
-        #   b) 该 kind 在 assume_missing 里（基线被归一化过，看不出原始 null）
+        # "1" ofitemtext（Any Establishment）：
+        #   a) serverSidetextnonethe itemKind（In the original response, null）
+        #   b) the kind at assume_missing in（Baseline normalized，textNooutOriginal null）
         if kind in server_kinds and kind not in missing:
             flags.append("2")
         else:
@@ -589,17 +589,17 @@ def build_favorite_delta(
 
 
 # =============================================================================
-# 五、时间格式化
+# Five、timetext
 # =============================================================================
 
 def _local_wall_string(login_date_time: int) -> str:
     """
-    把 loginDateTime 渲染成真机那种 "YYYY-MM-DD HH:MM:SS.0" 字符串。
+    put loginDateTime textreal machinethattext "YYYY-MM-DD HH:MM:SS.0" String。
 
-    ★ loginDateTime 的语义是「本地墙上时间被当作 UTC 时刻」，
-      所以要用 utcfromtimestamp 还原出墙上时间，而不是 fromtimestamp。
-      真机 userData.lastLoginDate = "2026-10-05 00:19:37.0"
-      对应 loginDateTime = 1791159576。
+    ★ loginDateTime ofsemanticis「textWall TimetextWhentext UTC time」，
+      So use utcfromtimestamp textHaraoutWall Time，andNo fromtimestamp。
+      real machine userData.lastLoginDate = "2026-10-05 00:19:37.0"
+      Corresponding loginDateTime = 1791159576。
     """
     try:
         dt = datetime.fromtimestamp(int(login_date_time), tz=timezone.utc)
@@ -608,30 +608,30 @@ def _local_wall_string(login_date_time: int) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S.0")
 
 
-#: CST 偏移（source/Assembly-CSharp/Manager/TimeManager.cs:9  CSToffset = 8 小时）
+#: CST Offset（source/Assembly-CSharp/Manager/TimeManager.cs:9  CSToffset = 8 Hours）
 CST_OFFSET_SECONDS = 8 * 3600
 
-#: 游玩日志日的分界小时（source/Assembly-CSharp/Manager/TimeManager.cs:77-85
-#:   ToLogDateTime：小时 < 7 时把日期回退一天）
+#: playlogtextofMinutestextHours（source/Assembly-CSharp/Manager/TimeManager.cs:77-85
+#:   ToLogDateTime：Hours < 7 timeputtexttimestextOnedays）
 LOG_DAY_CUTOFF_HOUR = 7
 
 
 def _local_date_string(login_date_time: int) -> str:
     """
-    渲染成 "YYYY-MM-DD"（对应 TimeManager.GetLogDateString）。
+    text "YYYY-MM-DD"（Corresponding TimeManager.GetLogDateString）。
 
-    ★ 游玩日志日不是自然日：source/Assembly-CSharp/Manager/TimeManager.cs:77-85
+    ★ playlogtextNot a natural day：source/Assembly-CSharp/Manager/TimeManager.cs:77-85
 
         public static DateTime ToLogDateTime(DateTime dateTime, int hour = 0)
         {
             DateTime result = new(dateTime.Year, dateTime.Month, dateTime.Day, hour, 0, 0);
-            if (7 > dateTime.Hour) return result.AddDays(-1.0);   // 7 点前算前一天
+            if (7 > dateTime.Hour) return result.AddDays(-1.0);   // 7 textagocalculatePrevious day
             return result;
         }
 
-    真机佐证（source/2026-10-05.log:123）：
-        userPlayDate = "2026-10-05 00:20:30.0"（墙上时间 10-05 00:20）
-        playDate     = "2026-10-04"          （00:20 < 07:00 -> 回退到 10-04）
+    real machinetext（source/2026-10-05.log:123）：
+        userPlayDate = "2026-10-05 00:20:30.0"（Wall Time 10-05 00:20）
+        playDate     = "2026-10-04"          （00:20 < 07:00 -> Fallback to 10-04）
     """
     wall = datetime.fromtimestamp(int(login_date_time), tz=timezone.utc)
     log_day = wall - timedelta(days=1) if wall.hour < LOG_DAY_CUTOFF_HOUR else wall
@@ -640,41 +640,41 @@ def _local_date_string(login_date_time: int) -> str:
 
 def _standard_unix(login_date_time: int) -> int:
     """
-    把 loginDateTime 还原成**标准 Unix 时间戳**。
+    put loginDateTime textHaratext**standard Unix timetext**。
 
-    ★ loginDateTime 是「本地墙上时间被当作 UTC 时刻」的秒数（见 login_date_time_now），
-      所以标准 Unix 秒 = loginDateTime - 本地时区偏移（东八区即 -28800）。
+    ★ loginDateTime is「textWall TimetextWhentext UTC time」ofsecondsnumber（text login_date_time_now），
+      So the standard Unix seconds = loginDateTime - texttimetextOffset（Eastern Eight Wards -28800）。
 
-    对应 source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1290
+    Corresponding source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1290
         result.loginDate = TimeManager.GetUnixTime(src.Detail.LastLoginDate);
-    而 TimeManager.GetUnixTime 返回的是标准 Unix 秒。
+    and TimeManager.GetUnixTime returnback isstandard Unix seconds。
 
-    真机佐证：loginDateTime=1791159576 -> 1791159576-28800 = 1791130776，
-              真机 loginDate = 1791130777（差 1 秒，源于字符串截断到秒）。
+    real machinetext：loginDateTime=1791159576 -> 1791159576-28800 = 1791130776，
+              real machine loginDate = 1791130777（Bad 1 seconds，textinStringtruncate toseconds）。
     """
     return int(login_date_time) - local_utc_offset_seconds()
 
 
 # =============================================================================
-# 六、本局数据（play）
+# Sat、this game data（play）
 # =============================================================================
 
 @dataclass
 class PlayData:
     """
-    一局游玩的全部输入。
+    All inputs for one game。
 
-    ★ 默认值全部来自 config.py 的 PLAY_* 系列（取自真机 source/2026-10-05.log:123）。
-      想换歌/换成绩只改 config.py，不用动代码。
+    ★ defaultValueAll from config.py of PLAY_* textColumns（Taken from a real machine source/2026-10-05.log:123）。
+      Want to change songs/textResultsOnlychange config.py，Don't move the code。
     """
-    # 曲目
+    # track
     music_id: int = field(default_factory=lambda: config.PLAY_MUSIC_ID)
     music_level: int = field(default_factory=lambda: config.PLAY_MUSIC_LEVEL)
     track_no: int = field(default_factory=lambda: config.PLAY_TRACK_NO)
     version_int: int = field(default_factory=lambda: config.PLAY_VERSION_INT)
     version_str: str = field(default_factory=lambda: config.PLAY_VERSION_STR)
 
-    # 成绩
+    # Results
     achievement: int = field(default_factory=lambda: config.PLAY_ACHIEVEMENT)
     deluxscore: int = field(default_factory=lambda: config.PLAY_DELUXSCORE)
     score_rank: int = field(default_factory=lambda: config.PLAY_SCORE_RANK)
@@ -690,32 +690,32 @@ class PlayData:
     judge_counts: Dict[str, Dict[str, int]] = field(
         default_factory=lambda: copy.deepcopy(config.PLAY_JUDGE_COUNTS))
 
-    # 评级
-    #: ★ 这四个**不再来自 config** —— 运行时由 derive_play_rating() 从
-    #:   GetUserRatingApi 抓到的 userRatingList[0] 填（见该函数）。
-    #:   没传快照（离线组包）时才保持 0。
+    # text
+    #: ★ thisFourPiece**No longer from config** —— texttimeby derive_play_rating() From
+    #:   GetUserRatingApi texttoof userRatingList[0] Fill in（texttheFunction）。
+    #:   textPassing onSnapshot（textgroupPackage）timeonlyKeep 0。
     before_rating: int = 0
     after_rating: int = 0
     before_delux_rating: int = 0
     after_delux_rating: int = 0
-    #: ★ 这两个由 derive_play_grade() 从快照的 userMusicDetailList 里
-    #:   搜同 (musicId, level) 的记录取 scoreRank 得到；搜不到就是 0。
+    #: ★ thisTwoby derive_play_grade() From Snapshot userMusicDetailList in
+    #:   textSame (musicId, level) ofrecordTake scoreRank Get；textNotois 0。
     before_grade: int = 0
     after_grade: int = 0
-    #: ★ 恒为 1
+    #: ★ Constantly 1
     after_grade_rank: int = PLAY_AFTER_GRADE_RANK
 
-    # 曲种
+    # text
     category_index: int = field(default_factory=lambda: config.PLAY_CATEGORY_INDEX)
     music_index: int = field(default_factory=lambda: config.PLAY_MUSIC_INDEX)
     extra_flag: int = field(default_factory=lambda: config.PLAY_EXTRA_FLAG)
 
-    # 角色（游玩时快照，不加经验）
-    #: ★ 默认空列表 —— 真正的值由 derive_play_characters() 从服务器快照推。
-    #:   （原 PLAY_CHARACTERS（现在 selftest.py 里） 已移到 selftest.py 作测试数据）
+    # text（playtimeSnapshot，Inexperienced）
+    #: ★ defaultemptyList —— textcurrentofValueby derive_play_characters() Push from server snapshot。
+    #:   （Hara PLAY_CHARACTERS（currentat selftest.py in） Moved to selftest.py As test data）
     characters: List[Dict[str, int]] = field(default_factory=list)
 
-    # 消耗
+    # consume
     play_credit: int = field(default_factory=lambda: config.PLAY_CREDIT)
     use_ticket_id: int = field(default_factory=lambda: config.PLAY_USE_TICKET_ID)
     play_mode: int = field(default_factory=lambda: config.PLAY_MODE)
@@ -723,28 +723,28 @@ class PlayData:
     is_event_mode: bool = field(default_factory=lambda: config.PLAY_IS_EVENT_MODE)
     is_new_free: bool = field(default_factory=lambda: config.PLAY_IS_NEW_FREE)
     is_freedom_mode: bool = field(default_factory=lambda: config.PLAY_IS_FREEDOM_MODE)
-    #: ★ 恒为 PLAY_LOCAL_PLAY_COUNT（= 2）—— 机台本地计数器，服务器不返回
+    #: ★ Constantly PLAY_LOCAL_PLAY_COUNT（= 2）—— machineStagetextcountnumbertext，serverNoreturntimes
     local_play_count: int = PLAY_LOCAL_PLAY_COUNT
 
-    # 演算增量
-    #: 用户总游玩次数增量（0 = userData.playCount / currentPlayCount 都不变）
-    #: ★ 默认 0：不再自动 +1。想复刻真机就设成 1。
+    # textcalculateIncrement
+    #: userTotal Play CountIncrement（0 = userData.playCount / currentPlayCount allUnchanged）
+    #: ★ default 0：No longer auto +1。If you want to repeat the real machine, set it to 1。
     user_play_count_gain: int = field(
         default_factory=lambda: getattr(config, "PLAY_USER_PLAY_COUNT_GAIN", 0))
-    #: 曲目历史游玩次数增量（0 = 条目照传但次数不变）
+    #: tracktextplaycountIncrement（0 = itemtextPassing onButcountUnchanged）
     music_play_count_gain: int = field(
         default_factory=lambda: config.PLAY_MUSIC_PLAY_COUNT_GAIN)
     map_distance_gain: int = field(default_factory=lambda: config.PLAY_MAP_DISTANCE_GAIN)
     character_exp_gain: int = field(default_factory=lambda: config.PLAY_CHARACTER_EXP_GAIN)
 
-    # ---- 里程 / 登录奖励 ----
-    # ★ 这两个是**登录奖励发放**才产生的，普通游玩结算不回传（留空）。
-    #   真机 39 次 UpsertUserAll 样本里，userGetPointList 有 25 次为空（64%）。
-    #   留空 => userData.point 保持基线值不变（不发放点数）。
+    # ---- intext / loginRewards ----
+    # ★ thisTwois**loginRewardshairtext**Produced by，textplaysettlementNoCallback（leave blank）。
+    #   real machine 39 text UpsertUserAll textin，userGetPointList has 25 textIs Empty（64%）。
+    #   leave blank => userData.point Keep baseline value unchanged（Do not issue credits）。
 
 
 def build_play_from_config() -> PlayData:
-    """按 config.py 的 PLAY_* 构造本局数据。"""
+    """press config.py of PLAY_* constructthis game data。"""
     return PlayData()
 
 
@@ -753,26 +753,26 @@ def derive_play_rating(
     play: Optional[PlayData] = None,
 ) -> PlayData:
     """
-    从服务器快照里取**真实 rating**，填进 play 的四个 rating 字段。
+    Take from server snapshot**real rating**，Fill play ofFourPiece rating Field。
 
-    ★ 为什么不再用 config 里的静态值：
-        rating 会随每局成绩变化，写死会与服务器对不上。
+    ★ Why don't you use it anymore config inoftextValue：
+        rating will change with each round，Writing death will be incompatible with the server。
 
-    ★ 取值依据（真机报文实证，2026-10-06 22:23 那局）：
+    ★ Value based on（real machinepacketEmpirical，2026-10-06 22:23 thatgame）：
         userPlaylog.beforeRating      = 15534
         userPlaylog.afterRating       = 15534
         userPlaylog.beforeDeluxRating = 15534
         userPlaylog.afterDeluxRating  = 15534
 
-        userData.playerRating = 15534   ← 与 beforeRating/afterRating 一致
-        userData.musicRating  = 15534   ← 与 beforeDeluxRating/afterDeluxRating 一致
-        userRatingList[0].rating = 0    ← 实测**不是**这个值，别取错
+        userData.playerRating = 15534   ← And beforeRating/afterRating Match
+        userData.musicRating  = 15534   ← And beforeDeluxRating/afterDeluxRating Match
+        userRatingList[0].rating = 0    ← Measured**No**thisvalues，Don't get it wrong
 
-    参数：
-        snapshot: GetNeedUserData 的返回值
-        play:     要就地填写的 PlayData（不传则新建）
+    Parameter：
+        snapshot: GetNeedUserData ofreturntimesValue
+        play:     musttextFill intextof PlayData（Do not pass on or create a new one）
 
-    返回：填好的 PlayData（同一对象）。
+    returntimes：Completed PlayData（Same object）。
     """
     p = play or build_play_from_config()
     snap = normalize_snapshot(snapshot) if snapshot else {}
@@ -797,7 +797,7 @@ def derive_play_rating(
                     continue
         return None
 
-    # playerRating 优先；退化时看 userRatingList[0].rating
+    # playerRating Priority；texttimetext userRatingList[0].rating
     rating = _pick("playerRating")
     if rating is None:
         try:
@@ -817,13 +817,13 @@ def derive_play_rating(
         p.before_delux_rating = delux
         p.after_delux_rating = delux
 
-    log_info("rating 取自服务器快照：playerRating=" + str(p.before_rating)
+    log_info("rating Taken from server snapshot：playerRating=" + str(p.before_rating)
              + " musicRating=" + str(p.before_delux_rating))
     return p
 
 
 def find_music_detail(snapshot: Optional[Any], music_id: int, level: int):
-    """在快照的 userMusicDetailList 里搜同 (musicId, level) 的那条记录；没有返回 None。"""
+    """in the snapshot userMusicDetailList intextSame (musicId, level) ofthatitemrecord；nonereturntimes None。"""
     snap = normalize_snapshot(snapshot) if snapshot else {}
     items = snap.get("userMusicDetailList") or []
     if isinstance(items, dict):
@@ -841,24 +841,24 @@ def derive_play_grade(
     play: Optional[PlayData] = None,
 ) -> PlayData:
     """
-    推导 beforeGrade / afterGrade / afterGradeRank。
+    text beforeGrade / afterGrade / afterGradeRank。
 
-    ★★ 重要：源码里这三个字段是**段位（Dan）**，不是曲目评级 ——
+    ★★ textmust：source codeinthisThreefieldsis**textBit（Dan）**，Not a track rating ——
         source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1419-1421
-            result.beforeGrade    = (int)gameScore.PreDanRate;   // 打之前的段位 rate
-            result.afterGrade     = (int)gameScore.DanRate;      // 打之后的段位 rate
-            result.afterGradeRank = (int)gameScore.Dan;          // 段位等级
+            result.beforeGrade    = (int)gameScore.PreDanRate;   // textBeforeoftextBit rate
+            result.afterGrade     = (int)gameScore.DanRate;      // textAfteroftextBit rate
+            result.afterGradeRank = (int)gameScore.Dan;          // textBitlevel
 
-        真机样本（无段位账号）= beforeGrade 0 / afterGrade 0 / afterGradeRank 1。
+        real-machine sample（notextBittext）= beforeGrade 0 / afterGrade 0 / afterGradeRank 1。
 
-    本工程的取法（按使用方要求）：
-        before_grade  = 在 userMusicDetailList 里搜同 (musicId, level) 的记录，
-                        取它的 scoreRank；搜不到 -> 0
-        after_grade   = 拿本局成绩（play.achievement）与记录里的 achievement 比对，
-                        成绩更好 -> 取本局推导出的评级，否则沿用 before_grade
-        after_grade_rank = 恒为 1（PLAY_AFTER_GRADE_RANK）
+    textofTaketext（pressUsetextmusttext）：
+        before_grade  = at userMusicDetailList intextSame (musicId, level) ofrecord，
+                        Take it scoreRank；textNoto -> 0
+        after_grade   = textthis gameResults（play.achievement）vs. in the record achievement textYes.，
+                        Better grades -> Take the rating derived from this bureau，Otherwise, continue to use before_grade
+        after_grade_rank = Constantly 1（PLAY_AFTER_GRADE_RANK）
 
-    ⚠ 想严格复刻真机（无段位账号一律 0）就把 DERIVE_GRADE_FROM_MUSIC_DETAIL 设成 False。
+    ⚠ Want to strictly reproduce the real machine（notextBittextAlways 0）Just put the DERIVE_GRADE_FROM_MUSIC_DETAIL text False。
     """
     p = play or build_play_from_config()
     p.after_grade_rank = PLAY_AFTER_GRADE_RANK
@@ -874,22 +874,22 @@ def derive_play_grade(
     if detail is None:
         p.before_grade = 0
         p.after_grade = 0
-        log_info("grade：快照里没有 musicId=" + str(p.music_id) + " level="
-                 + str(p.music_level) + " 的记录 -> beforeGrade=0 afterGrade=0")
+        log_info("grade：Not in snapshot musicId=" + str(p.music_id) + " level="
+                 + str(p.music_level) + " ofrecord -> beforeGrade=0 afterGrade=0")
         return p
 
     before = int(detail.get("scoreRank", 0) or 0)
     old_ach = int(detail.get("achievement", 0) or 0)
     p.before_grade = before
 
-    # 本局成绩更好 -> 用本局推导的评级（没有成绩表时退回 before）
+    # this gameBetter grades -> usethis gametextoftext（noneResultstexttimetexttimes before）
     if int(p.achievement or 0) > old_ach:
         p.after_grade = before
     else:
         p.after_grade = before
     log_info("grade：musicId=" + str(p.music_id) + " level=" + str(p.music_level)
-             + " 记录 scoreRank=" + str(before) + " achievement=" + str(old_ach)
-             + " / 本局 achievement=" + str(p.achievement)
+             + " record scoreRank=" + str(before) + " achievement=" + str(old_ach)
+             + " / this game achievement=" + str(p.achievement)
              + " -> beforeGrade=" + str(p.before_grade)
              + " afterGrade=" + str(p.after_grade)
              + " afterGradeRank=" + str(p.after_grade_rank))
@@ -901,27 +901,27 @@ def derive_play_characters(
     play: Optional[PlayData] = None,
 ) -> List[Dict[str, int]]:
     """
-    从**服务器刚下发的快照**推出本局的 5 只角色（含游玩前等级）。
+    From**servertextIssueofSnapshot**textoutthis gameof 5 Roles only（Includes Pre-Play Level）。
 
-    ★ 为什么需要它：
-        PLAY_CHARACTERS（现在 selftest.py 里） 是手填的静态值，账号一升级就过期；
-        用过期值会得到与 userCharacterList 对不上的 characterLevelN。
-        快照是登录后立刻抓的服务器真值，永远是最新的。
+    ★ Why you need it：
+        PLAY_CHARACTERS（currentat selftest.py in） istextFill inoftextValue，textOnetext；
+        usetextValueMeetingsGetAnd userCharacterList Not really. characterLevelN。
+        The snapshot is the true value of the server taken immediately after logging in，textistextof。
 
-    数据来源（都在 Get 响应里）：
-        userData.charaSlot         本局 5 个角色槽的 characterId（顺序即 slot1..5）
+    datatext（allat Get Responding to）：
+        userData.charaSlot         this game 5 of character slots characterId（orderi.e. slot1..5）
                                    source/Assembly-CSharp/Net.VO.Mai2/GetUserData.cs
-        userCharacterList          每只角色的 level / awakening
-                                   GetUserCharacterApi 响应
+        userCharacterList          eachRoles onlyof level / awakening
+                                   GetUserCharacterApi Response
 
-    参数：
-        snapshot: GetNeedUserData 的返回值（或任何含 userData /
-                  userCharacterList 的字典）。
-        play:     当前的 PlayData；快照里查不到的槽位回退到它同位置的配置。
+    Parameter：
+        snapshot: GetNeedUserData ofreturntimesValue（or any userData /
+                  userCharacterList ofDictionary）。
+        play:     Current PlayData；The slot that cannot be found in the snapshot falls back to its configuration in the same location。
 
-    返回：
-        5 条 {"characterId","level","awakening"}，**游玩前**的值（不加经验）。
-        快照里既没有该角色、配置也没有时，该槽位为 characterId=0。
+    returntimes：
+        5 item {"characterId","level","awakening"}，**playago**ofValue（Inexperienced）。
+        The role does not exist in the snapshot、textNeithertime，thetextBitfor characterId=0。
     """
     p = play or build_play_from_config()
     fallback = list(p.characters or [])[:5]
@@ -931,7 +931,7 @@ def derive_play_characters(
     slot_ids: List[int] = []
     levels: Dict[int, Dict[str, int]] = {}
     try:
-        # userData 是 singleton 节点（列表 1 元素）；也容忍裸 dict 形态
+        # userData is singleton nodes（List 1 Element）；Nudity is also tolerated dict Morphology
         data = snap.get("userData") or []
         if isinstance(data, dict):
             data = [data]
@@ -984,15 +984,15 @@ def build_post_play_user_data(
     play_date_time: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    构造**游玩后**的 userData（单个 dict，不是数组）。
+    construct**playAfter**of userData（Single dict，Not an array）。
 
-    ★ 用途：GetUserNewItemListApi 需要传「游玩后」的档案。
-      真机实证（source/2026-10-05-new.log）：
-          GetUserNewItemList 的 userData[0] 与 UpsertUserAll 的 userData[0]
-          **完全一致**（playCount=1258、point=4460、lastPlayDate=19:22:53.0）。
+    ★ usetext：GetUserNewItemListApi needPassing on「playAfter」offiletext。
+      real machineEmpirical（source/2026-10-05-new.log）：
+          GetUserNewItemList of userData[0] And UpsertUserAll of userData[0]
+          **Exact match**（playCount=1258、point=4460、lastPlayDate=19:22:53.0）。
 
-    返回：
-        游玩后的 userData 字典（可直接放进 [ ] 传给 GetUserNewItemList）
+    returntimes：
+        playAfterof userData Dictionary（Can be inserted directly [ ] Pass to GetUserNewItemList）
     """
     p = play or build_play_from_config()
     ua = build_user_all(
@@ -1007,11 +1007,11 @@ def build_post_play_user_data(
 
 
 # =============================================================================
-# 七、userPlaylogList（110 字段成绩明细）
+# Seven、userPlaylogList（110 Field Score Breakdown）
 # =============================================================================
 
-#: UserPlaylog 的**全部**字段，顺序照 source/Assembly-CSharp/Net.VO.Mai2/UserPlaylog.cs
-#: ★ 一个都不能省：把真机报文与 C# 声明做集合比对，两个方向都是 0 差异。
+#: UserPlaylog of**All**Field，ordertext source/Assembly-CSharp/Net.VO.Mai2/UserPlaylog.cs
+#: ★ None of them can be saved：putreal machinepacketAnd C# Declare for collection comparison，Both directions 0 Difference。
 PLAYLOG_FIELDS: Tuple[str, ...] = (
     "userId", "orderId", "playlogId", "version", "placeId", "placeName",
     "loginDate", "playDate", "userPlayDate", "type", "musicId", "level",
@@ -1042,13 +1042,13 @@ PLAYLOG_FIELDS: Tuple[str, ...] = (
     "extBool1", "extBool2", "extBool3",
 )
 
-#: ★ 类型是 string 的字段（默认值必须是空串，不是 0）
+#: ★ textis string ofField（defaultValueMust beemptytext，No 0）
 PLAYLOG_STRING_FIELDS: Tuple[str, ...] = (
     "placeName", "playDate", "userPlayDate",
     "vsUserName", "playedUserName1", "playedUserName2", "playedUserName3",
 )
 
-#: ★ 名字不带 is 前缀但类型是 bool 的字段（早期实现用 startswith("is") 判断会漏掉）
+#: ★ Name without is Prefix but type is bool ofField（textcurrentuse startswith("is") Judgment will be missed）
 PLAYLOG_BOOL_FIELDS: Tuple[str, ...] = (
     "isTap", "isHold", "isSlide", "isTouch", "isBreak",
     "isCriticalDisp", "isFastLateDisp",
@@ -1057,7 +1057,7 @@ PLAYLOG_BOOL_FIELDS: Tuple[str, ...] = (
     "extBool1", "extBool2", "extBool3",
 )
 
-#: 判定类型与判定位（顺序固定）
+#: Determination Type and Determination Positioning（ordertext）
 JUDGE_TYPES: Tuple[str, ...] = ("tap", "hold", "slide", "touch", "break")
 JUDGE_BOXES: Tuple[str, ...] = ("CriticalPerfect", "Perfect", "Great", "Good", "Miss")
 
@@ -1074,37 +1074,37 @@ def build_user_playlog(
     play_date: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    构造一条 110 字段的 userPlaylog。
+    constructOneitem 110 Field userPlaylog。
 
-    参数：
-        playlog_id:    ★ 必须 == UserLoginApi 的 loginId
-        play_date:     ★ 本局**游玩时刻**（loginDateTime 同格式，即 now + 时区偏移）。
-                       用于 playDate（日志日）与 userPlayDate（墙上串）。
-                       不传则退回 login_date（确定性更强，适合离线对拍）。
-                       ★ 为什么要分开：真机 playDate / userPlayDate 是「打完那一刻」，
-                         而 loginDateTime 是「刷卡登录那一刻」，两者相差一局的时间
-                         （source/2026-10-05.log: 登录 00:19:37 -> 游玩 00:20:30）。
-        login_date:    登录会话时刻（用于推导 loginDate）。
-                       ★ 真机里 userPlaylog.loginDate 是**游玩会话的开始时刻**
-                         （source/2026-10-05.log:123 是 1791130777，
-                          比 UserLoginApi 的 loginDateTime=1791159576 早约 8 小时，
-                          实为上一局的会话时刻），纯网络脚本没有这个值，
-                          这里用传入值推导即可；服务端不以此为准。
-        play:          本局数据（可选，默认按 config.PLAY_* 构造）
-        place_id:      店铺 ID
-        place_name:    店铺名
-        client_id:     机台短值
-        user_play_date: 游玩时刻字符串（可选，默认由 login_date 推导）
+    Parameter：
+        playlog_id:    ★ Required == UserLoginApi of loginId
+        play_date:     ★ this game**playtime**（loginDateTime Same Format，i.e. now + timetextOffset）。
+                       used for playDate（logtext）And userPlayDate（String on the wall）。
+                       Return without passing login_date（text，textYes.text）。
+                       ★ Why Separate：real machine playDate / userPlayDate is「textthatOnetext」，
+                         and loginDateTime is「The moment you swipe your card to log in」，The time difference between the two is one game
+                         （source/2026-10-05.log: login 00:19:37 -> play 00:20:30）。
+        login_date:    loginSessiontime（used fortext loginDate）。
+                       ★ real machinein userPlaylog.loginDate is**playSessionoftexttime**
+                         （source/2026-10-05.log:123 is 1791130777，
+                          text UserLoginApi of loginDateTime=1791159576 text 8 Hours，
+                          This is actually the session time of the last game），textnetworkscriptnonethisvalues，
+                          thisinuseIncomingValuetextJust do it；serverNointextfortext。
+        play:          this game data（Optional，defaultpress config.PLAY_* construct）
+        place_id:      Store ID
+        place_name:    Store Name
+        client_id:     machineStageshortValue
+        user_play_date: playtimeString（Optional，defaultby login_date text）
 
-    返回：
-        110 字段的 dict
+    returntimes：
+        110 Field dict
 
-    自动推导的规则（依据 source/.../Net.VO.Mai2/VOExtensions.cs）：
-        userId           恒为 0（VOExtensions.cs:1289）
-        musicId >= 100000（宴谱） -> level = 10（VOExtensions.cs:1300-1303）
-        isTap/isHold/... 由该类型判定总数是否为 0 推导（VOExtensions.cs:1403-1407）
-        trialPlayAchievement = -1（本局没有试玩谱）（VOExtensions.cs:1441-1445）
-        extNum4 = 曲种索引（与 userExtend.categoryIndex 冗余）
+    textoftextThen（Basis source/.../Net.VO.Mai2/VOExtensions.cs）：
+        userId           Constantly 0（VOExtensions.cs:1289）
+        musicId >= 100000（Banquet Recipe） -> level = 10（VOExtensions.cs:1300-1303）
+        isTap/isHold/... bythetextTotal number of judgmentsisNofor 0 text（VOExtensions.cs:1403-1407）
+        trialPlayAchievement = -1（this gamenonetext）（VOExtensions.cs:1441-1445）
+        extNum4 = text（And userExtend.categoryIndex Redundancy）
     """
     p = play or build_play_from_config()
 
@@ -1112,24 +1112,24 @@ def build_user_playlog(
     play_moment = int(play_date) if play_date else int(login_date)
     user_play_date = user_play_date or _local_wall_string(play_moment)
 
-    # ★ 字符串字段默认空串、其余默认 0（真机报文里 vsUserName/playedUserNameN 都是 ""）
+    # ★ String field default empty string、Remaining defaults 0（real machinepacketin vsUserName/playedUserNameN allis ""）
     row: Dict[str, Any] = {
         name: ("" if name in PLAYLOG_STRING_FIELDS else 0)
         for name in PLAYLOG_FIELDS
     }
 
-    # ---- 基础 ----
+    # ---- Foundation ----
     row["userId"] = 0                       # VOExtensions.cs:1289
     row["orderId"] = 0
     row["playlogId"] = playlog_id
     row["version"] = p.version_int
     row["placeId"] = place_id
     row["placeName"] = place_name
-    # ★ loginDate 是**标准 Unix 秒**（VOExtensions.cs:1290 GetUnixTime 的返回值），
-    #   不是 loginDateTime（后者是「墙上时间当 UTC」）。
+    # ★ loginDate is**standard Unix seconds**（VOExtensions.cs:1290 GetUnixTime ofreturntimesValue），
+    #   No loginDateTime（The latter is「Time on the wall when UTC」）。
     row["loginDate"] = _standard_unix(login_date)
-    # ★ playDate 是游玩**日志日**（7 点前算前一天），不是自然日；
-    #   取的是**游玩时刻**，不是登录时刻。
+    # ★ playDate isplay**logtext**（7 textagocalculatePrevious day），Not a natural day；
+    #   Take is**playtime**，Not at login time。
     row["playDate"] = _local_date_string(play_moment)
     row["userPlayDate"] = user_play_date
     row["type"] = 0
@@ -1137,41 +1137,41 @@ def build_user_playlog(
     row["level"] = level
     row["trackNo"] = p.track_no
 
-    # ---- 对战（单人局全 0）----
+    # ---- Match（Single Player Global 0）----
     row["playerNum"] = 1
 
-    # ---- 角色快照 1..5 ----
-    # ★ characterLevelN 是**游玩前**的等级，不要加本局经验 —— 这一点极容易搞错：
+    # ---- textSnapshot 1..5 ----
+    # ★ characterLevelN is**playago**oflevel，Do not add the experience of this bureau —— thisOnetext：
     #     source/Assembly-CSharp/Net.VO.Mai2/VOExtensions.cs:1361
     #         result.characterLevel1 = (int)gameScore.CharaLevel[0];
-    #   gameScore.CharaLevel 是**本次开始游玩时**灌进去的快照，整局不再变；
-    #   游玩后的等级只出现在 upsertUserAll.userCharacterList 里。
+    #   gameScore.CharaLevel is**textplaytime**textGoofSnapshot，textgameNoAgainChange；
+    #   playAfteroflevelOnlyAppearanceat upsertUserAll.userCharacterList in。
     #
-    #   ★ 两个真机会话实证（Get 侧 / playlog / upsertUserCharacterList 三者对照）：
+    #   ★ Two Real Opportunity Dialogues Empirical（Get Side / playlog / upsertUserCharacterList Triple control）：
     #
-    #     source/2026-10-05-new.log:31,123（19:21 会话）
+    #     source/2026-10-05-new.log:31,123（19:21 Session）
     #       GetUserCharacterApi  : 395=3801 101=4456 135 135 135
-    #       userPlaylogList[0]   : 3801 4456 135 135 135   ← 与 Get 侧相同 = 游玩前
-    #       userCharacterList    : 395=3802 101=4457 136 136 136  ← 游玩后（+1）
+    #       userPlaylogList[0]   : 3801 4456 135 135 135   ← And Get Same side = playago
+    #       userCharacterList    : 395=3802 101=4457 136 136 136  ← playAfter（+1）
     #
-    #     MaimaiNetSpy 2026-10-05_222919（22:31 会话）
+    #     MaimaiNetSpy 2026-10-05_222919（22:31 Session）
     #       GetUserCharacterApi  : 395=3802 101=4457 136 136 136
-    #       userPlaylogList[0]   : 3802 4457 136 136 136   ← 与 Get 侧相同 = 游玩前
-    #       userCharacterList    : 395=3803 101=4458 137 137 137  ← 游玩后（+1）
+    #       userPlaylogList[0]   : 3802 4457 136 136 136   ← And Get Same side = playago
+    #       userCharacterList    : 395=3803 101=4458 137 137 137  ← playAfter（+1）
     #
-    #   所以 p.characters 里放的必须是**游玩前**的值
-    #   （PLAY_CHARACTERS（现在 selftest.py 里） 的注释也是这么写的），这里原样透传即可。
-    #   推荐做法：用 derive_play_characters(snapshot) 直接从服务器刚下发的
-    #   userData.charaSlot + userCharacterList 推出来，省得手填过期。
+    #   So p.characters intextofMust be**playago**ofValue
+    #   （PLAY_CHARACTERS（currentat selftest.py in） oftextAlsothistextof），thisinTransparent as isJust do it。
+    #   textPractice：use derive_play_characters(snapshot) directlyFromservertextIssueof
+    #   userData.charaSlot + userCharacterList textouttext，textFill intext。
     chars = list(p.characters or [])[:5]
     for i in range(5):
         c = chars[i] if i < len(chars) else {}
         row["characterId" + str(i + 1)] = int(c.get("characterId", 0) or 0)
-        # 游玩前等级（不加经验；经验只体现在 userCharacterList）
+        # playagolevel（Inexperienced；textOnlytextcurrentat userCharacterList）
         row["characterLevel" + str(i + 1)] = int(c.get("level", 0) or 0)
         row["characterAwakening" + str(i + 1)] = int(c.get("awakening", 0) or 0)
 
-    # ---- 成绩 ----
+    # ---- Results ----
     row["achievement"] = p.achievement
     row["deluxscore"] = p.deluxscore
     row["scoreRank"] = p.score_rank
@@ -1185,7 +1185,7 @@ def build_user_playlog(
     row["fastCount"] = p.fast_count
     row["lateCount"] = p.late_count
 
-    # ---- 判定明细（5 类型 × 5 判定位）----
+    # ---- Determination Details（5 text × 5 Judgment positioning）----
     for jtype in JUDGE_TYPES:
         counts = (p.judge_counts or {}).get(jtype, {}) or {}
         total = 0
@@ -1193,16 +1193,16 @@ def build_user_playlog(
             value = int(counts.get(box, 0) or 0)
             row[jtype + box] = value
             total += value
-        # isTap / isHold / ... 由该类型是否有 note 推导
+        # isTap / isHold / ... bythetextisNohas note text
         flag_name = "is" + jtype.capitalize()
         if flag_name in row:
             row[flag_name] = (total > 0)
 
-    # ---- 显示开关（真机均为 true）----
+    # ---- textSwitch（real machinetextfor true）----
     row["isCriticalDisp"] = True
     row["isFastLateDisp"] = True
 
-    # ---- 评级 ----
+    # ---- text ----
     row["beforeRating"] = p.before_rating
     row["afterRating"] = p.after_rating
     row["beforeGrade"] = p.before_grade
@@ -1211,25 +1211,25 @@ def build_user_playlog(
     row["beforeDeluxRating"] = p.before_delux_rating
     row["afterDeluxRating"] = p.after_delux_rating
 
-    # ---- 模式 ----
+    # ---- mode ----
     row["isPlayTutorial"] = bool(p.is_tutorial)
     row["isEventMode"] = bool(p.is_event_mode)
     row["isFreedomMode"] = bool(p.is_freedom_mode)
     row["playMode"] = p.play_mode
     row["isNewFree"] = bool(p.is_new_free)
 
-    # ---- 试玩（本局没有试玩谱）----
+    # ---- text（this gamenonetext）----
     row["trialPlayAchievement"] = -1
 
-    # ---- 扩展位 ----
+    # ---- textBit ----
     row["extNum1"] = 0
     row["extNum2"] = 0
-    row["extNum4"] = p.category_index      # 与 userExtend.categoryIndex 冗余
+    row["extNum4"] = p.category_index      # And userExtend.categoryIndex Redundancy
     row["extBool1"] = False
     row["extBool2"] = False
     row["extBool3"] = False
 
-    # 类型自检：bool 字段必须是 bool
+    # text：bool Field must be bool
     for name in PLAYLOG_BOOL_FIELDS:
         row[name] = bool(row.get(name, False))
 
@@ -1238,26 +1238,26 @@ def build_user_playlog(
 
 def validate_user_playlog(playlog: Dict[str, Any]) -> List[str]:
     """
-    按源码硬约束自查一条 playlog，返回问题列表（空 = 合规）。
+    presssource codetextcheckOneitem playlog，returntimestextList（empty = Compliance）。
 
-    字段填错不会报错，却会被服务端当成异常成绩。检查项：
-        1. 字段数量 == 110
-        2. 各类型判定数之和 == totalCombo
-        3. maxCombo <= 判定总数
-        4. achievement > 0 时不应全是 Miss
-        5. isClear=True 时 achievement 不能为 0
-        6. comboStatus=1（全连）时 maxCombo == 判定总数
-        7. extNum4 == userExtend.categoryIndex（由调用方核对，这里只提示非 0）
+    Fields filled in incorrectly will not report errors，But it will be treated as an abnormal result by the server。textcheckitem：
+        1. Number of fields == 110
+        2. Sum of each type of judgment number == totalCombo
+        3. maxCombo <= Total number of judgments
+        4. achievement > 0 timeNoshouldYes to all Miss
+        5. isClear=True time achievement Cannot be 0
+        6. comboStatus=1（Quan Lian）time maxCombo == Total number of judgments
+        7. extNum4 == userExtend.categoryIndex（bycallusetextYes.，thisinOnlytextnon- 0）
     """
     problems: List[str] = []
 
     missing = [f for f in PLAYLOG_FIELDS if f not in playlog]
     if missing:
-        problems.append("缺少字段：" + ", ".join(missing[:10])
+        problems.append("textField：" + ", ".join(missing[:10])
                         + ("..." if len(missing) > 10 else ""))
     extra = [k for k in playlog if k not in PLAYLOG_FIELDS]
     if extra:
-        problems.append("多出字段：" + ", ".join(extra[:10]))
+        problems.append("Extra Fields：" + ", ".join(extra[:10]))
 
     total_notes = 0
     for jtype in JUDGE_TYPES:
@@ -1266,43 +1266,43 @@ def validate_user_playlog(playlog: Dict[str, Any]) -> List[str]:
 
     total_combo = int(playlog.get("totalCombo", 0) or 0)
     if total_combo and total_notes != total_combo:
-        problems.append("各类型判定数之和 " + str(total_notes)
+        problems.append("Sum of each type of judgment number " + str(total_notes)
                         + " != totalCombo " + str(total_combo))
 
     max_combo = int(playlog.get("maxCombo", 0) or 0)
     if total_notes and max_combo > total_notes:
-        problems.append("maxCombo " + str(max_combo) + " > 判定总数 " + str(total_notes))
+        problems.append("maxCombo " + str(max_combo) + " > Total number of judgments " + str(total_notes))
 
     achievement = int(playlog.get("achievement", 0) or 0)
     if achievement > 0:
         miss = sum(int(playlog.get(jtype + "Miss", 0) or 0) for jtype in JUDGE_TYPES)
         if total_notes and miss == total_notes:
-            problems.append("achievement>0 但全是 Miss，数值矛盾")
+            problems.append("achievement>0 But it's all Miss，numberValuetext")
 
     if bool(playlog.get("isClear")) and achievement == 0:
-        problems.append("isClear=True 但 achievement=0，数值矛盾")
+        problems.append("isClear=True But achievement=0，numberValuetext")
 
     if int(playlog.get("comboStatus", 0) or 0) == 1 and max_combo != total_notes:
-        problems.append("comboStatus=1（全连）但 maxCombo != 判定总数")
+        problems.append("comboStatus=1（Quan Lian）But maxCombo != Total number of judgments")
 
     if int(playlog.get("extNum4", 0) or 0) == 0:
-        problems.append("extNum4（曲种索引）为 0，应等于 userExtend.categoryIndex")
+        problems.append("extNum4（text）for 0，should be equal to userExtend.categoryIndex")
 
     if not playlog.get("placeName"):
-        problems.append("placeName 为空（店铺名需在 config.PLACE_NAME 配置）")
+        problems.append("placeName Is Empty（Store name needs to be in config.PLACE_NAME text）")
 
     return problems
 
 
 # =============================================================================
-# 八、userGamePlaylogList
+# Eight、userGamePlaylogList
 # =============================================================================
 
 def calc_play_special(calc_special_num: Optional[int] = None) -> int:
     """
-    复刻 VOExtensions.cs:846-855 的 playSpecial 算法。
+    Reprint VOExtensions.cs:846-855 of playSpecial calculatetext。
 
-    源码：
+    source code：
         int max  = 1037933;
         int num2 = Random.Range(1, max) * 2069;
         num2 += GameManager.CalcSpecialNum();
@@ -1310,22 +1310,22 @@ def calc_play_special(calc_special_num: Optional[int] = None) -> int:
         for (int i = 0; i < 32; i++) { num3 <<= 1; num3 += num2 % 2; num2 >>= 1; }
         playSpecial = num3;
 
-    参数：
-        calc_special_num: 机台硬件标志位掩码（GameManager.CalcSpecialNum）。
-                          默认取 PLAY_SPECIAL_NUM = 1024。
+    Parameter：
+        calc_special_num: machineStagetextBittext（GameManager.CalcSpecialNum）。
+                          defaultTake PLAY_SPECIAL_NUM = 1024。
 
-    返回：
-        int32 范围的 playSpecial。
+    returntimes：
+        int32 textof playSpecial。
 
-    ★ 关于 CalcSpecialNum 的取值（源码 GameManager.cs:332-378）：
-        它是按位或出来的机台特征掩码，其中 0x400 无条件置位，
-        另外 0x40 / 0x80 / 0x100 三位的条件是「**不**包含某特征」——
-        真机是一台标准 ACA + GTX + i3-8100 机台，这三位恰好都为 0，
-        于是 CalcSpecialNum 恒等于 0x400 = 1024。
+    ★ About CalcSpecialNum ofPick a value（source code GameManager.cs:332-378）：
+        It is a bitwise or outgoing machine feature mask，where 0x400 noitemtextBit，
+        Also 0x40 / 0x80 / 0x100 The condition for the third place is「**No**Contains a characteristic」——
+        real machine isOneStagestandard ACA + GTX + i3-8100 machineStage，thisThreeBitJust in timeallfor 0，
+        So CalcSpecialNum Constant equals 0x400 = 1024。
 
-      ★ 反推验证：真机 playSpecial = 892014272
-            位反转32(892014272) = 57726124 = 27900 * 2069 + 1024
-            余数正是 1024，与 gamehook 抓到的 CalcSpecialNum 完全吻合。
+      ★ Reverse inference validation：real machine playSpecial = 892014272
+            Bit inversion32(892014272) = 57726124 = 27900 * 2069 + 1024
+            The remainder is exactly 1024，And gamehook texttoof CalcSpecialNum Exact match。
     """
     import random
     special = PLAY_SPECIAL_NUM if calc_special_num is None else int(calc_special_num)
@@ -1336,7 +1336,7 @@ def calc_play_special(calc_special_num: Optional[int] = None) -> int:
         num3 <<= 1
         num3 += num2 % 2
         num2 >>= 1
-    # 截断到 int32
+    # truncate to int32
     if num3 >= 2 ** 31:
         num3 -= 2 ** 32
     return num3
@@ -1352,14 +1352,14 @@ def build_user_game_playlog(
     play_date: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    构造 userGamePlaylogList 的一条（13 字段）。
+    construct userGamePlaylogList ofOneitem（13 Field）。
 
-    ★ playDate 用的是**上报那一刻**的墙上时间（真机实证：
-      source/2026-10-05.log 里 userGamePlaylogList[0].playDate = "00:20:57.0"，
-      与 UpsertUserAllApi 请求发出的时刻一致，也和 userData.lastPlayDate 相同）。
-      不传 play_date 时退回 login_date。
+    ★ playDate useofis**At the moment of reporting**ofWall Time（real machineEmpirical：
+      source/2026-10-05.log in userGamePlaylogList[0].playDate = "00:20:57.0"，
+      And UpsertUserAllApi requesthairoutoftimeMatch，Also with userData.lastPlayDate relatedSame）。
+      Do not pass play_date timetexttimes login_date。
 
-    真机样本（source/2026-10-05.log:123）：
+    real-machine sample（source/2026-10-05.log:123）：
         {"playlogId":..,"version":"1.56.00","playDate":"2026-10-05 00:20:57.0",
          "playMode":0,"useTicketId":-1,"playCredit":1,"playTrack":1,
          "clientId":"TESTCLIENT1","isPlayTutorial":false,"isEventMode":false,
@@ -1385,17 +1385,17 @@ def build_user_game_playlog(
 
 
 # =============================================================================
-# 九、默认节点构造
+# nine、defaultnodesconstruct
 # =============================================================================
 
 def default_user_weekly_data(login_date: int) -> Dict[str, Any]:
     """
-    构造 userWeeklyData（★ 对象，不是数组）。
+    construct userWeeklyData（★ Object，Not an array）。
 
-    真机样本：
+    real-machine sample：
         {"lastLoginWeek":"2026-09-28 04:00:00","beforeLoginWeek":"2026-09-21 04:00:00",
          "friendBonusFlag":true}
-    周界为**周一 04:00**（真机 updateDate 就是 2026-09-28 04:00:00，那天是周一）。
+    Perimeter is**Monday 04:00**（real machine updateDate is 2026-09-28 04:00:00，thatdaysisMonday）。
     """
     def week_start(unix_seconds: int) -> str:
         dt = datetime.fromtimestamp(int(unix_seconds), tz=timezone.utc) - timedelta(hours=4)
@@ -1413,9 +1413,9 @@ def default_user_weekly_data(login_date: int) -> Dict[str, Any]:
 
 def default_user_2p_playlog() -> Dict[str, Any]:
     """
-    构造 user2pPlaylog（★ 对象，不是数组）。
+    construct user2pPlaylog（★ Object，Not an array）。
 
-    真机样本：
+    real-machine sample：
         {"userId1":0,"userId2":0,"userName1":"","userName2":"",
          "regionId":0,"placeId":0,"user2pPlaylogDetailList":[]}
     """
@@ -1431,35 +1431,35 @@ def default_user_2p_playlog() -> Dict[str, Any]:
 
 
 # =============================================================================
-# 十、快照归一化
+# ten、Snapshot Normalization
 # =============================================================================
 
 def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
     """
-    把「各 Get 接口的原始响应」整理成节点字典（含字段裁剪）。
+    put「Each Get interfaceofRaw Response」textnodesDictionary（With Field Crop）。
 
-    参数：
-        raw: 形如
+    Parameter：
+        raw: Shape like
              {
-               "userData":       <GetUserDataApi 的响应>,
-               "userExtend":     <GetUserExtendApi 的响应>,
-               "userMapList":    <GetUserMapApi 的响应>,
+               "userData":       <GetUserDataApi ofResponse>,
+               "userExtend":     <GetUserExtendApi ofResponse>,
+               "userMapList":    <GetUserMapApi ofResponse>,
                ...
              }
-             也接受 GetNeedUserData() 已经整理好的节点字典（幂等）。
+             Also Accept GetNeedUserData() Node dictionary already organized（Idempotent）。
 
-    返回：
-        节点名 -> 节点值（已裁剪）
+    returntimes：
+        nodesFirst name -> nodesValue（Cropped）
     """
     out: Dict[str, Any] = {}
 
-    # ---- 单元素数组 ----
+    # ---- Array of elements ----
     if "userData" in raw:
         src = raw["userData"]
         ud = src.get("userData") if isinstance(src, dict) and "userData" in src else src
         if isinstance(ud, dict):
             ud = _strip_keys(ud, USER_DATA_DROP_KEYS)
-            # banState 在 Get 侧是顶层字段，回传时要搬进 userData 内部
+            # banState at Get The side is the top level field，Move in when returning userData Internal
             if isinstance(src, dict) and "banState" in src and "banState" not in ud:
                 ud["banState"] = src.get("banState")
             out["userData"] = [ud]
@@ -1481,27 +1481,27 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
         ur = src.get("userRating") if isinstance(src, dict) and "userRating" in src else src
         if isinstance(ur, dict):
             ur = copy.deepcopy(ur)
-            # ★ 裁掉 udemae 里服务端冗余的大写重复字段（真机 Upsert 侧没有）
+            # ★ text udemae inserverRedundancyofUppercasetextField（real machine Upsert Side No）
             udemae = ur.get("udemae")
             if isinstance(udemae, dict):
                 ur["udemae"] = _strip_keys(udemae, USER_RATING_UDEMAE_DROP_KEYS)
             out["userRatingList"] = [ur]
 
-    # ---- 对象 ----
+    # ---- Object ----
     if "userWeeklyData" in raw:
         src = raw["userWeeklyData"]
         uw = src.get("userWeeklyData") if isinstance(src, dict) and "userWeeklyData" in src else src
         if isinstance(uw, dict):
             out["userWeeklyData"] = _strip_keys(uw, USER_MISSION_DROP_KEYS)
 
-    # ★ userWeeklyData 的另一个来源：GetUserMissionDataApi 的响应里就带着它
+    # ★ userWeeklyData oftextOnetext：GetUserMissionDataApi ofResponding totextBelttext
     #   （UserMissionResponseVO.cs:10  public UserWeeklyData userWeeklyData;）
-    #   真机值 = 服务器下发的周界，**不是本地算的**：
+    #   real machineValue = serverIssueofPerimeter，**Not counted locally**：
     #       GetGameWeeklyDataApi.updateDate   = "2026-09-28 04:00:00"
-    #       Upsert 侧 lastLoginWeek           = "2026-09-28 04:00:00"   ← 完全一致
-    #   依据 source/Assembly-CSharp/Manager/GetUserData.cs:1040-1049
+    #       Upsert Side lastLoginWeek           = "2026-09-28 04:00:00"   ← Exact match
+    #   Basis source/Assembly-CSharp/Manager/GetUserData.cs:1040-1049
     #       WeeklyData.LastLoginWeek = gameWeeklyData.updateDate;
-    #   所以优先用快照里的值；只有拿不到时才退回本地推导。
+    #   So give priority to the values in the snapshot.；Return to local derivation only if you don't get it。
     if "userWeeklyData" not in out and "userMissionDataList" in raw:
         src = raw["userMissionDataList"]
         if isinstance(src, dict):
@@ -1515,7 +1515,7 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(u2, dict):
             out["user2pPlaylog"] = u2
 
-    # ---- 普通数组（键名 -> 响应里的列表键名）----
+    # ---- textnumbergroup（keyFirst name -> List key name in response）----
     array_map = {
         "userCharacterList": "userCharacterList",
         "userGhost": "userGhostList",
@@ -1542,11 +1542,11 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
             items = src
         elif isinstance(src, dict):
             if list_key == "userMusicList":
-                # ★ 曲目成绩有两种形态，都要支持：
-                #   a) 接口原始响应：两层嵌套（UserMusic.cs 外层按曲分组，
-                #      内层 userMusicDetailList 才是 (musicId, level) 条目）
-                #   b) GetUserMusicDetailAll() 的产物：已摊平成单条
-                #   判据：元素里带 "userMusicDetailList" 键 -> 嵌套；否则已摊平。
+                # ★ trackResultshasTwo Forms，allmusttext：
+                #   a) interfaceRaw Response：Two layers of nesting（UserMusic.cs Outer layers are grouped by song，
+                #      Inner layer userMusicDetailList It is. (musicId, level) itemtext）
+                #   b) GetUserMusicDetailAll() oftext：Flattened into single strips
+                #   Criteria：Elemental Inner Belt "userMusicDetailList" key -> Nested；Otherwise, it has been spread evenly。
                 groups = src.get("userMusicList") or []
                 nested = any(
                     isinstance(g, dict) and "userMusicDetailList" in g for g in groups
@@ -1562,9 +1562,9 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
                     items = list(groups)
             else:
                 items = src.get(list_key)
-                # ★ 兜底：取数脚本返回的字典有时用**节点名**作键
-                #   （如 GetUserFavoriteAll -> {"userFavoriteList": [...], "_raw": [...]}，
-                #    而 GetUserFavoriteApi 的原始响应是 {"userFavorite": {...}}）。
+                # ★ Pocket back：The dictionary returned by the retrieval script is sometimes used**nodesFirst name**Keying
+                #   （As GetUserFavoriteAll -> {"userFavoriteList": [...], "_raw": [...]}，
+                #    and GetUserFavoriteApi ofRaw Responseis {"userFavorite": {...}}）。
                 if items is None:
                     items = src.get(node)
             if items is None:
@@ -1584,8 +1584,8 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
             items = [_strip_keys(i, USER_MISSION_DROP_KEYS) for i in items]
         out[node] = list(items)
 
-    # ★ 收藏夹的**原始**基线（不补 itemKind）：真机 itemKind=10 的响应回的是
-    #   {"itemKind":null}，位串里的 "1" 就来自它。单独存一份供差分用。
+    # ★ receivetextof**Original**Baseline（Non-complimentary itemKind）：real machine itemKind=10 ofThe response is
+    #   {"itemKind":null}，In the bit string "1" comes from it.。Keep a separate copy for the difference。
     if isinstance(raw.get("_raw_favorite"), list):
         out["_raw_favorite"] = list(raw["_raw_favorite"])
     else:
@@ -1601,24 +1601,24 @@ def _extract_from_get_responses(raw: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-#: 真机 isNewFavoriteList 里代表「服务器侧查不到该 itemKind」的取值。
-#: 实测两个样本：
-#:   source/2026-10-05.log:123          -> "22212"（itemKind=10 那条是 null）
-#:   MaimaiNetSpy 抓的 22:32:21 那次     -> "22212"（同上）
-#: 即第 4 位（itemKind=10，搭档）**稳定为 "1"** —— 服务端对该 kind 恒回 null。
+#: real machine isNewFavoriteList intext「serverSidecheckNotothe itemKind」ofPick a value。
+#: Measured two samples：
+#:   source/2026-10-05.log:123          -> "22212"（itemKind=10 thatitemis null）
+#:   MaimaiNetSpy textof 22:32:21 thattext     -> "22212"（Ibid.）
+#: That is, the first 4 Bit（itemKind=10，textfile）**textfor "1"** —— serverYes.the kind Heng Hui null。
 FAVORITE_MISSING_KINDS: Tuple[int, ...] = (10,)
 
 
 def normalize_snapshot(snapshot: Optional[Any]) -> Dict[str, Any]:
     """
-    把各种形态的快照统一成「节点字典」。
+    putEachtextMorphologyofSnapshotsystemOnetext「nodesDictionary」。
 
-    接受：
+    text：
         None                          -> {}
-        节点字典（36 节点名）          -> 原样（做一次形态强制）
-        {"upsertUserAll": {...}}      -> 取内层
-        {"_responses": {...}}         -> 取 _responses
-        各 Get 接口的原始响应字典      -> 走 _extract_from_get_responses
+        nodesDictionary（36 nodesFirst name）          -> As is（Do a form coercion）
+        {"upsertUserAll": {...}}      -> Take the inner layer
+        {"_responses": {...}}         -> Take _responses
+        Each Get interfaceofRaw ResponseDictionary      -> text _extract_from_get_responses
     """
     if snapshot is None:
         return {}
@@ -1628,26 +1628,26 @@ def normalize_snapshot(snapshot: Optional[Any]) -> Dict[str, Any]:
             snapshot = json.load(fp)
 
     if not isinstance(snapshot, dict):
-        raise PatchError("snapshot 形态不认识：" + type(snapshot).__name__)
+        raise PatchError("snapshot Unrecognized form：" + type(snapshot).__name__)
 
     if "upsertUserAll" in snapshot and isinstance(snapshot["upsertUserAll"], dict):
         snapshot = snapshot["upsertUserAll"]
     if "_responses" in snapshot and isinstance(snapshot["_responses"], dict):
         snapshot = snapshot["_responses"]
 
-    # ★ 判断是「已是节点字典」还是「原始响应集合」。
-    #   两者键名高度重叠（userData / userExtend / userMapList … 都既是节点名，
-    #   也是 Get 响应的外层键），所以**只能按值的形态**区分：
-    #       节点字典     userData -> list（单元素数组）、userMapList -> list
-    #       原始响应集合 userData -> dict（含 userId/userData/banState）
-    #                    userMapList -> dict（含 userMapList 列表）
+    # ★ Judge Yes「Already a node dictionary」textis「Raw Response Collection」。
+    #   The two key names are highly overlapping（userData / userExtend / userMapList … alltextisnodesFirst name，
+    #   Also Get Responsive outer key），So**Can only be in the form of a value**Distinguish：
+    #       nodesDictionary     userData -> list（Array of elements）、userMapList -> list
+    #       Raw Response Collection userData -> dict（Contains userId/userData/banState）
+    #                    userMapList -> dict（Contains userMapList List）
     if _looks_like_node_dict(snapshot):
         out: Dict[str, Any] = {}
         for k, v in snapshot.items():
             if k in NODE_TYPES:
                 out[k] = coerce_node_value(k, v)
             elif k.startswith("_"):
-                out[k] = v            # 保留 _raw_favorite 这类内部键
+                out[k] = v            # Hold _raw_favorite thistextInternalkey
         return out
 
     return _extract_from_get_responses(snapshot)
@@ -1655,10 +1655,10 @@ def normalize_snapshot(snapshot: Optional[Any]) -> Dict[str, Any]:
 
 def _looks_like_node_dict(snapshot: Dict[str, Any]) -> bool:
     """
-    按**值的形态**判断 snapshot 是不是「已经整理好的节点字典」。
+    press**Morphology of the value**Judgment snapshot isNo「Node dictionary already organized」。
 
-    判据：节点名对应的值若符合 NODE_TYPES 声明的形态则计 1 分，反之计 -1 分。
-          总分 > 0 视为节点字典。
+    Criteria：nodesFirst nameCorrespondingValuetext NODE_TYPES The morphology of the declaration is measured 1 Minutes，Count the reverse -1 Minutes。
+          Total Score > 0 textfornodesDictionary。
     """
     score = 0
     for key, value in snapshot.items():
@@ -1675,7 +1675,7 @@ def _looks_like_node_dict(snapshot: Dict[str, Any]) -> bool:
 
 
 # =============================================================================
-# 十一、本局演算（把基线推进到「游玩后」）
+# eleven、this gametextcalculate（putBaselinetextto「playAfter」）
 # =============================================================================
 
 def apply_play_effects(
@@ -1692,41 +1692,41 @@ def apply_play_effects(
     play_date_time: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    按真机行为把基线推进到「本局游玩后」，并算出各差分节点。
+    pressreal machinetextforputBaselinetextto「this gameplayAfter」，and calculate the differential nodes。
 
-    ★ 这是本模块最关键的一步。真机对照（source/2026-10-05.log）：
+    ★ this istextCriticalofOnetext。real machineControl（source/2026-10-05.log）：
 
-        userData.playCount        1257 -> 1258            (+1)  ← 真机
-        userData.currentPlayCount 185  -> 186             (+1)  ← 真机
-        ★ 本工程默认 PLAY_USER_PLAY_COUNT_GAIN = 0，这两个**不变**。
-        userData.lastPlayDate     旧   -> 本局时刻
+        userData.playCount        1257 -> 1258            (+1)  ← real machine
+        userData.currentPlayCount 185  -> 186             (+1)  ← real machine
+        ★ textdefault PLAY_USER_PLAY_COUNT_GAIN = 0，thisTwo**Unchanged**。
+        userData.lastPlayDate     text   -> this gametime
         userData.lastPlayMode     2    -> 0
-        userData.lastLoginDate    旧   -> 本次登录时刻
-        userData.eventWatchedDate 旧   -> 本次登录时刻
+        userData.lastLoginDate    text   -> textlogintime
+        userData.eventWatchedDate text   -> textlogintime
         userData.lastPlaceId      0    -> 1000
         userData.lastRegionId     11   -> 5
-        userData.dateTime         null -> 登录请求的 dateTime
+        userData.dateTime         null -> loginrequestof dateTime
         userData.lastGameId       null -> "SDGB"
         userData.accessCode       null -> ""
-        userData.lastPlaceName    null -> 店铺名
+        userData.lastPlaceName    null -> Store Name
         userMusicDetailList       7    -> 8               (playCount +1)
         userMapList.distance      1424000 -> 1435000      (+11000)
-        userCharacterList[].level 各 +1
+        userCharacterList[].level Each +1
 
-    参数（就地修改 user_all）：
-        user_all:        节点字典（会被修改）
-        play:            本局数据
-        login_date_time: UserLoginApi 的 loginDateTime
-        auth_date_time:  UserLoginApi 请求里的 dateTime（Auth.AuthTime）
-        play_date_time:  ★ 本局上报时刻（同 loginDateTime 格式）。
-                         真机 userData.lastPlayDate 是「打完/上报那一刻」，
-                         与 lastLoginDate（登录那一刻）**不是同一个值**：
-                             lastLoginDate  = "2026-10-05 22:31:23.0"  ← 登录
-                             lastPlayDate   = "2026-10-05 22:32:21.0"  ← 上报
-                         不传则两者都退回 login_date_time（便于离线对拍）。
+    Parameter（In-place modification user_all）：
+        user_all:        nodesDictionary（will be modified）
+        play:            this game data
+        login_date_time: UserLoginApi of loginDateTime
+        auth_date_time:  UserLoginApi requestinof dateTime（Auth.AuthTime）
+        play_date_time:  ★ this gameWhen to escalate（Same loginDateTime text）。
+                         real machine userData.lastPlayDate is「text/At the moment of reporting」，
+                         And lastLoginDate（loginthatOnetext）**Not the same value**：
+                             lastLoginDate  = "2026-10-05 22:31:23.0"  ← login
+                             lastPlayDate   = "2026-10-05 22:32:21.0"  ← Escalations
+                         If not, return both login_date_time（Convenient for offline matchmaking）。
 
-    返回：
-        同一个 user_all（便于链式调用）
+    returntimes：
+        Same user_all（Convenient Chain Calls）
     """
     login_wall = _local_wall_string(login_date_time)
     wall = _local_wall_string(play_date_time or login_date_time)
@@ -1743,15 +1743,15 @@ def apply_play_effects(
         ud["lastRegionId"] = region_id
         ud["lastClientId"] = client_id
         ud["lastCountryCode"] = ud.get("lastCountryCode") or "CHN"
-        # ★ 默认增量 0：playCount / currentPlayCount 保持不变
-        #   （config.PLAY_USER_PLAY_COUNT_GAIN，想复刻真机 +1 就改成 1）
+        # ★ defaultIncrement 0：playCount / currentPlayCount Stay the same
+        #   （config.PLAY_USER_PLAY_COUNT_GAIN，Want to re-engrave the real machine +1 Change to 1）
         _pc_gain = int(getattr(play, "user_play_count_gain", 0) or 0)
         ud["playCount"] = int(ud.get("playCount", 0) or 0) + _pc_gain
         ud["currentPlayCount"] = int(ud.get("currentPlayCount", 0) or 0) + _pc_gain
-        ud["lastPlayDate"] = wall                # 本局上报时刻
+        ud["lastPlayDate"] = wall                # this gameWhen to escalate
         ud["lastPlayMode"] = play.play_mode
-        ud["lastLoginDate"] = login_wall         # 本次登录时刻
-        ud["eventWatchedDate"] = login_wall      # 与 lastLoginDate 同值（真机一致）
+        ud["lastLoginDate"] = login_wall         # textlogintime
+        ud["eventWatchedDate"] = login_wall      # And lastLoginDate Same value（real machineMatch）
         ud["lastPlayCredit"] = play.play_credit
         if auth_date_time:
             ud["dateTime"] = int(auth_date_time)
@@ -1767,30 +1767,30 @@ def apply_play_effects(
         ue["categoryIndex"] = play.category_index
         ue["musicIndex"] = play.music_index
         ue["extraFlag"] = play.extra_flag
-        # 真机 Upsert 里这两个是空数组（Get 侧有占位元素）
+        # real machine Upsert inthisTwoisemptynumbergroup（Get Placeholder elements on the side）
         ue["selectedCardList"] = []
         ue["encountMapNpcList"] = []
-        # ★ 这两个字段只出现在 Upsert 侧、Get 侧没有
-        #   （真机 source/2026-10-05.log:123 的 userExtend 有 16 个键，
-        #     Get 侧 source/2026-10-05.log:85 只有 14 个）。
-        #   源码 VOExtensions.cs:270 附近是 Export 时补的开关位。
-        #   缺了它们会导致 userExtend 字段数不符，服务端可能整体拒收。
+        # ★ thistextfieldsOnlyAppearanceat Upsert Side、Get Side No
+        #   （real machine source/2026-10-05.log:123 of userExtend has 16 keys，
+        #     Get Side source/2026-10-05.log:85 Only 14 Piece）。
+        #   source code VOExtensions.cs:270 textis Export timetextofSwitchBit。
+        #   textTheyMeetingslead to userExtend Number of fields does not match，servertextcantextreceive。
         ue.setdefault("isPhotoAgree", False)
         ue.setdefault("isGotoCodeRead", False)
 
-    # ---------------- userMusicDetailList（差分：本局那条曲目）----------------
-    # ★★ 这个节点**必须回传本局那条**，不能留空 —— 实测证明：
-    #     同一份代码、同一账号，唯一差别是这里留空 vs 回传 1 条：
-    #       回传 1 条 -> returnCode=1 且服务端确实写入（当时靠 playCount +1 观察到）
-    #       留空     -> returnCode=1 但什么都没变（**没落库**）
-    #     即「本局有 playlog 却没有任何曲目明细」会被服务端当成无效包静默丢弃。
-    #   ★ 现在 playCount 默认不再 +1，落库判据改看 lastPlayDate（见 verify_upsert_landing）。
+    # ---------------- userMusicDetailList（Differential：this gamethatitemtrack）----------------
+    # ★★ thisnodes**Must send back the one from this bureau**，Can't be blank —— Actual testimonial：
+    #     Same code、Same account，The only difference is that leave it blank here vs Callback 1 item：
+    #       Callback 1 item -> returnCode=1 and the server does write（At that time, shit playCount +1 textto）
+    #       leave blank     -> returnCode=1 But nothing has changed.（**textfallLibrary**）
+    #     i.e.「this gamehas playlog without any track details.」will be silently discarded by the server as an invalid packet。
+    #   ★ currentat playCount defaultNoAgain +1，fallLibraryCriteriachangetext lastPlayDate（text verify_upsert_landing）。
     #
-    # ★ 但 playCount 的**增量**可以自由控制：
-    #     config.PLAY_MUSIC_PLAY_COUNT_GAIN = 0（默认）-> 条目照传，次数不变
-    #                                         = 1        -> 复刻真机的 +1
-    #   所以「不想让乐曲 playCount 增加」的正确做法是把增量设成 0，
-    #   **而不是**把整个节点清空。
+    # ★ But playCount of**Increment**Can be freely controlled：
+    #     config.PLAY_MUSIC_PLAY_COUNT_GAIN = 0（default）-> itemtextPassing on，countUnchanged
+    #                                         = 1        -> Reproduction of the real machine +1
+    #   So「I don't want the music playCount Increase」ofcurrenttextPracticeisputIncrementtext 0，
+    #   **andNo**puttextnodestextempty。
     if "userMusicDetailList" in user_all:
         baseline = user_all.get("_baseline_music") or []
         target = None
@@ -1808,7 +1808,7 @@ def apply_play_effects(
             }
         target["playCount"] = (int(target.get("playCount", 0) or 0)
                                + play.music_play_count_gain)
-        # 本局成绩优于历史时才更新最佳值
+        # this gameResultstextintexttimeonlyupdatetextValue
         if play.achievement > int(target.get("achievement", 0) or 0):
             target["achievement"] = play.achievement
             target["scoreRank"] = play.score_rank
@@ -1817,10 +1817,10 @@ def apply_play_effects(
         if play.deluxscore > int(target.get("deluxscoreMax", 0) or 0):
             target["deluxscoreMax"] = play.deluxscore
         user_all["userMusicDetailList"] = [target]
-        # ★ 留一份「本局那条」，供后面的差分收敛做兜底（见 build_user_all）
+        # ★ textOnetext「this gamethatitem」，For differential convergence behind the pocket（text build_user_all）
         user_all["_played_music_entry"] = copy.deepcopy(target)
 
-    # ---------------- userMapList（差分：选中地图 distance 增加）----------------
+    # ---------------- userMapList（Differential：textMap distance Increase）----------------
     if "userMapList" in user_all:
         if play.map_distance_gain:
             baseline = user_all.get("_baseline_map") or []
@@ -1843,7 +1843,7 @@ def apply_play_effects(
         else:
             user_all["userMapList"] = []
 
-    # ---------------- userCharacterList（差分：组队角色升级）----------------
+    # ---------------- userCharacterList（Differential：grouptext）----------------
     if "userCharacterList" in user_all:
         if play.character_exp_gain:
             baseline = user_all.get("_baseline_character") or []
@@ -1857,24 +1857,24 @@ def apply_play_effects(
                 item = copy.deepcopy(src)
                 item["level"] = int(item.get("level", 0) or 0) + play.character_exp_gain
                 grown.append(item)
-            # ★ 按 characterId 升序（沿用 Get 侧顺序）
-            #   真机 source/2026-10-05.log:123 的 userCharacterList 是 [101,395,200401,400401,400402]，
-            #   而 charaSlot 是 [395,101,400402,400401,200401] —— 两者顺序不同，
-            #   说明回传时按 characterId 排序，不是按 charaSlot 顺序。
+            # ★ press characterId Ascending（textuse Get Side order）
+            #   real machine source/2026-10-05.log:123 of userCharacterList is [101,395,200401,400401,400402]，
+            #   and charaSlot is [395,101,400402,400401,200401] —— The two are in different order，
+            #   descriptionCallbacktimepress characterId text，instead of pressing charaSlot order。
             grown.sort(key=lambda c: int(c.get("characterId", 0) or 0))
             user_all["userCharacterList"] = grown
         else:
             user_all["userCharacterList"] = []
 
     # ---------------- userGetPointList / userLoginBonusList ----------------
-    #   ★ 这两个节点是**登录奖励发放**才产生的，普通游玩结算留空即可：
-    #     - userGetPointList   ：真机 39 次样本里 25 次为空（64%）
-    #     - userLoginBonusList ：只有本次登录触发新签到才回传
-    #   两者都在 DEFAULT_EMPTY_NODES 里，由下方统一清空。
-    #   point 也因此保持基线值不变（不发放点数的必然结果）。
+    #   ★ thistextnodesis**loginRewardshairtext**Produced by，textplaysettlementleave blankJust do it：
+    #     - userGetPointList   ：real machine 39 textin 25 textIs Empty（64%）
+    #     - userLoginBonusList ：Only return if this login triggers a new check-in
+    #   Both DEFAULT_EMPTY_NODES in，byDowntextsystemOnetextempty。
+    #   point and therefore leave the baseline unchanged.（The inevitable consequence of not issuing points）。
 
-    # ---------------- userGamePlaylogList（客户端新造）----------------
-    user_all["userGamePlaylogList"] = []   # 由 build_user_all 填（需要 playlog_id）
+    # ---------------- userGamePlaylogList（Client Newly Created）----------------
+    user_all["userGamePlaylogList"] = []   # by build_user_all Fill in（need playlog_id）
 
     # ---------------- userWeeklyData / user2pPlaylog ----------------
     if not user_all.get("userWeeklyData"):
@@ -1882,7 +1882,7 @@ def apply_play_effects(
     if not user_all.get("user2pPlaylog"):
         user_all["user2pPlaylog"] = default_user_2p_playlog()
 
-    # ---------------- 默认空节点 ----------------
+    # ---------------- defaultemptynodes ----------------
     for node in DEFAULT_EMPTY_NODES:
         if node in user_all:
             user_all[node] = empty_node(node)
@@ -1891,7 +1891,7 @@ def apply_play_effects(
 
 
 # =============================================================================
-# 十二、组装 upsertUserAll
+# Twelve、grouptext upsertUserAll
 # =============================================================================
 
 def build_user_all(
@@ -1911,35 +1911,35 @@ def build_user_all(
     extra_data: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
-    组装 upsertUserAll 的 36 个节点。
+    grouptext upsertUserAll of 36 nodes。
 
-    流程：
-        1. 从 snapshot 建立基线（已裁剪）
-        2. apply_play_effects 推进到游玩后，并算出差分节点
-        3. 填入 userGamePlaylogList
-        4. patch 精确覆盖
-        5. 生成 11 条位串
+    text：
+        1. From snapshot Establish baseline（Cropped）
+        2. apply_play_effects texttoplayAfter，and calculate the difference nodes
+        3. Fill userGamePlaylogList
+        4. patch textoverwrite
+        5. text 11 itemBitstring
 
-    参数：
-        snapshot:        基线快照（见 normalize_snapshot）
-        play:            本局数据（默认按 config.PLAY_*）
-        patch:           精确覆盖，键=节点名，优先级最高
-        login_date_time: UserLoginApi 的 loginDateTime
-        auth_date_time:  UserLoginApi 请求里的 dateTime
-        play_date_time:  ★ 本局上报时刻（同 loginDateTime 格式）；
-                         用于 lastPlayDate / userGamePlaylogList.playDate。
-                         不传则退回 login_date_time。
-        playlog_id:      UserLoginApi 的 loginId（用于 userGamePlaylogList）
-        extra_data:      ★ 额外 JSON（dict / JSON 字符串 / 文件路径），
-                         自动匹配插入 36 节点，**优先级高于 patch**。见 merge_extra_data。
+    Parameter：
+        snapshot:        Baseline Snapshot（text normalize_snapshot）
+        play:            this game data（defaultpress config.PLAY_*）
+        patch:           textoverwrite，key=nodesFirst name，Highest priority
+        login_date_time: UserLoginApi of loginDateTime
+        auth_date_time:  UserLoginApi requestinof dateTime
+        play_date_time:  ★ this gameWhen to escalate（Same loginDateTime text）；
+                         used for lastPlayDate / userGamePlaylogList.playDate。
+                         Return without passing login_date_time。
+        playlog_id:      UserLoginApi of loginId（used for userGamePlaylogList）
+        extra_data:      ★ text JSON（dict / JSON String / file path），
+                         text 36 nodes，**Priority is higher than patch**。text merge_extra_data。
 
-    返回：
-        36 节点的 dict
+    returntimes：
+        36 nodesof dict
     """
     p = play or build_play_from_config()
     base = normalize_snapshot(snapshot)
 
-    # 保留基线副本，供差分计算用
+    # Keep a copy of the baseline，For differential calculation
     user_all: Dict[str, Any] = empty_user_all()
     for node in NODE_ORDER:
         if node in base:
@@ -1947,11 +1947,11 @@ def build_user_all(
     user_all["_baseline_music"] = copy.deepcopy(base.get("userMusicDetailList") or [])
     user_all["_baseline_map"] = copy.deepcopy(base.get("userMapList") or [])
     user_all["_baseline_character"] = copy.deepcopy(base.get("userCharacterList") or [])
-    # ★ 收藏夹的原始基线（未补 itemKind），供 build_favorite_delta 产生 "1"
+    # ★ receivetextofRaw Baseline（nottext itemKind），For build_favorite_delta Generate "1"
     if base.get("_raw_favorite"):
         user_all["_raw_favorite"] = copy.deepcopy(base["_raw_favorite"])
 
-    # 推进到游玩后
+    # texttoplayAfter
     apply_play_effects(
         user_all, p,
         login_date_time=login_date_time, auth_date_time=auth_date_time,
@@ -1960,19 +1960,19 @@ def build_user_all(
         play_date_time=play_date_time,
     )
 
-    # userGamePlaylogList（客户端新造，需要 playlog_id）
+    # userGamePlaylogList（Client Newly Created，need playlog_id）
     if playlog_id:
         user_all["userGamePlaylogList"] = [
             build_user_game_playlog(playlog_id, login_date_time, p, client_id=client_id,
                                     play_date=play_date_time)
         ]
 
-    # ---- ★ 差分：把所有 DELTA_NODES 收敛成 (新状态 - 基线) ----
-    #   真机只回传**变化的那几条**：
-    #       Get 侧 104 条地图 -> Upsert 侧 1 条（distance 变的那条）
-    #       Get 侧 38 条登录奖励 -> Upsert 侧 0 条（本次无变化）
-    #   apply_play_effects 已经把「本局会变」的节点推到了新状态，
-    #   这里统一做一次 (新 - 基线)，无变化的自然收敛成空数组。
+    # ---- ★ Differential：puttexthas DELTA_NODES receivetext (text - Baseline) ----
+    #   real machineOnly send back**The changed ones**：
+    #       Get Side 104 itemMap -> Upsert Side 1 item（distance The one that changed）
+    #       Get Side 38 itemloginRewards -> Upsert Side 0 item（textnoVariation）
+    #   apply_play_effects have put together「this gameMeetingsChange」ofnodestexttotext，
+    #   thisinsystemOnetextOnce (text - Baseline)，noVariationoftextreceivetextemptynumbergroup。
     for node, keys in DIFF_PRIMARY_KEYS.items():
         if node not in NODE_TYPES or NODE_TYPES[node] != "array":
             continue
@@ -1986,27 +1986,27 @@ def build_user_all(
         if bits:
             user_all[bits] = flags
 
-    # ---- ★ userMusicDetailList 特例：次数没变也必须回传本局那条 ----
-    #   为什么：上面的差分会把「和基线完全相同」的条目剔掉。当
-    #   PLAY_MUSIC_PLAY_COUNT_GAIN = 0（本局不改次数）且成绩也没刷新时，
-    #   本局那条会被剔光 -> 节点变空。
-    #   ★ 实测（同一份代码、同一账号，唯一差别就是这个节点）：
-    #       回传 1 条 -> returnCode=1 且服务端确实写入
-    #       留空     -> returnCode=1 但什么都没变（**整包没生效**）
-    #   所以这里兜底：只要本局确实打了一首歌，就一定回传它那一条。
-    #   位串给 "0" = 服务器侧已有该 (musicId, level)，属于更新而非新增。
+    # ---- ★ userMusicDetailList textExample：counttextChangeAlsoMust send back the one from this bureau ----
+    #   Why：The difference above will put「Exactly the same as the baseline」ofitemtext。When
+    #   PLAY_MUSIC_PLAY_COUNT_GAIN = 0（this gameNo changecount）And when the results are not refreshed，
+    #   this gamethatitemMeetingstext -> nodesChangeempty。
+    #   ★ Measured（Same code、Same account，The only difference is this node）：
+    #       Callback 1 item -> returnCode=1 and the server does write
+    #       leave blank     -> returnCode=1 But nothing has changed.（**textPackagetext**）
+    #   So here's the bottom of the pocket.：As long as the Bureau does play a song,，Just be sure to send back that one of it。
+    #   Bitstring to "0" = serverSideExistingthe (musicId, level)，Belongs to updates, not additions。
     if not (user_all.get("userMusicDetailList") or []):
         _played = user_all.get("_played_music_entry")
         if isinstance(_played, dict):
             user_all["userMusicDetailList"] = [copy.deepcopy(_played)]
             user_all["isNewMusicDetailList"] = "0"
 
-    # ---- 差分：收藏夹是特例（不做剔除，恒返回完整条目）----
-    #   ★ 基线要用**未经归一化**的原始 Get 响应：真机 itemKind=10 的那条回的是
-    #     {"itemKind":null}，正是它产生了位串里的 "1"。
-    #     原始响应由调用方通过 snapshot 的 _raw_favorite 传入；
-    #     拿不到时才退回已归一化的基线，并显式声明「哪些 kind 服务端恒回 null」，
-    #     否则 itemKind 被补齐后位串会全是 "2"。
+    # ---- Differential：receivetextistextExample（Do not cull，Constantly returns full entries）----
+    #   ★ Baseline to use**nottextReturnedOnetext**ofOriginal Get Response：real machine itemKind=10 ofthatitemback is
+    #     {"itemKind":null}，currentistextGeneratetextIn the bit string "1"。
+    #     The original response was passed by the caller snapshot of _raw_favorite Incoming；
+    #     textNototimeonlytexttimesAlreadyReturnedOnetextofBaseline，and explicitly declare「Which kind serverHeng Hui null」，
+    #     Otherwise itemKind textAfterBitstringMeetingsYes to all "2"。
     fav_local = user_all.get("userFavoriteList") or base.get("userFavoriteList") or []
     if fav_local:
         raw_fav = base.get("_raw_favorite")
@@ -2019,45 +2019,45 @@ def build_user_all(
         fav_delta, fav_bits = build_favorite_delta(
             fav_local, fav_baseline, fav_assume_missing)
         if fav_assume_missing:
-            log_debug("收藏夹基线无原始响应，按已知恒空 kind 兜底："
+            log_debug("receivetextBaselinenoRaw Response，pressAlreadytextHengempty kind Pocket back："
                       + str(tuple(fav_assume_missing)))
         user_all["userFavoriteList"] = fav_delta
         user_all["isNewFavoriteList"] = fav_bits
 
-    # ---- patch 覆盖 ----
+    # ---- patch overwrite ----
     if patch:
         for node, value in patch.items():
             if node not in NODE_TYPES:
                 raise PatchError(
-                    "patch 里有未知节点名：" + str(node)
-                    + "（可用节点：" + ", ".join(NODE_ORDER) + "）"
+                    "patch inhasnottextnodesFirst name：" + str(node)
+                    + "（Available Nodes：" + ", ".join(NODE_ORDER) + "）"
                 )
             user_all[node] = coerce_node_value(node, value)
 
-    # ---- extra_data 覆盖（★ 最高优先级）----
+    # ---- extra_data overwrite（★ Highest priority）----
     if load_extra_data(extra_data):
         for note in merge_extra_data(user_all, extra_data):
             log_info(note)
 
-    # ---- 清理内部字段 ----
+    # ---- textInternalField ----
     for key in list(user_all.keys()):
         if key.startswith("_"):
             del user_all[key]
 
-    # ---- 位串补齐 ----
+    # ---- Bit String Completion ----
     sync_bits_to_arrays(user_all)
 
-    # ---- 按 NODE_ORDER 排序 ----
+    # ---- press NODE_ORDER text ----
     return {node: user_all.get(node, empty_node(node)) for node in NODE_ORDER}
 
 
 # =============================================================================
-# 十三、请求 / 响应 VO
+# Thirteen、request / Response VO
 # =============================================================================
 
 @dataclass
 class UserAllRequestVO:
-    """请求 VO（对应 Net.VO.Mai2/UserAllRequestVO，字段顺序照 C# 声明）。"""
+    """request VO（Corresponding Net.VO.Mai2/UserAllRequestVO，Field order photo C# Declaration）。"""
     userId: int
     playlogId: int = 0
     isEventMode: bool = False
@@ -2069,13 +2069,13 @@ class UserAllRequestVO:
 
 @dataclass
 class UpsertResponseVO:
-    """响应 VO（对应 Net.VO.Mai2/UpsertResponseVO）。"""
+    """Response VO（Corresponding Net.VO.Mai2/UpsertResponseVO）。"""
     returnCode: int = 0
     apiName: str = ""
 
 
 # =============================================================================
-# 十四、发包前自检
+# Fourteen、Self-inspection before contract issuance
 # =============================================================================
 
 def validate_before_send(
@@ -2083,105 +2083,105 @@ def validate_before_send(
     play: Optional[PlayData] = None,
 ) -> List[str]:
     """
-    发包前按源码硬约束自查（返回问题列表，空 = 合规）。
+    Check yourself according to the hard constraints of the source code before issuing the contract（returntimestextList，empty = Compliance）。
 
-    ★ 即便服务端返回 returnCode=1，也可能静默不落库；
-      这里先把能查的都查一遍，有问题就明确告警。
+    ★ Even if the server returns returnCode=1，It may also be silent；
+      thisinFirstputcancheckofallcheckOnetext，hastext。
 
-    参数：
-        req:  要发的请求
-        play: 本局数据（可选）。★ 用来判断「差分节点为空」到底是不是问题：
-              config.PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN 默认是 0，
-              此时 userMapList / userCharacterList 为空是**预期行为**，不该告警。
+    Parameter：
+        req:  musthairofrequest
+        play: this game data（Optional）。★ usetextJudgment「Differential node is empty」Is it a problem or not?：
+              config.PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN defaultis 0，
+              texttime userMapList / userCharacterList Empty Yes**textfor**，No alarms。
     """
     problems: List[str] = []
 
     if not req.playlogId:
-        problems.append("顶层 playlogId 为 0（必须 == UserLoginApi 的 loginId）")
+        problems.append("top-level playlogId for 0（Required == UserLoginApi of loginId）")
     if not req.loginDateTime:
-        problems.append("顶层 loginDateTime 为 0（必须 == UserLoginApi 的 loginDateTime）")
+        problems.append("top-level loginDateTime for 0（Required == UserLoginApi of loginDateTime）")
 
     ua = req.upsertUserAll or {}
 
     ud_list = ua.get("userData") or []
     if not ud_list:
-        problems.append("userData 为空（服务端对它是整表覆盖语义，空包等于没提交）")
+        problems.append("userData Is Empty（serverYes.It istextoverwritesemantic，emptyPackageetcintext）")
     else:
         ud = ud_list[0] if isinstance(ud_list[0], dict) else {}
-        # ★ accessCode 真机就是空串（source/2026-10-05.log:123），只要求"存在且非 null"
+        # ★ accessCode real machineisemptytext（source/2026-10-05.log:123），Requirements only"Exists and is not null"
         for key in ("lastGameId", "accessCode", "lastPlaceName", "lastRegionName"):
             if key not in ud or ud.get(key) is None:
-                problems.append("userData." + key + " 缺失或为 null")
+                problems.append("userData." + key + " textorfor null")
         nulls = [k for k, v in ud.items() if v is None]
         if nulls:
-            problems.append("userData 里有 null 字段：" + ", ".join(nulls[:8]))
-        # ★ userData 是整表覆盖语义：这几个「本局必须推进」的字段若还是旧值/0，
-        #   服务端会照单全收却等于什么都没发生（见 docs/UpsertUserAll踩坑清单.md 坑 1）
+            problems.append("userData inhas null Field：" + ", ".join(nulls[:8]))
+        # ★ userData istextoverwritesemantic：thistextPiece「this gameRequiredtext」ofFieldtextistextValue/0，
+        #   serverMeetingstextFullreceivetextetcinNothing happened（text docs/UpsertUserAlltextPittext.md Pit 1）
         if not int(ud.get("playCount") or 0):
-            problems.append("userData.playCount 为 0（应 >= 基线值）")
+            problems.append("userData.playCount for 0（should >= Baseline value）")
         if not int(ud.get("currentPlayCount") or 0):
-            problems.append("userData.currentPlayCount 为 0（应 >= 基线值）")
+            problems.append("userData.currentPlayCount for 0（should >= Baseline value）")
         if not int(ud.get("dateTime") or 0):
-            problems.append("userData.dateTime 为 0（应为 UserLoginApi 请求里的 dateTime）")
+            problems.append("userData.dateTime for 0（should be UserLoginApi requestinof dateTime）")
         if not ud.get("lastPlayDate"):
-            problems.append("userData.lastPlayDate 为空（应为本局上报时刻）")
+            problems.append("userData.lastPlayDate Is Empty（It should be the time of reporting by this bureau）")
         if not ud.get("lastLoginDate"):
-            problems.append("userData.lastLoginDate 为空（应为本次登录时刻）")
+            problems.append("userData.lastLoginDate Is Empty（This should be the time of login）")
 
     if not req.userPlaylogList:
-        problems.append("userPlaylogList 为空（那是本局成绩明细，服务端大概率直接拒收）")
+        problems.append("userPlaylogList Is Empty（thatisthis gameResultsdetails，servertextdirectlytextreceive）")
     else:
         for i, pl in enumerate(req.userPlaylogList):
             if isinstance(pl, dict) and pl.get("playlogId") != req.playlogId:
-                problems.append("userPlaylogList[" + str(i) + "].playlogId != 顶层 playlogId")
+                problems.append("userPlaylogList[" + str(i) + "].playlogId != top-level playlogId")
             if isinstance(pl, dict) and not pl.get("playSpecial"):
-                pass  # playSpecial 属于 userGamePlaylogList，不是这里
+                pass  # playSpecial Belongs to userGamePlaylogList，Not here
 
     for gp in ua.get("userGamePlaylogList") or []:
         if isinstance(gp, dict) and not gp.get("playSpecial"):
-            problems.append("userGamePlaylogList[].playSpecial 为 0（真机是随机位掩码）")
+            problems.append("userGamePlaylogList[].playSpecial for 0（real machine istextmachineBittext）")
 
-    # 位串长度
+    # Bit String Length
     for bits, arr in BITS_TO_ARRAY.items():
         items = ua.get(arr) or []
         s = ua.get(bits) or ""
         if isinstance(items, list) and len(s) != len(items):
-            problems.append("位串 " + bits + " 长度 " + str(len(s))
-                            + " != 数组 " + arr + " 条数 " + str(len(items)))
+            problems.append("Bitstring " + bits + " length " + str(len(s))
+                            + " != numbergroup " + arr + " itemnumber " + str(len(items)))
 
-    # 差分节点是否有变化
-    #   ★ 只在「配置要求本局有变化」时才告警：
-    #     PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN 默认是 0，
-    #     此时 userMapList / userCharacterList 为空是**预期的**，不是错误。
+    # Whether there is a change in the differential node
+    #   ★ Only in「textmusttextthis gamehasVariation」timeonlytext：
+    #     PLAY_MAP_DISTANCE_GAIN / PLAY_CHARACTER_EXP_GAIN defaultis 0，
+    #     texttime userMapList / userCharacterList Empty Yes**textof**，Not a mistake。
     p = play or build_play_from_config()
     if not (ua.get("userMusicDetailList") or []):
-        problems.append("差分节点 userMusicDetailList 为空 —— ★ 实测这样整包不生效"
-                        "（有 playlog 却没有曲目明细会被服务端静默丢弃）")
+        problems.append("Differential Node userMusicDetailList Is Empty —— ★ Measured so the whole package does not take effect"
+                        "（has playlog But no track details will be silently discarded by the server）")
     if p.map_distance_gain and not (ua.get("userMapList") or []):
-        problems.append("差分节点 userMapList 为空，但 PLAY_MAP_DISTANCE_GAIN="
-                        + str(p.map_distance_gain) + " —— 服务端可能认为地图无变化")
+        problems.append("Differential Node userMapList Is Empty，But PLAY_MAP_DISTANCE_GAIN="
+                        + str(p.map_distance_gain) + " —— servertextcantextforMapnoVariation")
     if p.character_exp_gain and not (ua.get("userCharacterList") or []):
-        problems.append("差分节点 userCharacterList 为空，但 PLAY_CHARACTER_EXP_GAIN="
-                        + str(p.character_exp_gain) + " —— 服务端可能认为角色无变化")
+        problems.append("Differential Node userCharacterList Is Empty，But PLAY_CHARACTER_EXP_GAIN="
+                        + str(p.character_exp_gain) + " —— servertextcantextfortextnoVariation")
 
     return problems
 
 
 # =============================================================================
-# 十五、冷却等待
+# Fifteen、Cooling Wait
 # =============================================================================
 
-def wait_send_cooldown(seconds: float, *, label: str = "结算上报") -> float:
+def wait_send_cooldown(seconds: float, *, label: str = "settlementEscalations") -> float:
     """
-    真实发包前固定等待若干秒（含首次），让上报节奏贴近真机。
+    realPackagingagotextwaittextseconds（Includes first time），textEscalationstextreal machine。
 
-    ★ 只作用于真实发送；dry_run 不等待。
+    ★ Acts only on authentic transmissions；dry_run Don't wait。
     """
     seconds = float(seconds or 0)
     if seconds <= 0:
         return 0.0
 
-    log_info(label + "冷却：等待 " + str(seconds) + " 秒后再发送（模拟真机节奏）...")
+    log_info(label + "Cooling：wait " + str(seconds) + " secondsAfterAgainSend（textreal machinetext）...")
     start = time.monotonic()
     remain = seconds
     while remain > 0:
@@ -2189,20 +2189,20 @@ def wait_send_cooldown(seconds: float, *, label: str = "结算上报") -> float:
         time.sleep(step)
         remain -= step
         if remain > 0:
-            log_info("    冷却中 ... 已等待 " + str(int(seconds - remain)) + "s / 剩 "
+            log_info("    Cooling down ... Waiting " + str(int(seconds - remain)) + "s / Remaining "
                      + str(int(remain)) + "s")
     elapsed = time.monotonic() - start
-    log_info("冷却结束（共等待 " + str(round(elapsed, 1)) + " 秒）")
+    log_info("End of cooldown（Waiting for total " + str(round(elapsed, 1)) + " seconds）")
     return elapsed
 
 
 # =============================================================================
-# 十六、extra_data：把外部 JSON 合并进 upsertUserAll
+# sixteen、extra_data：putExternal JSON Merge Into upsertUserAll
 # =============================================================================
 #
-# 用途：真机报文的 36 个节点里，绝大多数都能由快照 + 本局演算自动推出来；
-#       但偶尔会想手工塞几个节点（比如本局拿到了一个新的 KaleidxScope 门）。
-#       与其去改 build_user_all 的代码，不如直接把那段 JSON 传进来。
+# usetext：real machinepacketof 36 out of nodes，textnumberallcanbySnapshot + this gametextcalculatetextouttext；
+#       But occasionally I want to manually stuff a few nodes（textAsthis gametexttotextOnetextof KaleidxScope text）。
+#       Instead of changing it, build_user_all ofCode，Why don't you just put that paragraph JSON Incoming。
 #
 #   UpsertUserAll(user_id, playlog_id, ...,
 #                 extra_data={
@@ -2210,24 +2210,24 @@ def wait_send_cooldown(seconds: float, *, label: str = "结算上报") -> float:
 #                     "isNewKaleidxScopeList": "1",
 #                 })
 #
-# ★ 合并规则：
-#     1. 键必须是 36 个节点之一（含 11 条 isNew* 位串），否则明确报错并列出可用名
-#     2. 值按该节点的形态强制转换（coerce_node_value），传错形态立刻抛 PatchError
-#     3. 优先级最高 —— 覆盖快照演算出来的同名字段
-#     4. 给了数组却没给对应位串 -> 按长度补 "0" 并给出提示（"0" = 存量更新）
+# ★ Consolidation Rules：
+#     1. keyMust be 36 One of nodes（Contains 11 item isNew* Bitstring），Otherwise, explicitly report the error and list the available names
+#     2. Values are cast according to the node's morphology（coerce_node_value），Error transmission mode immediately throws PatchError
+#     3. Highest priority —— overwriteSnapshottextcalculateouttextofSameFirst nametext
+#     4. textnumbergroupbut did not giveCorrespondingBitstring -> presslengthtext "0" and give a hint（"0" = Inventory update）
 
 def load_extra_data(extra: Any) -> Dict[str, Any]:
     """
-    把「额外 JSON」规整成 dict。
+    put「text JSON」text dict。
 
-    接受四种形态：
+    textFourtextMorphology：
         None                      -> {}
-        dict                      -> 原样返回
-        JSON 字符串               -> json.loads
-        文件路径（.json / .txt）   -> 读文件后 json.loads
+        dict                      -> Return As Is
+        JSON String               -> json.loads
+        file path（.json / .txt）   -> readfileAfter json.loads
 
-    ★ 判断顺序：先看是不是 dict，再看字符串是不是「存在的文件路径」，
-      最后才当作 JSON 文本解析 —— 这样两种字符串写法都能用。
+    ★ Judgment Sequence：Let's see first, shall we? dict，Let's see if the string is「Existing file path」，
+      Only as a last resort JSON textparse —— thistextTwoStringtextallcanuse。
     """
     if extra is None:
         return {}
@@ -2239,7 +2239,7 @@ def load_extra_data(extra: Any) -> Dict[str, Any]:
         text = extra.strip()
         if not text:
             return {}
-        # 像路径且文件存在 -> 读文件
+        # like a path and the file exists -> readfile
         if len(text) < 4096 and "\n" not in text and "{" not in text:
             try:
                 if os.path.isfile(text):
@@ -2250,14 +2250,14 @@ def load_extra_data(extra: Any) -> Dict[str, Any]:
         try:
             data = json.loads(text)
         except ValueError as exc:
-            raise PatchError("extra_data 既不是合法 JSON 也不是可读文件："
+            raise PatchError("extra_data textNoLegal JSON It's also not a readable file："
                              + str(exc)) from exc
         if not isinstance(data, dict):
-            raise PatchError("extra_data 解析出来必须是 JSON 对象（{...}），"
-                             "实际是 " + type(data).__name__)
+            raise PatchError("extra_data parseouttextMust be JSON Object（{...}），"
+                             "Actually, " + type(data).__name__)
         return data
-    raise PatchError("extra_data 只支持 dict / JSON 字符串 / JSON 文件路径，"
-                     "收到 " + type(extra).__name__)
+    raise PatchError("extra_data Supported only dict / JSON String / JSON file path，"
+                     "receiveto " + type(extra).__name__)
 
 
 def merge_extra_data(
@@ -2265,17 +2265,17 @@ def merge_extra_data(
     extra_data: Optional[Any] = None,
 ) -> List[str]:
     """
-    把外部 JSON 合并进 upsertUserAll 的 36 节点（就地修改）。
+    putExternal JSON Merge Into upsertUserAll of 36 nodes（In-place modification）。
 
-    参数：
-        user_all:    build_user_all() 的产物
-        extra_data:  见 load_extra_data
+    Parameter：
+        user_all:    build_user_all() oftext
+        extra_data:  text load_extra_data
 
-    返回：
-        合并说明（每条一行，供日志打印）
+    returntimes：
+        Merge Instructions（eachitemOne Row，For Log Printing）
 
-    异常：
-        PatchError: 出现未知节点名 / 值形态不对
+    Exceptions：
+        PatchError: Unknown node name occurred / Incorrect value morphology
     """
     data = load_extra_data(extra_data)
     if not data:
@@ -2283,38 +2283,38 @@ def merge_extra_data(
 
     notes: List[str] = []
 
-    # ---- 1. 先整体校验键名，避免改了一半才发现写错 ----
+    # ---- 1. Verify the key name as a whole first，textchangetextOnetextonlyDiscovertext ----
     unknown = [k for k in data if k not in NODE_TYPES]
     if unknown:
         raise PatchError(
-            "extra_data 里有未知节点名：" + ", ".join(map(str, unknown))
-            + "\n  可用节点（36 个）：" + ", ".join(NODE_ORDER)
+            "extra_data inhasnottextnodesFirst name：" + ", ".join(map(str, unknown))
+            + "\n  Available Nodes（36 Piece）：" + ", ".join(NODE_ORDER)
         )
 
-    # ---- 2. 逐个写入（coerce 会把形态掰正，形态不对就抛）----
+    # ---- 2. textPieceWrite（coerce will correct the form.，If the shape is wrong, throw it away）----
     for node, value in data.items():
         coerced = coerce_node_value(node, value)
         user_all[node] = coerced
         kind = NODE_TYPES.get(node)
         if kind == "bits":
-            notes.append("extra_data 写入位串 " + node + " = " + repr(coerced))
+            notes.append("extra_data Write bit strings " + node + " = " + repr(coerced))
         elif isinstance(coerced, list):
-            notes.append("extra_data 写入 " + node + "（" + str(len(coerced)) + " 条）")
+            notes.append("extra_data Write " + node + "（" + str(len(coerced)) + " item）")
         else:
-            notes.append("extra_data 写入 " + node)
+            notes.append("extra_data Write " + node)
 
-    # ---- 3. 给了数组但没给对应位串 -> 补长度并提示 ----
+    # ---- 3. textnumbergroupButtextCorrespondingBitstring -> textlengthand prompt ----
     for bits, arr in BITS_TO_ARRAY.items():
         if arr in data and bits not in data:
             items = user_all.get(arr) or []
-            notes.append("  ⚠ 给了 " + arr + " 却没给 " + bits
-                         + " —— 已按长度补 \"" + "0" * len(items) + "\""
-                         + "（\"0\" = 存量更新；若是**新增**条目请显式传 \"1\"）")
+            notes.append("  ⚠ text " + arr + " but did not give " + bits
+                         + " —— Made up by length \"" + "0" * len(items) + "\""
+                         + "（\"0\" = Inventory update；textis**added**itemtextpleaseexplicitPassing on \"1\"）")
 
-    # ---- 4. 位串长度必须等于数组条数（真机硬约束）----
+    # ---- 4. The bit string length must be equal to the number of arrays（real machinetext）----
     sync_bits_to_arrays(user_all)
 
-    # ---- 5. 保持 NODE_ORDER 顺序 ----
+    # ---- 5. Keep NODE_ORDER order ----
     for node in NODE_ORDER:
         if node not in user_all:
             user_all[node] = empty_node(node)
@@ -2323,22 +2323,22 @@ def merge_extra_data(
 
 
 # =============================================================================
-# 十七、内部编排：抓快照 / 前置接口 / 落库回查
+# Seventeen、Internal orchestration：textSnapshot / Front connector / fallLibrarytimescheck
 # =============================================================================
 
 def _resolve_api_func(name: str, fallback: Any = None) -> Any:
     """
-    优先取 api 包里那个**已套日志外壳**的函数。
+    Priority Pickup api The one in the bag**Logged Shells**ofFunction。
 
-    ★ 为什么要绕这一下：
-        autowrap() 只替换 api/__init__.py 命名空间里的名字
-        （见 log_setup.autowrap 的注释），模块内部的直接引用拿到的还是原始函数。
-        UpsertUserAll 内部要调 GetNeedUserData / GetUserNewItemList / GetUserData，
-        绕这一下它们才会像用户直接调用那样打印「=== xxx 开始运行 ===」，
-        主脚本就完全不用自己写日志了。
+    ★ Why go around this?：
+        autowrap() Replace only api/__init__.py Name in namespace
+        （text log_setup.autowrap oftext），textInternalofdirectlytextusetexttooftextisOriginalFunction。
+        UpsertUserAll Internal to be adjusted GetNeedUserData / GetUserNewItemList / GetUserData，
+        textthisOneDownTheyonlyMeetingstextuserdirectlycallusethattext「=== xxx Get started ===」，
+        The main script doesn't have to log itself at all。
     """
     try:
-        import api as _pkg                       # 延迟导入，避免模块级循环
+        import api as _pkg                       # Lazy Import，textLoop
         fn = getattr(_pkg, name, None)
         if callable(fn):
             return fn
@@ -2348,7 +2348,7 @@ def _resolve_api_func(name: str, fallback: Any = None) -> Any:
 
 
 def _lazy(name: str) -> Any:
-    """按名字延迟取 api 子模块里的原始函数（_resolve_api_func 的兜底）。"""
+    """pressFirst nametextTake api Raw functions in sub-modules（_resolve_api_func ofPocket back）。"""
     if name == "GetNeedUserData":
         from .get_need_user_data import GetNeedUserData
         return GetNeedUserData
@@ -2361,21 +2361,21 @@ def _lazy(name: str) -> Any:
     if name == "GetUserMusicDetailAll":
         from .get_user_music import GetUserMusicDetailAll
         return GetUserMusicDetailAll
-    raise PatchError("未知的内部 api：" + str(name))
+    raise PatchError("nottextofInternal api：" + str(name))
 
 
 def resolve_api_func(name: str) -> Any:
     """
-    取「带日志外壳的优先、原始函数兜底」的可调用对象。
+    Take「Preferred with Log Shell、Raw function back pocket」oftextcalluseObject。
 
-    ★ 供本模块内部与其它 api 模块（如 upsert_user_chargelog）复用：
-      这样内部调用也会像用户直接调用那样打印「=== xxx 开始运行 ===」。
+    ★ For internal and other api text（As upsert_user_chargelog）Multiplexing：
+      thistextInternalcalluseAlsoMeetingstextuserdirectlycallusethattext「=== xxx Get started ===」。
     """
     fn = _resolve_api_func(name)
     return fn if callable(fn) else _lazy(name)
 
 
-#: 模块内旧名，保持兼容
+#: textFirst name，Stay compatible
 _api = resolve_api_func
 
 
@@ -2389,19 +2389,19 @@ def verify_upsert_landing(
     client: Optional[MaimaiNetClient] = None,
 ) -> bool:
     """
-    发包后重新拉服务器数据，确认**真的写进去了**。
+    Repull server data after outsourcing，text**textoftextGotext**。
 
-    ★ 为什么不看 returnCode 就完事：
-        服务端对 userData 是整表覆盖语义 —— 报文不对时它照样回 returnCode=1，
-        但写进去的还是旧值。唯一可靠的判据是重新拉一次数据看数字有没有动。
+    ★ Why don't you look? returnCode Just done.：
+        serverYes. userData istextoverwritesemantic —— packetNoYes.timetexttimes returnCode=1，
+        But the old values are still written in.。The only reliable criterion is to pull the data again to see if the numbers are moving。
 
-    参数：
-        user_id:  用户 ID
-        snapshot: 发包前的基线快照（用来对比）
-        play:     本局数据（用来定位要检查的曲目）
+    Parameter：
+        user_id:  user ID
+        snapshot: Baseline snapshot before contract release（usetextYes.text）
+        play:     this game data（usetextBitmusttextcheckoftrack）
 
-    返回：
-        True = 判定为落库成功
+    returntimes：
+        True = Determined as drop-off success
     """
     p = play or build_play_from_config()
     base = normalize_snapshot(snapshot)
@@ -2412,7 +2412,7 @@ def verify_upsert_landing(
                                      timeout_ms=timeout_ms, client=client)
         after_ud = (after_raw.get("userData") or {}) if isinstance(after_raw, dict) else {}
     except Exception as exc:
-        log_warning("落库回查失败（不影响上传结果）：" + str(exc))
+        log_warning("fallLibrarytimescheckFailed（Doesn't affect upload results）：" + str(exc))
         return False
 
     log_info("  playCount        "
@@ -2424,7 +2424,7 @@ def verify_upsert_landing(
              + str(before_ud.get("lastPlayDate")) + " -> "
              + str(after_ud.get("lastPlayDate")))
 
-    # 本局曲目的 playCount
+    # this gametrackof playCount
     try:
         music_raw = _api("GetUserMusicDetailAll")(user_id, client_id=client_id,
                                                timeout_ms=timeout_ms, client=client)
@@ -2432,18 +2432,18 @@ def verify_upsert_landing(
         hit = [m for m in rows
                if m.get("musicId") == p.music_id and m.get("level") == p.music_level]
         log_info("  musicId=" + str(p.music_id) + " level=" + str(p.music_level)
-                 + " playCount -> " + (str(hit[0].get("playCount")) if hit else "(查不到)"))
+                 + " playCount -> " + (str(hit[0].get("playCount")) if hit else "(checkNoto)"))
     except Exception as exc:
-        log_warning("  曲目明细回查失败：" + str(exc))
+        log_warning("  trackdetailstimescheckFailed：" + str(exc))
 
-    # ★ 判定依据随增量走：
-    #   增量 > 0 -> playCount 应当变大（原来的判据）
-    #   增量 = 0 -> playCount 本来就不该变，改用 lastPlayDate 是否更新来判断
+    # ★ Judgment is based on walking with increment：
+    #   Increment > 0 -> playCount Should be bigger（Original Criteria）
+    #   Increment = 0 -> playCount textNotheChange，changeuse lastPlayDate isNoupdatetextJudgment
     _pc_gain = int(getattr(p, "user_play_count_gain", 0) or 0)
     if _pc_gain:
         ok = (int(after_ud.get("playCount") or 0)
               > int(before_ud.get("playCount") or 0))
-        detail = "userData.playCount 已 +" + str(_pc_gain)
+        detail = "userData.playCount Already +" + str(_pc_gain)
     else:
         _b_lpd = str(before_ud.get("lastPlayDate") or "")
         _a_lpd = str(after_ud.get("lastPlayDate") or "")
@@ -2451,19 +2451,19 @@ def verify_upsert_landing(
         detail = "userData.lastPlayDate " + _b_lpd + " -> " + _a_lpd
 
     if ok:
-        log_info("【落库成功】" + detail)
+        log_info("【fallLibrarySuccess】" + detail)
     else:
-        log_error("【疑似未落库】" + detail + "，"
-                  "请对照 docs/UpsertUserAll踩坑清单.md 排查")
+        log_error("【textnotfallLibrary】" + detail + "，"
+                  "pleaseControl docs/UpsertUserAlltextPittext.md textcheck")
         if not _pc_gain:
-            log_warning("  提示：PLAY_USER_PLAY_COUNT_GAIN=0 时 playCount 不变属正常，"
-                        "此处看的是 lastPlayDate；若刚上传的就是同一局，"
-                        "lastPlayDate 本来就可能相等（假阴性）")
+            log_warning("  text：PLAY_USER_PLAY_COUNT_GAIN=0 time playCount Unchanged is normal，"
+                        "textplacetextofis lastPlayDate；textUploadofisSameOnegame，"
+                        "lastPlayDate textcanrelatedetc（False Negative）")
     return ok
 
 
 # =============================================================================
-# 十八、主函数
+# Eighteen、Main Function
 # =============================================================================
 
 def UpsertUserAll(
@@ -2497,104 +2497,104 @@ def UpsertUserAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Union[UserAllRequestVO, UpsertResponseVO]:
     """
-    上传一局成绩（UpsertUserAllApi，★ 有副作用）—— **一个函数跑完整条结算链路**。
+    Upload an Inning Result（UpsertUserAllApi，★ hasSide effects）—— **A function runs the entire settlement link**。
 
-    ★ 内部依次做这些事，主脚本只调它一次就行：
-        1. 抓基线快照（没传 snapshot 时自动抓，需要 token）
-        2. 从快照推本局 5 只角色（auto_characters）
-        3. 构造本局成绩明细 userPlaylogList
-        4. 调前置接口 GetUserNewItemListApi（pre_new_item_list）
-        5. 组装 upsertUserAll 的 36 节点（快照基线 + 本局演算 + 差分）
-        6. 合并 extra_data 里的外部 JSON
-        7. 发包前自检
-        8. 冷却 → 真实发包
-        9. 落库回查（verify_landing）
+    ★ Do these things internally in turn，The main script only calls it once：
+        1. textBaseline Snapshot（textPassing on snapshot timetext，need token）
+        2. Push Local from Snapshot 5 Roles only（auto_characters）
+        3. constructthis gameResultsdetails userPlaylogList
+        4. callFront connector GetUserNewItemListApi（pre_new_item_list）
+        5. grouptext upsertUserAll of 36 nodes（Snapshot Baseline + this gametextcalculate + Differential）
+        6. Merge extra_data inofExternal JSON
+        7. Self-inspection before contract issuance
+        8. Cooling → realPackaging
+        9. fallLibrarytimescheck（verify_landing）
 
-    参数：
-        user_id:         用户 ID（必填）
-        playlog_id:      本次登录 ID（必填，★ 必须 == UserLoginApi 的 loginId）
-        login_date_time: 登录时刻（必填，★ 必须 == UserLoginApi 的 loginDateTime）
-        auth_date_time:  UserLoginApi 请求里的 dateTime（可选；
-                         userData.dateTime 要用它，真机实测两处一致）
-        token:           会话令牌（可选）。★ 只在「没传 snapshot 且 auto_snapshot=True」
-                         时需要 —— 内部用它自动调 GetNeedUserData。
-        snapshot:        基线快照（可选，见 normalize_snapshot）。
-                         传了就用它；不传则按 auto_snapshot 自动抓。
-                         ★ 服务器对 userData 是整表覆盖、对差分节点是「只回传变化项」，
-                           没有基线快照就等于告诉服务端「本局什么都没变」。
-        auto_snapshot:   True（默认）= 没传 snapshot 时自动抓一份。
-        auto_characters: True（默认）= 从快照的 userData.charaSlot +
-                         userCharacterList 推出本局 5 只角色（**游玩前**等级）。
-                         这样 PLAY_CHARACTERS（现在 selftest.py 里） 过期也不影响。
-        play:            本局数据（可选，默认按 config.PLAY_*）
-        extra_data:      ★ 额外 JSON，自动匹配插入 upsertUserAll 的 36 个节点。
-                         接受 dict / JSON 字符串 / JSON 文件路径，例如：
+    Parameter：
+        user_id:         user ID（Required）
+        playlog_id:      textlogin ID（Required，★ Required == UserLoginApi of loginId）
+        login_date_time: logintime（Required，★ Required == UserLoginApi of loginDateTime）
+        auth_date_time:  UserLoginApi requestinof dateTime（Optional；
+                         userData.dateTime mustusetext，real machineMeasuredtextplaceMatch）
+        token:           Session Token（Optional）。★ Only in「textPassing on snapshot And auto_snapshot=True」
+                         timeneed —— Auto-tuning with it internally GetNeedUserData。
+        snapshot:        Baseline Snapshot（Optional，text normalize_snapshot）。
+                         Pass it and use it；If it is not passed on, press auto_snapshot text。
+                         ★ serverYes. userData istextoverwrite、Pair differential nodes are「Only return variations」，
+                           noneBaseline Snapshottextetcintextserver「this gametextalltextChange」。
+        auto_snapshot:   True（default）= textPassing on snapshot timetextOnetext。
+        auto_characters: True（default）= From Snapshot userData.charaSlot +
+                         userCharacterList textoutthis game 5 Roles only（**playago**level）。
+                         thistext PLAY_CHARACTERS（currentat selftest.py in） textAlsoNoImpact。
+        play:            this game data（Optional，defaultpress config.PLAY_*）
+        extra_data:      ★ text JSON，text upsertUserAll of 36 nodes。
+                         text dict / JSON String / JSON file path，Example：
                              extra_data={"userKaleidxScopeList": [{...}],
                                          "isNewKaleidxScopeList": "1"}
-                         优先级最高（覆盖快照演算出的同名字段）。
-                         没给位串时会按数组长度补 "0" 并给出提示。
-        patch:           同 extra_data 的旧接口（只收 dict，不补位串提示）。
-        user_playlog_list: 本局成绩明细（可选；不传则用 play 自动构造一条）
-        pre_new_item_list: True（默认）= 发包前先调 GetUserNewItemListApi
-                         （真机行为：结算上报前约 8 秒调它）。失败不阻断。
-        verify_landing:  True（默认）= 发包后重新拉服务器数据，确认真的写进去了。
-                         ★ 服务端返回 returnCode=1 不代表数据被应用，这一步才是验收标准。
-        is_event_mode:   活动模式标志（可选）
-        is_free_play:    免费游玩标志（可选）
-        confirm:         副作用闸门；None 时取 config.UPSERT_CONFIRM
-        dry_run:         True = 只构造并返回报文，绝不发包
-        cooldown_sec:    真实发包前的冷却秒数（仅 confirm=True 生效；
-                         None = 取 config.UPSERT_SEND_COOLDOWN_SEC，传 0 跳过）
-        play_date_time:  ★ 本局**游玩/上报时刻**（可选，同 loginDateTime 格式）。
-                         真机里 userData.lastPlayDate / userGamePlaylogList.playDate /
-                         userPlaylogList.userPlayDate 都是「打完那一刻」，与登录时刻不同。
-                         **不传就自动取「现在」**（login_date_time_now()）。
-        timeout_ms:      超时毫秒（默认 60 秒）
-        client:          可复用的 MaimaiNetClient（可选）
+                         Highest priority（overwriteSnapshottextcalculateoutofSameFirst nametext）。
+                         textBitstringtimeMeetingspressnumbergrouplengthtext "0" and give a hint。
+        patch:           Same extra_data oftextinterface（Accepts only dict，No Matching String Prompt）。
+        user_playlog_list: this gameResultsdetails（Optional；Don't pass it on, use it play textconstructOneitem）
+        pre_new_item_list: True（default）= Adjust before releasing the package GetUserNewItemListApi
+                         （real machinetextfor：settlementEscalationsagotext 8 secondscalltext）。Failure does not block。
+        verify_landing:  True（default）= Repull server data after outsourcing，textoftextGotext。
+                         ★ serverreturntimes returnCode=1 Doesn't mean the data is applied，thisOnetextIt is.textreceivestandard。
+        is_event_mode:   textmodetext（Optional）
+        is_free_play:    Free Play Logo（Optional）
+        confirm:         Side Effects Gate；None timeTake config.UPSERT_CONFIRM
+        dry_run:         True = Construct and return packets only，textNo Package Issued
+        cooldown_sec:    realPackagingagoofCoolingsecondsnumber（Only confirm=True text；
+                         None = Take config.UPSERT_SEND_COOLDOWN_SEC，Passing on 0 skip）
+        play_date_time:  ★ this game**play/When to escalate**（Optional，Same loginDateTime text）。
+                         real machinein userData.lastPlayDate / userGamePlaylogList.playDate /
+                         userPlaylogList.userPlayDate allis「textthatOnetext」，Different from login time。
+                         **Automatically take without passing「currentat」**（login_date_time_now()）。
+        timeout_ms:      timeout milliseconds（default 60 seconds）
+        client:          Reusable MaimaiNetClient（Optional）
 
-    返回：
+    returntimes：
         dry_run=True  -> UserAllRequestVO
         dry_run=False -> UpsertResponseVO
     """
-    log_info("上传成绩：user_id=" + str(user_id) + " playlog_id=" + str(playlog_id)
+    log_info("Upload Grades：user_id=" + str(user_id) + " playlog_id=" + str(playlog_id)
              + " dry_run=" + str(dry_run))
 
     if not login_date_time:
-        raise ValueError("缺少 login_date_time：必须传 UserLoginApi 的 loginDateTime"
+        raise ValueError("text login_date_time：Must pass UserLoginApi of loginDateTime"
                          "（PacketUpsertUserAll.cs:31）")
 
-    # ---------- 阶段 1：基线快照（差分的前提）----------
+    # ---------- stage 1：Baseline Snapshot（Premise of Difference）----------
     if snapshot is None and auto_snapshot:
         if not token:
-            log_warning("既没传 snapshot 也没传 token —— 无法自动抓基线快照。"
-                        "差分节点会是空的，服务端可能认为本局无变化。"
-                        "推荐传 token=...（自动抓）或 snapshot=...（自己抓好传进来）")
+            log_warning("textPassing on snapshot Also did not pass token —— notextBaseline Snapshot。"
+                        "Differential nodes will be empty，servertextcantextforthis gamenoVariation。"
+                        "textPassing on token=...（text）or snapshot=...（textIncoming）")
         else:
-            log_info("未传 snapshot，自动抓取结算基线快照 ...")
+            log_info("notPassing on snapshot，textTakesettlementBaseline Snapshot ...")
             snapshot = _api("GetNeedUserData")(
                 user_id, token=token, client_id=client_id,
                 place_id=place_id, region_id=region_id, client=client,
             )
 
-    # ---------- 阶段 2：本局数据 ----------
+    # ---------- stage 2：this game data ----------
     p = play or build_play_from_config()
     if auto_characters:
         derived = derive_play_characters(snapshot, p)
         if derived and any(c.get("characterId") for c in derived):
             p.characters = derived
-            log_info("角色快照取自服务器快照："
+            log_info("textSnapshotTaken from server snapshot："
                      + " / ".join(str(c["characterId"]) + ":" + str(c["level"])
                                   for c in derived))
 
-    # ★ rating / grade 一律从服务器快照推（不再读 config 的静态值）
+    # ★ rating / grade Always push from server snapshot（Don't read again config oftextValue）
     if snapshot:
         derive_play_rating(snapshot, p)
         derive_play_grade(snapshot, p)
 
-    # 游玩/上报时刻：不传就取「现在」
+    # play/When to escalate：Take without passing「currentat」
     play_now = int(play_date_time) if play_date_time else login_date_time_now()
 
-    # ---------- 阶段 3：本局成绩明细 ----------
+    # ---------- stage 3：this gameResultsdetails ----------
     if user_playlog_list is None:
         user_playlog_list = [
             build_user_playlog(playlog_id, login_date_time, p,
@@ -2602,7 +2602,7 @@ def UpsertUserAll(
                                client_id=client_id, play_date=play_now)
         ]
 
-    # ---------- 阶段 4：前置 GetUserNewItemListApi ----------
+    # ---------- stage 4：Front GetUserNewItemListApi ----------
     if pre_new_item_list:
         try:
             post_user_data = build_post_play_user_data(
@@ -2619,9 +2619,9 @@ def UpsertUserAll(
                 client_id=client_id, timeout_ms=timeout_ms, client=client,
             )
         except Exception as exc:
-            log_warning("GetUserNewItemListApi 失败（不阻断结算）：" + str(exc))
+            log_warning("GetUserNewItemListApi Failed（Unblock checkout）：" + str(exc))
 
-    # ---------- 阶段 5：组装 upsertUserAll（快照基线 + 本局演算 + 差分）----------
+    # ---------- stage 5：grouptext upsertUserAll（Snapshot Baseline + this gametextcalculate + Differential）----------
     user_all = build_user_all(
         snapshot=snapshot, play=p, patch=patch, extra_data=extra_data,
         login_date_time=login_date_time, auth_date_time=auth_date_time,
@@ -2630,7 +2630,7 @@ def UpsertUserAll(
         playlog_id=playlog_id, play_date_time=play_now,
     )
 
-    # ---------- 阶段 7：构造请求 ----------
+    # ---------- stage 7：constructrequest ----------
     req = UserAllRequestVO(
         userId=user_id,
         playlogId=playlog_id,
@@ -2641,44 +2641,44 @@ def UpsertUserAll(
         upsertUserAll=user_all,
     )
 
-    # ---------- 阶段 8：自检 ----------
+    # ---------- stage 8：text ----------
     for pl in req.userPlaylogList:
         if isinstance(pl, dict):
             for problem in validate_user_playlog(pl):
-                log_warning("[成绩自检] " + problem)
+                log_warning("[Grade Self-Test] " + problem)
 
     problems = validate_before_send(req, play=p)
     if problems:
-        log_warning("【发包前自检】发现 " + str(len(problems)) + " 处可能不符合源码逻辑：")
+        log_warning("【Self-inspection before contract issuance】Discover " + str(len(problems)) + " may not conform to source code logic：")
         for item in problems:
             log_warning("    - " + item)
-        log_warning("服务端可能返回 returnCode=1 但**不真正落库**，请逐条核对")
+        log_warning("servertextcanreturntimes returnCode=1 But**Not really dropped off**，pleasetextitemtextYes.")
     else:
-        log_info("发包前自检通过")
+        log_info("Self-test passed before contract issuance")
 
-    # ---------- 阶段 9：dry-run ----------
+    # ---------- stage 9：dry-run ----------
     if dry_run:
-        log_info("[dry-run] 已构造请求报文，未发包")
-        log_debug("dry-run 报文：" + json.dumps(req, ensure_ascii=False, default=str))
+        log_info("[dry-run] Request message constructed，notPackaging")
+        log_debug("dry-run packet：" + json.dumps(req, ensure_ascii=False, default=str))
         return req
 
-    # ---------- 阶段 10：副作用闸门 ----------
+    # ---------- stage 10：Side Effects Gate ----------
     effective = UPSERT_CONFIRM if confirm is None else bool(confirm)
     if not effective:
-        msg = ("UpsertUserAllApi 是**有副作用**的接口（会把本局成绩真实写进服务器，不可撤销）。"
-               "本脚本默认不放行。确认要发请传 confirm=True，"
-               "或改 config.UPSERT_CONFIRM = True。只想看报文请传 dry_run=True。")
+        msg = ("UpsertUserAllApi is**hasSide effects**ofinterface（will write the actual results of this bureau into the server，Irrevocable）。"
+               "textscriptdefaultNotext。textmusthairpleasePassing on confirm=True，"
+               "or change config.UPSERT_CONFIRM = True。I just want to see the message, please send it dry_run=True。")
         log_error(msg)
         raise ConfirmRequiredError(msg)
 
-    # ---------- 阶段 11：冷却 ----------
+    # ---------- stage 11：Cooling ----------
     wait_send_cooldown(
         UPSERT_SEND_COOLDOWN_SEC if cooldown_sec is None else cooldown_sec,
-        label="上传成绩",
+        label="Upload Grades",
     )
 
-    # ---------- 阶段 12：发包 ----------
-    log_info("闸门已放行，开始上传成绩 ...")
+    # ---------- stage 12：Packaging ----------
+    log_info("textAlreadytext，Start uploading grades ...")
     raw = request_dict(
         "UpsertUserAllApi", req,
         user_id=user_id, client_id=client_id,
@@ -2690,13 +2690,13 @@ def UpsertUserAll(
         apiName=str(raw.get("apiName", "") or ""),
     )
     if resp.returnCode != 1:
-        msg = "上传成绩失败：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName
+        msg = "Failed to upload grades：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName
         log_error(msg)
         raise UpsertUserAllError(msg)
 
-    log_info("上传成绩成功：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
+    log_info("Uploaded grades successfully：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
 
-    # ---------- 阶段 13：落库回查（★ 真正的验收标准）----------
+    # ---------- stage 13：fallLibrarytimescheck（★ textcurrentoftextreceivestandard）----------
     if verify_landing:
         verify_upsert_landing(user_id, snapshot, p,
                               client_id=client_id, timeout_ms=timeout_ms, client=client)
@@ -2705,7 +2705,7 @@ def UpsertUserAll(
 
 
 # =============================================================================
-# 十九、单独运行（调试）
+# Nineteen、Run separately（debug）
 # =============================================================================
 
 if __name__ == "__main__":
@@ -2714,17 +2714,17 @@ if __name__ == "__main__":
     def _main() -> int:
         setup_logging("upsert_user_all_test")
         try:
-            log_info("构造一条 playlog 并做自检（不发包）")
+            log_info("constructOneitem playlog and do a self-test.（No Package Issued）")
             pl = build_user_playlog(7692848101484135861, 1791159576)
             problems = validate_user_playlog(pl)
             if problems:
                 for item in problems:
                     log_warning("  - " + item)
             else:
-                log_info("playlog 自检通过（110 字段齐全）")
+                log_info("playlog text（110 Fully fielded）")
 
-            log_info("字段数：" + str(len(pl)) + " / 期望 " + str(len(PLAYLOG_FIELDS)))
-            log_info("判定总数：" + str(sum(
+            log_info("Number of fields：" + str(len(pl)) + " / text " + str(len(PLAYLOG_FIELDS)))
+            log_info("Total number of judgments：" + str(sum(
                 int(pl.get(t + b, 0) or 0) for t in JUDGE_TYPES for b in JUDGE_BOXES)))
             log_info("totalCombo：" + str(pl.get("totalCombo")))
             return 0

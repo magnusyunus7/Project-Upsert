@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-get_user_recommend_music.py —— 取推荐曲目（GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi）
+get_user_recommend_music.py —— Get recommended tracks（GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi）
 ================================================================================
 
-对应接口：
-    GetUserRecommendRateMusicApi    请求体 UserIdRequestVO
-                                    响应 {userId, userRecommendRateMusicIdList:[...]}
-    GetUserRecommendSelectMusicApi  请求体 UserIdRequestVO
-                                    响应 {userId, userRecommendSelectionMusicIdList:[...]}
-依据：
+Corresponding interface：
+    GetUserRecommendRateMusicApi    request body UserIdRequestVO
+                                    Response {userId, userRecommendRateMusicIdList:[...]}
+    GetUserRecommendSelectMusicApi  request body UserIdRequestVO
+                                    Response {userId, userRecommendSelectionMusicIdList:[...]}
+Basis：
     source/Assembly-CSharp/Net.VO.Mai2/UserRecommendRateMusicRequestVO.cs
     source/Assembly-CSharp/Net.VO.Mai2/UserRecommendSelectionMusicRequestVO.cs
     source/2026-10-05.log:79,81
 
-调用示例：
+call exampleExample：
     from api import GetUserRecommendRateMusic, GetUserRecommendSelectMusic
 """
 
@@ -36,12 +36,12 @@ def GetUserRecommendRateMusic(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取推荐上分曲目（对应 GetUserRecommendRateMusicApi）。
+    Take recommended last track（Corresponding GetUserRecommendRateMusicApi）。
 
-    返回：
-        原始响应 dict，含 userRecommendRateMusicIdList
+    returntimes：
+        Raw Response dict，Contains userRecommendRateMusicIdList
     """
-    log_info("取推荐上分曲目：user_id=" + str(user_id))
+    log_info("Take recommended last track：user_id=" + str(user_id))
     return _get("GetUserRecommendRateMusicApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)
 
@@ -54,11 +54,11 @@ def GetUserRecommendSelectMusic(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取推荐选曲（对应 GetUserRecommendSelectMusicApi）。
+    Take recommended songs（Corresponding GetUserRecommendSelectMusicApi）。
 
-    返回：
-        原始响应 dict，含 userRecommendSelectionMusicIdList
+    returntimes：
+        Raw Response dict，Contains userRecommendSelectionMusicIdList
     """
-    log_info("取推荐选曲：user_id=" + str(user_id))
+    log_info("Take recommended songs：user_id=" + str(user_id))
     return _get("GetUserRecommendSelectMusicApi", UserIdRequestVO(userId=user_id), user_id,
                 client_id=client_id, timeout_ms=timeout_ms, client=client)

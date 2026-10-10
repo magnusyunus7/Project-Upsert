@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-get_user_rival.py —— 取用户对手数据（GetUserRivalDataApi / GetUserRivalMusicApi）
+get_user_rival.py —— Fetch User Opponent Data（GetUserRivalDataApi / GetUserRivalMusicApi）
 ================================================================================
 
-取玩家的对手名单及其曲目成绩。
+Take a list of players' opponents and their track scores。
 
-对应接口：
-    GetUserRivalDataApi   请求体 UserRivalRequestVO（userId + rivalId）
-                          响应   {userId, userRivalData:{rivalId, rivalName}}
-    GetUserRivalMusicApi  请求体 UserRivalMusicRequestVO（userId + rivalId + nextIndex
+Corresponding interface：
+    GetUserRivalDataApi   request body UserRivalRequestVO（userId + rivalId）
+                          Response   {userId, userRivalData:{rivalId, rivalName}}
+    GetUserRivalMusicApi  request body UserRivalMusicRequestVO（userId + rivalId + nextIndex
                                                        + userRivalMusicLevelList）
-                          响应   {userId, rivalId, length, nextIndex, userRivalMusicList}
-依据：
+                          Response   {userId, rivalId, length, nextIndex, userRivalMusicList}
+Basis：
     source/Assembly-CSharp/Net.VO.Mai2/UserRivalRequestVO.cs
     source/Assembly-CSharp/Net.VO.Mai2/UserRivalMusicRequestVO.cs
     source/2026-10-05.log:95,101
 
-★ 对手 ID 需要调用方提供（先由 GetUserFavoriteItemApi 的 kind=2 取到）。
+★ Opponent ID needcallusetextFor（First by GetUserFavoriteItemApi of kind=2 Retrieved at）。
 
-调用示例：
+call exampleExample：
     from api import GetUserRivalData, GetUserRivalMusic
 """
 
@@ -48,16 +48,16 @@ def GetUserRivalData(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取对手资料（对应 GetUserRivalDataApi）。
+    Fetching opponent data（Corresponding GetUserRivalDataApi）。
 
-    参数：
-        user_id:  用户 ID（必填）
-        rival_id: 对手 ID（必填）
+    Parameter：
+        user_id:  user ID（Required）
+        rival_id: Opponent ID（Required）
 
-    返回：
-        原始响应 dict，含 userRivalData
+    returntimes：
+        Raw Response dict，Contains userRivalData
     """
-    log_info("取对手资料：user_id=" + str(user_id) + " rival_id=" + str(rival_id))
+    log_info("Fetching opponent data：user_id=" + str(user_id) + " rival_id=" + str(rival_id))
     return _get(
         "GetUserRivalDataApi",
         UserRivalRequestVO(userId=user_id, rivalId=rival_id),
@@ -76,19 +76,19 @@ def GetUserRivalMusic(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取对手曲目成绩（单页，对应 GetUserRivalMusicApi）。
+    Take Opponent Track Score（Single Page，Corresponding GetUserRivalMusicApi）。
 
-    参数：
-        user_id:    用户 ID（必填）
-        rival_id:   对手 ID（必填）
-        next_index: 分页索引（0 = 首页）
-        levels:     难度档位列表（可选，默认 0/1/2/3/4/10）
+    Parameter：
+        user_id:    user ID（Required）
+        rival_id:   Opponent ID（Required）
+        next_index: Paged Index（0 = firsttext）
+        levels:     difficultyfileBitList（Optional，default 0/1/2/3/4/10）
 
-    返回：
-        原始响应 dict，含 userRivalMusicList
+    returntimes：
+        Raw Response dict，Contains userRivalMusicList
     """
     lv = list(levels) if levels else list(RIVAL_MUSIC_LEVELS)
-    log_info("取对手曲目成绩：user_id=" + str(user_id) + " rival_id=" + str(rival_id)
+    log_info("Take Opponent Track Score：user_id=" + str(user_id) + " rival_id=" + str(rival_id)
              + " levels=" + str(lv))
     return _get(
         "GetUserRivalMusicApi",
@@ -110,13 +110,13 @@ def GetUserRivalMusicAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取对手曲目成绩（自动翻页取全）。
+    Take Opponent Track Score（auto-pagingTakeFull）。
 
-    返回：
+    returntimes：
         {"userRivalMusicList": [...]}
     """
     lv = list(levels) if levels else list(RIVAL_MUSIC_LEVELS)
-    log_info("取对手曲目成绩（全量）：user_id=" + str(user_id) + " rival_id=" + str(rival_id))
+    log_info("Take Opponent Track Score（Full Amount）：user_id=" + str(user_id) + " rival_id=" + str(rival_id))
     items = get_all_pages(
         "GetUserRivalMusicApi", user_id, "userRivalMusicList",
         body_factory=lambda ni: UserRivalMusicRequestVO(
@@ -124,5 +124,5 @@ def GetUserRivalMusicAll(
             userRivalMusicLevelList=[{"level": x} for x in lv]),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("对手曲目获取完成：" + str(len(items)) + " 条")
+    log_info("Opponent track acquisition complete：" + str(len(items)) + " item")
     return {"userRivalMusicList": items}

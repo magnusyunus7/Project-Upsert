@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-get_game_charge.py —— 取游戏计费配置（GetGameChargeApi）
+get_game_charge.py —— Take Game Billing Configuration（GetGameChargeApi）
 ================================================================================
 
-取服务器下发的计费档位。
+Get the billing gear issued by the server。
 
-对应接口：GetGameChargeApi
-请求体  ：{"isAll": false}（GameChargeRequestVO）
-响应    ：{length, gameChargeList:[{orderId,chargeId,price,startDate,endDate}]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/GameChargeRequestVO.cs
-          source/2026-10-05.log:9  真机请求 {"isAll":false}
+Corresponding interface：GetGameChargeApi
+request body  ：{"isAll": false}（GameChargeRequestVO）
+Response    ：{length, gameChargeList:[{orderId,chargeId,price,startDate,endDate}]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/GameChargeRequestVO.cs
+          source/2026-10-05.log:9  real machinerequest {"isAll":false}
 
-调用示例：
+call exampleExample：
     from api import GetGameCharge
 """
 
@@ -28,7 +28,7 @@ from .maimai_net import MaimaiNetClient, request_dict
 
 @dataclass
 class GameChargeRequestVO:
-    """请求 VO（对应 GameChargeRequestVO）。"""
+    """request VO（Corresponding GameChargeRequestVO）。"""
     isAll: bool = False
 
 
@@ -40,12 +40,12 @@ def GetGameCharge(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取游戏计费配置（对应 GetGameChargeApi）。
+    Take Game Billing Configuration（Corresponding GetGameChargeApi）。
 
-    返回：
-        原始响应 dict，含 gameChargeList
+    returntimes：
+        Raw Response dict，Contains gameChargeList
     """
-    log_info("取游戏计费配置：isAll=" + str(is_all))
+    log_info("Take Game Billing Configuration：isAll=" + str(is_all))
     return request_dict(
         "GetGameChargeApi", GameChargeRequestVO(isAll=is_all),
         user_id=0, client_id=client_id,

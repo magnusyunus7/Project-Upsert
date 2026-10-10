@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-get_user_music.py —— 取用户曲目成绩（GetUserMusicApi）
+get_user_music.py —— Take user track scores（GetUserMusicApi）
 ================================================================================
 
-取玩家全部曲目的历史成绩归档（真机 739 组）。
+Take an archive of the player's historical results for all tracks（real machine 739 group）。
 
-对应接口：GetUserMusicApi
-请求体  ：UserMusicRequestVO（userId + nextIndex + maxCount=50）
-响应    ：{userId, nextIndex, userMusicList:[{userMusicDetailList:[...], length}]}
-依据    ：source/Assembly-CSharp/Net.VO.Mai2/UserMusicRequestVO.cs
-          source/Assembly-CSharp/Net.VO.Mai2/UserMusic.cs（外层按曲分组）
-          source/Assembly-CSharp/Net.VO.Mai2/GetUserMusicDetail.cs（内层按难度）
+Corresponding interface：GetUserMusicApi
+request body  ：UserMusicRequestVO（userId + nextIndex + maxCount=50）
+Response    ：{userId, nextIndex, userMusicList:[{userMusicDetailList:[...], length}]}
+Basis    ：source/Assembly-CSharp/Net.VO.Mai2/UserMusicRequestVO.cs
+          source/Assembly-CSharp/Net.VO.Mai2/UserMusic.cs（Outer layers are grouped by song）
+          source/Assembly-CSharp/Net.VO.Mai2/GetUserMusicDetail.cs（Inner layer by difficulty）
 
-★ 响应是**两层嵌套**：外层每元素是一首歌，内层的 userMusicDetailList 才是
-  按 (musicId, level) 的成绩条目。取数时要摊平。
+★ Response is**Two layers of nesting**：Outer layer per element is a song，Inner layer userMusicDetailList It is.
+  press (musicId, level) ofResultsitemtext。Flatten when picking。
 
-★ 回传 Upsert 时只回传本局玩的那一条（playCount +1），其余不动。
+★ Callback Upsert timeOnly send backthis gametextofthatOneitem（playCount +1），Remaining immovable。
 
-调用示例：
+call exampleExample：
     from api import GetUserMusicDetail, UserMusicDetailFlat
 """
 
@@ -41,15 +41,15 @@ def GetUserMusicDetail(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户曲目成绩（单页，对应 GetUserMusicApi）。
+    Take user track scores（Single Page，Corresponding GetUserMusicApi）。
 
-    参数：
-        next_index: 分页起始索引（0 = 首页）
+    Parameter：
+        next_index: Pagination Start Index（0 = firsttext）
 
-    返回：
-        原始响应 dict，含 userMusicList（两层嵌套）
+    returntimes：
+        Raw Response dict，Contains userMusicList（Two layers of nesting）
     """
-    log_info("取用户曲目成绩：user_id=" + str(user_id) + " next_index=" + str(next_index))
+    log_info("Take user track scores：user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
         "GetUserMusicApi",
         UserMusicRequestVO(userId=user_id, nextIndex=next_index, maxCount=50),
@@ -65,13 +65,13 @@ def GetUserMusicDetailAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-    取用户曲目成绩（自动翻页取全，已摊平成单层）。
+    Take user track scores（auto-pagingTakeFull，Flattened into a single layer）。
 
-    返回：
+    returntimes：
         {"userMusicList": [ {"musicId":..,"level":..,"playCount":..}, ... ]}
-        每元素是**单条 (musicId, level) 成绩**，不是按曲分组的嵌套结构。
+        eachElementis**Single Bar (musicId, level) Results**，Not a nested structure grouped by song。
     """
-    log_info("取用户曲目成绩（全量）：user_id=" + str(user_id))
+    log_info("Take user track scores（Full Amount）：user_id=" + str(user_id))
     groups = get_all_pages(
         "GetUserMusicApi", user_id, "userMusicList",
         body_factory=lambda ni: UserMusicRequestVO(
@@ -85,6 +85,6 @@ def GetUserMusicDetailAll(
             if isinstance(details, dict):
                 details = [details]
             flat.extend(details)
-    log_info("曲目成绩获取完成：" + str(len(flat)) + " 条（原始 "
-             + str(len(groups)) + " 组）")
+    log_info("trackResultsgetTakeDone：" + str(len(flat)) + " item（Original "
+             + str(len(groups)) + " group）")
     return {"userMusicList": flat}

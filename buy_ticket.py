@@ -1,44 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-buy_ticket.py —— 主脚本范例：扫码登录 → 购买功能票 → 登出
+buy_ticket.py —— Sample Master Script：QR login → purchaseBuyFeature Tickets → logout
 ================================================================================
 
-一条完整的「买票」链路：
+a complete「Buy tickets」text：
 
     ParseQRCode -> GetUserPreview -> UserLogin -> UpsertUserChargelog -> UserLogout
 
-UpsertUserChargelog 内部会自动做这些事（所以主脚本不用管）：
-    1. 调 GetUserChargeApi 取当前票券列表（算「购买后库存」）
-    2. 调 GetUserDataApi 取 playCount / playerRating
-    3. 按 TicketManager.cs:564 算 validDate（现在 -4h +90d，取日期补 04:00:00）
-    4. 查 TICKET_CREDIT_NUM（已下沉到 api/upsert_user_chargelog.py）得到
+UpsertUserChargelog These things happen automatically internally.（So the main script doesn't have to worry about it.）：
+    1. call GetUserChargeApi Get the current ticket list（calculate「purchaseBuyAfterInventory」）
+    2. call GetUserDataApi Take playCount / playerRating
+    3. press TicketManager.cs:564 calculate validDate（currentat -4h +90d，Pick a date to make up 04:00:00）
+    4. check TICKET_CREDIT_NUM（Dropped to api/upsert_user_chargelog.py）Get
    userChargelog.price（= ticket.creditNum）
-    5. 闸门 → 发包
+    5. text → Packaging
 
 --------------------------------------------------------------------------------
-用法
+usage
 --------------------------------------------------------------------------------
-    python buy_ticket.py <二维码>                        # 预检：只看报文，不发包
-    python buy_ticket.py <二维码> --list                 # 只列当前票券和可买的票
-    python buy_ticket.py <二维码> --charge-id 3          # 指定票（默认 5 = 5倍券）
-    python buy_ticket.py <二维码> --charge-id 2 --send   # ★ 真实购买
-    python buy_ticket.py <二维码> --charge-id 2 --send --debug
-    python buy_ticket.py <二维码> --charge-id 2 --send --skip-entry   # 跳过入场数据下载
+    python buy_ticket.py <QR Code>                        # text：Messages only，No Package Issued
+    python buy_ticket.py <QR Code> --list                 # Only current tickets and available tickets are listed
+    python buy_ticket.py <QR Code> --charge-id 3          # specifiedtext（default 5 = 5Ticket multiplier）
+    python buy_ticket.py <QR Code> --charge-id 2 --send   # ★ realpurchaseBuy
+    python buy_ticket.py <QR Code> --charge-id 2 --send --debug
+    python buy_ticket.py <QR Code> --charge-id 2 --send --skip-entry   # skipAdmission data download
 
-付费票（api.PAID_TICKET_IDS）：
-    2 = 2倍チケット   creditNum 1
-    3 = 3倍チケット   creditNum 2
-    4 = 4倍チケット   creditNum 3
-    5 = 5倍チケット   creditNum 4
-    6 = 6倍チケット   creditNum 5
+Paid tickets（api.PAID_TICKET_IDS）：
+    2 = 2timesチケット   creditNum 1
+    3 = 3timesチケット   creditNum 2
+    4 = 4timesチケット   creditNum 3
+    5 = 5timesチケット   creditNum 4
+    6 = 6timesチケット   creditNum 5
 
-★ 真实购买会写入一条购买记录（不可撤销）。不传 --send 时只构造报文。
+★ realpurchaseBuyMeetingsWriteA purchase history（Irrevocable）。Do not pass --send timeConstruct only packets。
 
-★ 二维码有**时效性**（**有效期 10 分钟**），过期后 aimedb 返回 errorID=2
-  —— **不是按次数计量的**，重新生成即可。
+★ QR Code Yes**timetext**（**hastext 10 Minutes**），textAfter aimedb returntimes errorID=2
+  —— **Not Measured by Frequency**，textJust do it。
 
-★ 购买前会先查一次功能票；**账号已持有功能票时直接拒绝购买**（重复购买有封号风险）。
+★ purchaseBuyagoMeetingsFirstcheckOnceFeature Tickets；**textFeature tickets heldtimedirectlytextpurchaseBuy**（textpurchaseBuyhasTitle Risk）。
 """
 
 from __future__ import annotations
@@ -71,19 +71,19 @@ from config import PLACE_ID, REGION_ID
 
 def show_charges(user_id, label):
     """
-    ★ 调 GetUserChargeApi 打印当前票券状态，并返回 stock > 0 的那些。
+    ★ call GetUserChargeApi textCurrent Tickettext，and go back to stock > 0 ofthattext。
 
-    ★★ 为什么跑前跑后都要查：
-        真机只在「本局要用这张票」时才购买，买到手会立刻被用掉（stock--），
-        所以正常状态 stock 恒为 0。
-        **已经持票还去买，服务端看到的是重复购买，有封号风险。**
-        所以买之前必须确认没有持票；买之后要确认状态符合预期。
+    ★★ Why do we check before running and after running?：
+        real machineOnly in「this gamemustusethistickets」timeonlypurchaseBuy，The buyer will be used immediately（stock--），
+        So the normal state stock Constantly 0。
+        **Already holding the ticket and going to buy it，servertexttoofistextpurchaseBuy，hasTitle Risk。**
+        So you have to make sure you don't have a ticket before you buy it.；After buying, confirm that the status meets expectations。
     """
     raw = GetUserCharge(user_id)
     lst = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
-    log_info("[" + label + "] 当前票券 " + str(len(lst)) + " 条：")
+    log_info("[" + label + "] Current Ticket " + str(len(lst)) + " item：")
     if not lst:
-        log_info("    （空）")
+        log_info("    （empty）")
     for c in lst:
         cid = c.get("chargeId")
         stock = int(c.get("stock", 0) or 0)
@@ -91,9 +91,9 @@ def show_charges(user_id, label):
                  + "  stock=" + str(stock)
                  + "  purchaseDate=" + str(c.get("purchaseDate"))
                  + "  validDate=" + str(c.get("validDate"))
-                 + ("   ← ★ 持有中" if stock > 0 else ""))
+                 + ("   ← ★ texthastext" if stock > 0 else ""))
     held = [c for c in lst if isinstance(c, dict) and int(c.get("stock", 0) or 0) > 0]
-    log_info("[" + label + "] 持有中的功能票：" + str(len(held)) + " 张")
+    log_info("[" + label + "] texthasinFeature Tickets：" + str(len(held)) + " Zhang")
     return held
 
 
@@ -136,30 +136,30 @@ def main() -> int:
     setup_logging("buy_ticket")
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
     try:
-        # ---- ★★ 最早的前置检查：这张票当前**上架了吗** ----
-        #   ★ GetGameChargeApi 不需要登录（user_id=0），所以放在**扫码之前**，
-        #     不满足就直接退出 —— 不浪费二维码，也不产生任何登录会话。
-        #   依据 TicketManager.cs:137-150：真机也只买 GetGameChargeApi 列出来的票。
+        # ---- ★★ Earliest pre-check：thisticketsCurrent**Is it on the shelf?** ----
+        #   ★ GetGameChargeApi No login required（user_id=0），So put in**textBefore**，
+        #     Exit if unsatisfied —— Don't waste QR codes，Nor does it generate any login sessions。
+        #   Basis TicketManager.cs:137-150：real machineAlsoOnlyBuy GetGameChargeApi Tickets listed。
         shop = GetGameCharge().get("gameChargeList") or []
         avail = [int(g.get("chargeId")) for g in shop
                  if isinstance(g, dict) and g.get("chargeId") is not None]
-        log_info("当前可购买 chargeId：" + str(avail))
+        log_info("Currently Available for Purchase chargeId：" + str(avail))
         for g in shop:
             log_info("    chargeId=" + str(g.get("chargeId"))
                      + " " + ticket_name(g.get("chargeId"))
                      + "  money price=" + str(g.get("price"))
-                     + "  有效期 " + str(g.get("startDate")) + " ~ " + str(g.get("endDate")))
+                     + "  hastext " + str(g.get("startDate")) + " ~ " + str(g.get("endDate")))
         if opts["charge_id"] not in avail:
             log_error("chargeId=" + str(opts["charge_id"])
                       + "（" + ticket_name(opts["charge_id"])
-                      + "）**不在当前可购买清单里** —— 连登录都不做，直接退出。")
-            log_error("  原因：服务端对未上架的票会 returnCode=0（实测过）。")
-            log_error("  想买请用清单里的 chargeId：" + str(avail))
+                      + "）**Not in current purchasable list** —— textloginallDon't，directlytextout。")
+            log_error("  Reason：serverYes.notUptextoftextMeetings returnCode=0（Measured）。")
+            log_error("  If you want to buy, please use the chargeId：" + str(avail))
             return 4
 
-        # ---- ★ 心跳：决定后续所有请求的 number 头 ----
-        #   真机序列里 Ping 在 [11]，紧接着才是 GetUserPreviewApi [12]。
-        #   不跑的话 number 恒为 "0"（真机是 75）。
+        # ---- ★ Heartbeat：Decide on all subsequent requests number Head ----
+        #   real machineSequencein Ping at [11]，textIt is. GetUserPreviewApi [12]。
+        #   If you don't run number Constantly "0"（real machine is 75）。
         Ping()
 
         user_id, token = ParseQRCode(opts["qr"])
@@ -167,45 +167,45 @@ def main() -> int:
 
         preview = GetUserPreview(user_id, token)
         if preview.isLogin:
-            log_error("账号处于已登录状态，请先在机台登出或等待会话超时")
+            log_error("textplaceinAlreadylogintext，pleaseFirstatmachineStagelogoutorwaitSessiontexttime")
             return 2
 
         login = UserLogin(user_id, token, region_id=REGION_ID, place_id=PLACE_ID)
         session.update(login_dt=login.loginDateTime, logged_in=True)
 
-        # ---- ★ 复刻真机的「入场」序列：登录后先把用户数据全量拉一遍 ----
-        #   真机 13:19:45 登录 -> 13:19:46~13:19:51 拉 47 个节点
-        #        -> 13:20:10 才发 UpsertUserChargelogApi
-        #   本脚本原来 login 后直接买，跳过了这一段。
+        # ---- ★ Reproduction of the real machine「Admission」Sequence：loginAfterFirstputuserdataFull AmounttextOnetext ----
+        #   real machine 13:19:45 login -> 13:19:46~13:19:51 text 47 nodes
+        #        -> 13:20:10 Talented UpsertUserChargelogApi
+        #   textscriptHaratext login Buy directly after，skiptextthisOnetext。
         if not opts["skip_entry"]:
             snap = GetNeedUserData(user_id, token=token,
                                          place_id=PLACE_ID, region_id=REGION_ID)
             _sum = summarize_snapshot(snap)
-            log_info("入场数据下载完成：" + str(len(_sum)) + " 个节点，失败 "
-                     + str(len(snap.get("_failed") or [])) + " 个")
+            log_info("Admission data download complete：" + str(len(_sum)) + " nodes，Failed "
+                     + str(len(snap.get("_failed") or [])) + " Piece")
 
-        # ---- ★★ 跑前：必须确认账号当前**没有**持有功能票 ----
-        held_before = show_charges(user_id, "购买前")
+        # ---- ★★ textago：Must confirm current account**none**texthasFeature Tickets ----
+        held_before = show_charges(user_id, "purchaseBuyago")
 
         aborted = False
         if held_before:
-            log_error("账号当前已持有功能票，**拒绝购买**（重复购买有封号风险）：")
+            log_error("textCurrentFeature tickets held，**textpurchaseBuy**（textpurchaseBuyhasTitle Risk）：")
             for c in held_before:
                 log_error("    chargeId=" + str(c.get("chargeId"))
                           + " " + ticket_name(c.get("chargeId"))
                           + " stock=" + str(c.get("stock"))
                           + " validDate=" + str(c.get("validDate")))
-            log_error("请先在机台把票用掉，或等它过期后再来。")
+            log_error("pleaseFirstatmachineStageputtextusetext，or wait until it expires。")
             aborted = True
         else:
-            # ---- ★ 买票前等待（贴近真机节奏：真机 login 13:19:45 -> 买票 13:20:10，间隔 25s）----
+            # ---- ★ Wait before buying a ticket（textreal machinetext：real machine login 13:19:45 -> Buy tickets 13:20:10，text 25s）----
             if opts["wait_before"] > 0:
-                log_info("买票前等待 " + str(opts["wait_before"]) + " 秒 ...")
+                log_info("Wait before buying a ticket " + str(opts["wait_before"]) + " seconds ...")
                 time.sleep(opts["wait_before"])
-                log_info("等待结束，开始购买")
+                log_info("waittext，Start your purchase")
 
-            # ---- 购买 ----
-            # ★ 一个函数搞定：取当前票券/档案 -> 安全检查 -> 算 validDate/price -> 闸门 -> 发包
+            # ---- purchaseBuy ----
+            # ★ One function, done.：Pick up current ticket/filetext -> Security check -> calculate validDate/price -> text -> Packaging
             UpsertUserChargelog(
                 user_id, opts["charge_id"], login.loginDateTime,
                 dry_run=not opts["send"],
@@ -214,26 +214,26 @@ def main() -> int:
                 place_id=PLACE_ID, region_id=REGION_ID,
             )
 
-        # ---- ★★ 跑后：无论有没有真发包，都再查一次 ----
-        #   （中止时也查，确认状态确实没被动过）
-        held_after = show_charges(user_id, "购买后")
+        # ---- ★★ textAfter：notexthasnonetextPackaging，allAgaincheckOnce ----
+        #   （Also check when aborting，text）
+        held_after = show_charges(user_id, "purchaseBuyAfter")
 
         if aborted:
-            log_info("已按安全检查中止，**未发包**；上面是中止后的复查结果")
+            log_info("Aborted by security check，**notPackaging**；Above are the results of the post-abort review")
             if len(held_after) == len(held_before):
-                log_info("复查确认：票券状态未发生变化 ✅")
+                log_info("Review and confirm：textnothairtextVariation ✅")
             else:
-                log_warning("复查发现票券数量变了 —— 请人工确认")
+                log_warning("Review found that the number of tickets has changed —— pleasetext")
             return 3
 
         if not opts["send"]:
-            log_info("[dry-run] 未发包。想真实购买请加 --send（★ 会写入购买记录）")
+            log_info("[dry-run] notPackaging。If you want to make an actual purchase, please add --send（★ will be written to the purchase history）")
             return 0
         if held_after:
-            log_info("购买后持有 " + str(len(held_after)) + " 张票（购买成功）")
+            log_info("purchaseBuyAftertexthas " + str(len(held_after)) + " tickets（purchaseBuySuccess）")
         else:
-            log_warning("购买后没有查到持有中的票 —— 服务端可能没落库，"
-                        "或票被立刻消耗了")
+            log_warning("purchaseBuyAfternonechecktotexthasintext —— servertextcantextfallLibrary，"
+                        "or tickets were immediately consumed")
         return 0
 
     except ChargelogGuardError:
@@ -252,7 +252,7 @@ def main() -> int:
                            logout_type=LogoutType.TestIn,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_error("[收尾] 强制登出失败（会话可能需等待服务端超时）：" + str(exc))
+                log_error("[receiveTail] Force Logout Failed（Session may need to wait for server timeout）：" + str(exc))
         teardown_logging()
 
 
