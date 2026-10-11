@@ -9,8 +9,6 @@
 | **`netdelivery. py`** | ✅ **Available** — check / Down `. app` / `. opt` updatePackage(Read-only) |
 | `api/` Down 40+ Interface modules | 🔧 Achieved and passed zero network self-test, But**notAll inreal machineUp** |
 
-**file**at [`docs` Branch](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs), text[file](#file).
-
 ---
 
 ## item
@@ -195,8 +193,6 @@ serverforthisticketsthisone gameuse
 > **Typical use**: intime `buy_ticket. py` Will refuse to buy again;
 > If you want to buy another one, use this one first.
 
-PrincipleAndpacketBasis [Instructions for using the feature ticket](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Instructions for using the feature ticket. md).
-
 ---
 
 ## reincarnate. py —
@@ -230,8 +226,6 @@ python reincarnate. py --dst-qr "<B QR code>" --src-json data/12345678. json --s
 | `--clone-identity` | Off | `userName` / `accessCode` Clone Together(defaultkeep B's) |
 
 > ⚠️ **not** Suggested first `--plan`, Again `--limit 8` Small Batch Trial.
-
-Complete process, Batch Rules, continuedAndlogoutofBasis [description](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/description. md).
 
 ---
 
@@ -303,8 +297,6 @@ The Three Iron Laws:
 1. **Do not log** — eachPiece api Function will print automatically `=== Function name Get started ===` / `[result]`
 2. **Be sure to log out** — at `isLogin=True` timeNext LoginMeetings `returnCode=100`
 3. **The write interface should open the gate explicitly.** — Write only `dry_run=False` Not enough, Must be given at the same time `confirm=True`
-
-For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Master Scripting Guide. md).
 
 ---
 
