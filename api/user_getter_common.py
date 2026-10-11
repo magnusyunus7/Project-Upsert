@@ -5,8 +5,8 @@ user_getter_common. py — Common base for each fetch script
 
 Only 3 things to offer, The fetching logic is in the respective script:
 
-  1. Requests by Interface VO(Strict correspondence source/.../Net. VO. Mai2/*RequestVO. cs)
-  2. _get()      Send a request and go back**Raw Response dict**
+  1. Requests by Interface VO (Strict correspondence source/.../Net. VO. Mai2/*RequestVO. cs)
+  2. _get()      Send a request and go back **Raw Response dict**
   3. get_all_pages() auto-paging
 
 --------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ Only 3 things to offer, The fetching logic is in the respective script:
 --------------------------------------------------------------------------------
 Basis source/Assembly-CSharp/Net. VO. Mai2/ Below each other's XxxRequestVO. cs:
 
-  GameKaleidxScopeRequestVO: emptyNone of the fields
+  GameKaleidxScopeRequestVO: empty None of the fields
   UserDetailRequestVO: Only userId
   UserMapRequestVO: userId + nextIndex + maxCount = 1000
   UserLoginBonusRequestVO: userId + nextIndex + maxCount = 20
@@ -25,7 +25,7 @@ Basis source/Assembly-CSharp/Net. VO. Mai2/ Below each other's XxxRequestVO. cs:
   UserShopStockRequestVO: userId + shopItemIdList
   UserRivalMusicRequestVO: userId + rivalId + nextIndex + userRivalMusicLevelList
 
-Wrong field name or missing field, serverwill returnExceptionsoremptydata.
+Wrong field name or missing field, server will return Exceptions or empty data.
 """
 
 from __future__ import annotations
@@ -41,23 +41,23 @@ from .maimai_net import MaimaiNetClient, get_default_client
 
 
 # =============================================================================
-# request VO(fieldCorresponding C# of XxxRequestVO)
+# request VO (field Corresponding C# of XxxRequestVO)
 # =============================================================================
 
 @dataclass
 class EmptyRequestVO:
-    """emptyrequest body(Corresponding GameKaleidxScopeRequestVO — It does not have any fields)."""
+    """empty request body (Corresponding GameKaleidxScopeRequestVO — It does not have any fields)."""
 
 
 @dataclass
 class UserIdRequestVO:
-    """Only userId(Corresponding UserDetailRequestVO / UserCharacterRequestVO / UserOptionRequestVO etc)."""
+    """Only userId (Corresponding UserDetailRequestVO / UserCharacterRequestVO / UserOptionRequestVO etc.)."""
     userId: int
 
 
 @dataclass
 class UserIdPageRequestVO:
-    """useMinutes(Corresponding UserMapRequestVO, maxCount default 1000)."""
+    """use Minutes (Corresponding UserMapRequestVO, maxCount default 1000)."""
     userId: int
     nextIndex: int = 0
     maxCount: int = 1000
@@ -89,21 +89,21 @@ class UserMusicRequestVO:
 
 @dataclass
 class UserCourseRequestVO:
-    """Corresponding UserCourseRequestVO(Only userId + nextIndex,**none** maxCount)."""
+    """Corresponding UserCourseRequestVO (Only userId + nextIndex, **none** maxCount)."""
     userId: int
     nextIndex: int = 0
 
 
 @dataclass
 class UserFavoriteRequestVO:
-    """Corresponding UserFavoriteRequestVO(press itemKind Split request)."""
+    """Corresponding UserFavoriteRequestVO (press itemKind Split request)."""
     userId: int
     itemKind: int = 0
 
 
 @dataclass
 class UserFavoriteItemRequestVO:
-    """Corresponding UserFavoriteItemRequestVO(noteField name is kind, No itemKind)."""
+    """Corresponding UserFavoriteItemRequestVO (note Field name is kind, No itemKind)."""
     userId: int
     kind: int = 1
     nextIndex: int = 0
@@ -127,7 +127,7 @@ class UserRivalRequestVO:
 
 @dataclass
 class UserRivalMusicRequestVO:
-    """Corresponding UserRivalMusicRequestVO(level Fixed list 6 file)."""
+    """Corresponding UserRivalMusicRequestVO (level Fixed list 6 file)."""
     userId: int
     rivalId: int = 0
     nextIndex: int = 0
@@ -140,7 +140,7 @@ class UserRivalMusicRequestVO:
 # Constant
 # =============================================================================
 
-#: GetUserItemApi of itemKind Pick a value(Corresponding Net. VO. Mai2/ItemKind. cs)
+#: GetUserItemApi of itemKind Pick a value (Corresponding Net. VO. Mai2/ItemKind. cs)
 #: Client at StateUserDownload. cs inDownloadthis kind
 ITEM_KINDS: tuple = (1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14)
 
@@ -150,10 +150,10 @@ ITEM_KINDS: tuple = (1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14)
 #:  Passing on 0 will be rejected by the server. real-machine log source/2026-10-05. log:32 Also 10000000000.
 ITEM_NEXT_INDEX_FACTOR: int = 10000000000
 
-#: GetUserFavoriteApi of itemKind(real machineorder 3/1/2/10/11, source/2026-10-05. log:59-68)
+#: GetUserFavoriteApi of itemKind (real machine order 3/1/2/10/11, source/2026-10-05. log:59-68)
 FAVORITE_ITEM_KINDS: tuple = (3, 1, 2, 10, 11)
 
-#: GetUserRivalMusicApi of level fileBit(real machine source/2026-10-05. log:101)
+#: GetUserRivalMusicApi of level file Bit (real machine source/2026-10-05. log:101)
 RIVAL_MUSIC_LEVELS: tuple = (0, 1, 2, 3, 4, 10)
 
 
@@ -171,7 +171,7 @@ def _get(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Send a request, returns**Raw Response dict**(Don't VO Keep all server-side fields).
+  Send a request, returns **Raw Response dict** (Don't VO Keep all server-side fields).
 
   - Counting scripts always go here: upsertUserAll needResponse original
    dataclass Will lose the fields given by the server.
@@ -199,20 +199,20 @@ def get_all_pages(
     max_pages: int = 200,
 ) -> List[Any]:
     """
-  auto-pagingfetchitemListinterfaceofAllitem
+  auto-paging fetch item List interface of All item
 
   Paging conventions(Each Packet of Proc inallisthisPiece):
     nextIndex == 0 -> nonedata
     nextIndex!= 0 -> Start index of next page
 
   Parameter:
-    api_name:   interfaceFirst name
-    list_key:   The key name of the payload list in the response(As "userMapList")
+    api_name:   interface First name
+    list_key:   The key name of the payload list in the response (As "userMapList")
     body_factory: Optional; receive next_index returnsrequest VO of
             - firstMeetingsin next_index=None calluse — this isfor
              GetUserItemApi this"firsthairmustBeltvalue"ofinterface
              (firstPackage nextIndex = itemKind * 1e10, Can't be 0).
-    max_pages:   Up()
+    max_pages:   Up ()
 
   Returns:
     All merged entries
@@ -240,6 +240,6 @@ def get_all_pages(
         if not next_index:
             break
     else:
-        log_warning(api_name + " " + str(max_pages) + " notPage flip aborted")
+        log_warning(api_name + " " + str(max_pages) + " not Page flip aborted")
 
     return all_items

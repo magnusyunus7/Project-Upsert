@@ -1,23 +1,23 @@
 # tools/ — Tools
 
-thisPiece**Separate gadgets unrelated to the game protocol**: countcalculate, fileProcess.
-They**Unconnected**,**Don't touch the game server**, Also**Do not rely on `api/` And `config. py`**.
+this piece **Separate gadgets unrelated to the game protocol**: count calculate, file Process.
+They **Unconnected**, **Don't touch the game server**, Also **Do not rely on `api/` And `config. py`**.
 
 ##
 
 | | description |
 |---|---|
 | One tool, one subdirectory | `tools/<Tool name>/` |
-| PackageContains | Tools are not interdependent, You can also run away by handcuffing alone |
+| Package Contains | Tools are not interdependent, You can also run away by handcuffing alone |
 | | Unconnected, Do Not Write Game Servers; Max Read Native Files |
-| nonumberThree | Use only Python standardLibrary(non-Toolsof README in) |
-| | addedToolstime, Below"Existing Tools"inPlusOne Row |
+| no number Three | Use only Python standard Library (non-Tools of README in) |
+| | added Tools time, Below "Existing Tools" in Plus One Row |
 
 ## Existing Tools
 
 | Tools | | What for? |
 |---|---|---|
-| chartachievement ratecountcalculate | [`chart_achievement/`](chart_achievement/) | pressDeterminenumbercalculatechartachievement rateAnd DX Minutes; The combination can also be determined by the reverse calculation of the achievement rate |
+| chart achievement rate count calculate | [`chart_achievement/`](chart_achievement/) | press Determine number calculate chart achievement rate And DX Minutes; The combination can also be determined by the reverse calculation of the achievement rate |
 
 ## How to run
 

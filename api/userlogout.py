@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-userlogout. py — userlogout(UserLogoutApi)
+userlogout. py — user logout (UserLogoutApi)
 ================================================================================
 
-Features: loginSession, Optionally escalate network statistics for this session(delayLog).
+Features: login Session, Optionally escalate network statistics for this session (delayLog).
 
 Corresponding interface: UserLogoutApi
 request body: Two Forms, source/Assembly-CSharp/Net. Packet. Mai2/PacketUserLogout. cs:22-63
@@ -14,16 +14,16 @@ request body: Two Forms, source/Assembly-CSharp/Net. Packet. Mai2/PacketUserLogo
 logout(source/Assembly-CSharp/Net. VO. Mai2/LogoutType. cs)
 --------------------------------------------------------------------------------
   None  = 0
-  Logout = 1  currentlogout(Belt delayLog systemcount)
-  Cancel = 2  Cancel / Force Logout of Assigned Agents(NetPacketUtil. cs:47)
-  Error = 3  errorForce Logout(GameMain. cs:91)
+  Logout = 1  current logout (Belt delayLog system count)
+  Cancel = 2  Cancel / Force Logout of Assigned Agents (NetPacketUtil. cs:47)
+  Error = 3  error Force Logout (GameMain. cs:91)
   TestIn = 4  /(GameMain. cs:104)
-  Quit  = 5  outtimeForce Logout, Releasable Residual Sessions(GameMainObject. cs:200)
+  Quit  = 5  out time Force Logout, Releasable Residual Sessions (GameMainObject. cs:200)
 
-- real machineSessiontimeuseofis type=4(TestIn), source/2026-10-05. log:125.
+- real machine Session time use of is type=4 (TestIn), source/2026-10-05. log:125.
 
 - delayLog(source/Assembly-CSharp/Net. VO. Mai2/DelayLog. cs)
-  request islong 26 ofnumbergroup(DelayLog. cs:17 new RequestAPI[26]),
+  request is long 26 of number group (DelayLog. cs:17 new RequestAPI[26]),
   eachPieceElement {count, size, msec, retry}.
 
 Example:
@@ -47,7 +47,7 @@ DELAY_LOG_SLOTS = 26
 
 
 class LogoutType:
-    """logout(Corresponding Net. VO. Mai2. LogoutType)."""
+    """logout (Corresponding Net. VO. Mai2. LogoutType)."""
     None_ = 0
     Logout = 1      # currentlogout(Belt delayLog)
     Cancel = 2      # Cancel / Force Logout
@@ -58,7 +58,7 @@ class LogoutType:
 
 @dataclass
 class RequestAPI:
-    """Statistics for a single interface(Corresponding Net. VO. Mai2/RequestAPI. cs)."""
+    """Statistics for a single interface (Corresponding Net. VO. Mai2/RequestAPI. cs)."""
     count: int = 0
     size: int = 0
     msec: int = 0
@@ -67,7 +67,7 @@ class RequestAPI:
 
 @dataclass
 class DelayLog:
-    """Session Network Statistics(Corresponding Net. VO. Mai2/DelayLog. cs)."""
+    """Session Network Statistics (Corresponding Net. VO. Mai2/DelayLog. cs)."""
     dlRequests: int = 0
     dlSize: int = 0
     dlRetry: int = 0
@@ -82,7 +82,7 @@ class DelayLog:
 
 @dataclass
 class UserLogoutRequestVO:
-    """logoutrequest VO(Corresponding UserLogoutRequestVO)."""
+    """logout request VO (Corresponding UserLogoutRequestVO)."""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -94,7 +94,7 @@ class UserLogoutRequestVO:
 
 @dataclass
 class UserLogoutRequest2VO:
-    """Full Logout Request VO(Corresponding UserLogoutRequest2VO, Contains delayLog)."""
+    """Full Logout Request VO (Corresponding UserLogoutRequest2VO, Contains delayLog)."""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -107,12 +107,12 @@ class UserLogoutRequest2VO:
 
 @dataclass
 class UserLogoutResponseVO:
-    """Response VO(Corresponding UserLogoutResponseVO)."""
+    """Response VO (Corresponding UserLogoutResponseVO)."""
     returnCode: int = 0
 
 
 def create_empty_delay_log() -> DelayLog:
-    """Create an all-zero DelayLog(26 slots)."""
+    """Create an all-zero DelayLog (26 slots)."""
     return DelayLog()
 
 
@@ -128,10 +128,10 @@ def create_delay_log_from_stats(
     reduction_item: int = 0,
 ) -> DelayLog:
     """
-  usesystemcountdataconstruct DelayLog.
+  use system count data construct DelayLog.
 
   Parameter:
-    requests_stats: eachPieceinterfaceofsystemcountList, Elements are shaped like
+    requests_stats: each Piece interface of system count List, Elements are shaped like
             {"count":1,"size":2090,"msec":73,"retry":0}
             press DelayLog. request ofBitorderFill(Max. 26 Piece)
   """
@@ -172,12 +172,12 @@ def UserLogout(
   Parameter:
     user_id:     user ID(Required)
     token:      Session Token(Required)
-    login_date_time: logintime(Required, Retrieved from UserLogin of loginDateTime)
+    login_date_time: login time (Required, Retrieved from UserLogin of loginDateTime)
     logout_type:   logout(Optional, default 4=TestIn, Consistent with the real machine)
     access_code:  (Optional)
     region_id:    Area ID(Optional)
     place_id:    Store ID(Optional)
-    client_id:    machine stateshortValue(Optional)
+    client_id:    machine state short Value (Optional)
     delay_log:    Session Stats(Optional; Only logout_type=1 timepackethairout)
     timeout_ms:   timeout milliseconds(Optional)
     client:     Reusable MaimaiNetClient(Optional)
@@ -189,7 +189,7 @@ def UserLogout(
     RuntimeError: returnCode!= 1
   """
     log_info(
-        "userlogout: user_id=" + str(user_id) + " logout_type=" + str(logout_type)
+        "user logout: user_id=" + str(user_id) + " logout_type=" + str(logout_type)
         + " loginDateTime=" + str(login_date_time)
     )
 
@@ -200,14 +200,14 @@ def UserLogout(
             loginDateTime=login_date_time, type=logout_type,
             delayLog=delay_log if delay_log is not None else create_empty_delay_log(),
         )
-        log_debug("Use full logout message(Contains delayLog)")
+        log_debug("Use full logout message (Contains delayLog)")
     else:
         body = UserLogoutRequestVO(
             userId=user_id, accessCode=access_code,
             regionId=region_id, placeId=place_id, clientId=client_id,
             loginDateTime=login_date_time, type=logout_type,
         )
-        log_debug("Use Simple Logout Packet(Excluding delayLog)")
+        log_debug("Use Simple Logout Packet (Excluding delayLog)")
 
     raw = request_dict(
         "UserLogoutApi", body,
@@ -217,11 +217,11 @@ def UserLogout(
 
     resp = UserLogoutResponseVO(returnCode=int(raw.get("returnCode", 0) or 0))
     if resp.returnCode != 1:
-        msg = "logoutFailed: returnCode=" + str(resp.returnCode)
+        msg = "logout Failed: returnCode=" + str(resp.returnCode)
         log_error(msg)
         raise RuntimeError(msg)
 
-    log_info("userlogoutSuccess: returnCode=" + str(resp.returnCode))
+    log_info("user logout Success: returnCode=" + str(resp.returnCode))
     return resp
 
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
             print("returnCode =", resp.returnCode)
             return 0
         except Exception as exc:
-            log_error("userlogoutFailed:" + str(exc))
+            log_error("user logout Failed: " + str(exc))
             return 1
         finally:
             teardown_logging()

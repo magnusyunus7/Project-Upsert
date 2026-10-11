@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-get_user_item. py — Pick up user items(GetUserItemApi)
+get_user_item. py — Pick up user items (GetUserItemApi)
 ================================================================================
 
-Take inventory of players' various items(real machinepress kind Minutes 12 request).
+Take inventory of players' various items (real machine press kind Minutes 12 request).
 
 Corresponding interface: GetUserItemApi
 request body: UserItemRequestVO(userId + nextIndex + maxCount=100)
@@ -11,7 +11,7 @@ Response:{userId, length, nextIndex, itemKind, userItemList:[{itemKind, itemId, 
 Basis: source/Assembly-CSharp/Net. VO. Mai2/UserItemRequestVO. cs
 
 --------------------------------------------------------------------------------
--- firsthair nextIndex Must have Sentinel value(The easiest pit to step on)
+-- first hair nextIndex Must have Sentinel value (The easiest pit to step on)
 --------------------------------------------------------------------------------
 source/Assembly-CSharp/Net. Packet. Mai2/PacketGetUserItem. cs:17-24
 
@@ -19,12 +19,12 @@ source/Assembly-CSharp/Net. Packet. Mai2/PacketGetUserItem. cs:17-24
   {
     Create(GetNetQuery(userId, itemId * 10000000000L));  // <- firstPackage
   }
-  // Proc(): nextIndex!= 0 timecontinue
+  // Proc(): nextIndex != 0 time continue
 
 real-machine log source/2026-10-05. log:32 Also nextIndex=10000000000.
 Passing on 0 will be rejected by the server(HTTP 500).
 
-- request bodyin**none itemKind Field** — is nextIndex ofvalueof:
+- request body in **none itemKind Field** — is nextIndex of value of:
   number 1 nextIndex = kind * 1e10
   Subsequent page flips follow a response back of nextIndex
 
@@ -53,16 +53,16 @@ def GetUserItem(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetching a certain type of props from a user(Corresponding GetUserItemApi).
+  Fetching a certain type of props from a user (Corresponding GetUserItemApi).
 
   Parameter:
     user_id:  user ID(Required)
-    item_kind:(Required):1=Designer Tags 2=3=Avatar 4=5=Music …
-    next_index: Paged Index;**None(default)first**, will be automatically converted to
-          item_kind * 10000000000 ofvalue.
+    item_kind: (Required): 1=Designer Tags 2=3=Avatar 4=5=Music …
+    next_index: Paged Index; **None (default) first**, will be automatically converted to
+          item_kind * 10000000000 of value.
 
   Returns:
-    Raw Response dict, Contains userItemList
+    Raw Response dict, Contains userItemList.
   """
     if next_index is None:
         next_index = item_kind * ITEM_NEXT_INDEX_FACTOR
@@ -86,13 +86,13 @@ def GetUserItemAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetch all user items(press ITEM_KINDS categoriesfetch, and automatically flip the page).
+  Fetch all user items (press ITEM_KINDS categories fetch, and automatically flip the page).
 
   Parameter:
     item_kinds: list(Optional, default ITEM_KINDS)
 
   Returns:
-    {"userItemList": [...]}, Merged all categories and pagination
+    {"userItemList": [...]}, Merged all categories and pagination.
   """
     kinds = list(item_kinds) if item_kinds else list(ITEM_KINDS)
     log_info("Fetch all user items: user_id=" + str(user_id) + " kinds=" + str(kinds))
@@ -120,5 +120,5 @@ def GetUserItemAll(
                 log_warning("item_kind=" + str(kind) + " 200 Aborted")
                 break
 
-    log_info("fetch complete:" + str(len(merged)) + " item")
+    log_info("fetch complete: " + str(len(merged)) + " item")
     return {"userItemList": merged}

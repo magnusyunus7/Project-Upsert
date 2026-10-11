@@ -7,7 +7,7 @@ using System. Text;
 using HarmonyLib;
 using MelonLoader;
 
-// - MelonLoader thisPiece mod and call OnInitializeMelon.
+// - MelonLoader this Piece mod and call OnInitializeMelon.
 //  OnlyMeetings "Melon Assembly loaded" but will not be instantiated(currentfor "N Mods loaded" Do not count).
 [assembly: MelonInfo(typeof(MaimaiNetSpy. Main), "MaimaiNetSpy", "1.0.0", "wahappy")]
 [assembly: MelonGame(null, null)]
@@ -16,15 +16,15 @@ using MelonLoader;
 namespace MaimaiNetSpy
 {
   /// <summary>
-  /// MaimaiNetSpy — hook DX network, Do real-time interception and dishwashing.
+  /// MaimaiNetSpy — hook DX network, Do real-time interception and data logging.
   ///
-  ///(All by Assembly-CSharp ofactualFirst name):
+  /// (All by Assembly-CSharp of actual First name):
   ///  Net. NetHttpClient. AddHeader(name, value)     All Request Headers
   ///  Net. NetHttpClient. AddCookie(userId)        Cookie
   ///  Net. NetHttpClient. Request(bytes, ua, method)   - Pre-encrypted clear JSON
-  ///  Net. NetHttpClient. GetResponse()          decryptAfterofResponse
+  ///  Net. NetHttpClient. GetResponse()          decrypt After of Response
   ///  Net. NetPacketUtil. GetUserAgent(query)       API First name
-  ///  Manager. GameManager. CalcSpecialNum()       playSpecial ofBit
+  ///  Manager. GameManager. CalcSpecialNum()       play Special of Bit
   ///
   /// out:
   ///  &lt; text&gt;/MaimaiNetSpy/YYYY-MM-DD_HHmmss. log   Human Readable Timeline
@@ -64,7 +64,7 @@ namespace MaimaiNetSpy
       _writer = new StreamWriter(file, false, new UTF8Encoding(false)) { AutoFlush = true };
 
       Line("=". PadRight(78, '='));
-      Line(" MaimaiNetSpy Loaded — DX networktime");
+      Line(" MaimaiNetSpy Loaded — DX network time");
       Line(" log: " + file);
       Line("=". PadRight(78, '='));
 
@@ -121,7 +121,7 @@ namespace MaimaiNetSpy
     // ------------------------------------------------------------------
 
     /// <summary>
-    /// press**Parameter Type**hook.
+    /// press **Parameter Type** hook.
     ///
     /// - Why it's important to match exactly: NetHttpClient. Request hasTwo
     ///   Boolean Request()               — Request only(no)
@@ -134,14 +134,14 @@ namespace MaimaiNetSpy
                    Type[] paramTypes, string pre, string post)
     {
       var t = AccessTools. TypeByName(typeName);
-      if (t == null) { Line(" [skip] notfindto: " + typeName); return 0; }
+      if (t == null) { Line(" [skip] not found: " + typeName); return 0; }
       if (paramTypes == null || paramTypes. Any(x => x == null))
       { Line(" [skip] Parameter type parsing failed: " + typeName + "." + methodName); return 0; }
 
       var m = AccessTools. Method(t, methodName, paramTypes);
       if (m == null)
       {
-        Line(" [skip] notfindto: " + typeName + "." + methodName
+        Line(" [skip] not found: " + typeName + "." + methodName
            + "(" + string. Join(", ", Array. ConvertAll(paramTypes, x => x. Name)) + ")");
         return 0;
       }
@@ -166,7 +166,7 @@ namespace MaimaiNetSpy
     }
 
     // ------------------------------------------------------------------
-    // Create — getFull URL(NetHttpClient. Create(url))
+    // Create — get full URL (NetHttpClient. Create(url))
     // ------------------------------------------------------------------
 
     private static void PreCreate(string url)
@@ -175,7 +175,7 @@ namespace MaimaiNetSpy
     }
 
     // ------------------------------------------------------------------
-    // AddHeader — receiverequest header
+    // AddHeader — receive request header
     // ------------------------------------------------------------------
 
     private static void PreAddHeader(string name, string value)
@@ -199,7 +199,7 @@ namespace MaimaiNetSpy
     }
 
     // ------------------------------------------------------------------
-    // Request — -: Pre-encrypted clear JSON here
+    // Request — Pre-encrypted clear JSON here
     // ------------------------------------------------------------------
 
     private static void PreRequest(byte[] bytes, string userAgent, string method)
@@ -229,7 +229,7 @@ namespace MaimaiNetSpy
 
       if (_headers!= null && _headers. Count > 0)
       {
-        sb. AppendLine("| ---- request header(AddHeader receive)----");
+        sb. AppendLine("| ---- request header (AddHeader receive) ----");
         foreach (var kv in _headers)
           sb. AppendLine("|  " + kv. Key + ": " + kv. Value);
       }
@@ -240,7 +240,7 @@ namespace MaimaiNetSpy
 
       if (plain!= null)
       {
-        sb. AppendLine("| ---- request body(Pre-encrypted clear)----");
+        sb. AppendLine("| ---- request body (Pre-encrypted clear) ----");
         foreach (var ln in Wrap(plain, 150))
           sb. AppendLine("| " + ln);
       }
@@ -316,7 +316,7 @@ namespace MaimaiNetSpy
     }
 
     // ------------------------------------------------------------------
-    // GetResponse — decryptAfterofResponse
+    // GetResponse — decrypt After of Response
     // ------------------------------------------------------------------
 
     private static void PostGetResponse(Net. NetHttpClient __instance, ref MemoryStream __result)
@@ -407,7 +407,7 @@ namespace MaimaiNetSpy
     }
 
     // ------------------------------------------------------------------
-    // SetError — recordnetworkerror(Contains HTTP)
+    // SetError — record network error (Contains HTTP)
     // ------------------------------------------------------------------
 
     private static void PreSetError(System. Net. WebExceptionStatus status, string error,

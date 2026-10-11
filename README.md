@@ -18,9 +18,9 @@
 | **`use_ticket. py`** | ✅ **Available** — consume current tickets |
 | **`reincarnate. py`** | 🔧 **Not achieved** — data() |
 | **`netdelivery. py`** | ✅ **Available** — check / Down `. app` / `. opt` updatePackage(Read-only) |
-| `api/` Down 40+ Interface modules | 🔧 Achieved and passed zero network self-test, But**notAll inreal machineUp** |
+| `api/` Down 40+ Interface modules | 🔧 Achieved and passed zero network self-test, But **not all in real machine Up** |
 
-**file**at [`docs` Branch](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs), text[file](#file).
+**file** at [`docs` Branch](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs), text [file](#file).
 
 ---
 
@@ -51,10 +51,10 @@ WaHappy/
 └── source/       Decompile source code - not tracked, text
 ```
 
-**count**:`api/` ineachPiecescript = one interface, Exposure to one**callable function**.
-The main script is only responsible for orchestration, logandallat `api/` Internal.
+**count**: `api/` in each piece script = one interface, Exposure to one **callable function**.
+The main script is only responsible for orchestration, log and all at `api/` Internal.
 
-**Naming conventions**: server API Nameside Belt `Get` of,**scriptFirst nameAndFunction nameAlwaysBelt `get` / `Get`**
+**Naming conventions**: server API Nameside Belt `Get` of, **scriptFirst nameAndFunction nameAlwaysBelt `get` / `Get`**
 (Don't be ambiguous). So the retrieval scripts are all `get_*. py`, The function is `GetXxx`.
 
 ---
@@ -76,7 +76,7 @@ cp  config. py. example config. py   # Linux / macOS
 copy config. py. example config. py   # Windows
 ```
 
-after**Required**Fill in **`config. py` numberTwo"machine state and store"**:
+after **Required** Fill in **`config. py` number Two "machine state and store"**:
 
 | Variable | Fill in what |
 |---|---|
@@ -87,14 +87,14 @@ after**Required**Fill in **`config. py` numberTwo"machine state and store"**:
 | `REGION_NAME` | Area Name |
 | `KEYCHIP_ID` | **byAboveTwoValue**, Don't manipulate |
 
-> ⚠️ If you fill it out incorrect, The request sent out carries the identity of someone else's machine, the server willdirectly
+> ⚠️ If you fill it out incorrect, The request sent out carries the identity of someone else's machine, the server will directly
 >
-> `config. py` at `. gitignore` in — It's your private configuration,**Don't submit**.
+> `config. py` at `. gitignore` in — It's your private configuration, **Don't submit**.
 
 ### 3.
 
 ```bash
-python selftest. py    # networkShould 249 itemFull(Not dependent on you config)
+python selftest. py    # network Should 249 item Full (Not dependent on your config)
 ```
 
 ### Main script at a glance
@@ -108,10 +108,10 @@ python selftest. py    # networkShould 249 itemFull(Not dependent on you config)
 | `netdelivery. py` | check / Down `. app` / `. opt` updatePackage | Read-only | ❌ |
 | `selftest. py` | network | no | ❌ |
 
-> **All scripts with side effects are not packaged by default**: Do not pass `--send` timeConstruct only packets(dry-run).
-> Want to read the message without consequences, Run once without `--send` of.
+> **All scripts with side effects are not packaged by default**: Do not pass `--send` time Construct only packets (dry-run).
+> Want to read the message without consequences, Run once without `--send`.
 
-> QR code from the machine's"QR login"getTake,**has 10 Minutes**(Not Measured by Frequency).
+> QR code from the machine's"QR login"getTake, **has 10 Minutes**(Not Measured by Frequency).
 
 ---
 
@@ -132,7 +132,7 @@ python upsert. py "<QR Code>" --send --no-verify  # skipUploadAfterofpost-upload
 
 **play data/resultsOnlychange `config. py` of `PLAY_*`, Don't touch any code.**
 
-### nodes:`--extra-data`
+### nodes: `--extra-data`
 
 Want to manually overwrite certain nodes(Asthis gametoof KaleidxScope ):
 
@@ -140,14 +140,14 @@ Want to manually overwrite certain nodes(Asthis gametoof KaleidxScope ):
 python upsert. py "<QR Code>" --send --extra-data extra. json
 ```
 
-keyMust be `upsertUserAll` of **36 nodes**One, Mistakes will be reported and available node names will be listed.
+keyMust be `upsertUserAll` of**36 nodes**One, Mistakes will be reported and available node names will be listed.
 **JSON Verify before scanning**, Write error and exit directly, Don't waste QR codes.
 
-> ⚠️ at PowerShell / CMD in JSON Easily swallowed double quotes,**It is recommended to always use documents**.
+> ⚠️ at PowerShell / CMD in JSON Easily swallowed double quotes, **It is recommended to always use documents**.
 
-### - `isNew*` Bitstring:0 / 1 / 2 ofMeaning
+### - `isNew*`Bitstring:0 / 1 / 2 ofMeaning
 
-eachNumbergroupnodesalloneitem `isNew*` Bitstring,**One corresponds to an entry in the array**(orderMust be consistent).
+eachNumbergroupnodesalloneitem `isNew*`Bitstring, **One corresponds to an entry in the array**(orderMust be consistent).
 
 Basis `source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:309-364` of `BuildListData()`:
 
@@ -160,10 +160,10 @@ Basis `source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:309-364` of `BuildL
 Primary Key See `api/upsert_user_all. py` of `DIFF_PRIMARY_KEYS`
 (As `userKaleidxScopeList` use `gateId`,`userMusicDetailList` use `musicId`+`level`).
 
-> ⚠️ **Fill in existing entries `1` Meetings HTTP 500** — the server willGo INSERT A duplicate record.
+> ⚠️**Fill in existing entries `1` Meetings HTTP 500** — the server willGo INSERT A duplicate record.
 > real-machine in the packet `isNewFavoriteList = "22212"`, Can be seen visually 0/1/2 useof
 
-> **Not sure what to fill in?** Look first `data/<YouruserId>. json` inCorrespondingnodes:
+> **Not sure what to fill in?** Look first `data/<YouruserId>. json` in Corresponding nodes:
 > Primary key already exists → `0`, Absent → `1`.
 
 ---
@@ -187,7 +187,7 @@ python buy_ticket.py "<QR Code>" --charge-id 2 --send   # real purchase
 ### It does security checks.
 
 1. Check before buying `GetGameChargeApi` — noIn the purchasable list**loginallDon't**directlyout
-2. Check `GetUserChargeApi` — **buying while feature tickets are held carries a title risk**
+2. Check `GetUserChargeApi` —**buying while feature tickets are held carries a title risk**
 3. afterAgaincheckOnce
 
 ---
@@ -199,11 +199,11 @@ python use_ticket. py "<QR Code>" --list         # Only currently held tickets a
 python use_ticket. py "<QR Code>" --ticket-id 2 --send  # - realconsume
 ```
 
-**Principle**:`GetUserChargeApi` And `UpsertUserAllApi` inof `userChargeList` **fullrelatedSame**,
+**Principle**:`GetUserChargeApi` And `UpsertUserAllApi` inof `userChargeList`**fullrelatedSame**,
 Therefore, the target ticket in the node `stock` Subtract 1, Then let playlog Bring on `useTicketId` / `playCredit`,
 serverforthisticketsthisone gameuse
 
-> **Typical use**: intime `buy_ticket. py` Will refuse to buy again;
+> **Typical use**: in time `buy_ticket. py` Will refuse to buy again;
 > If you want to buy another one, use this one first.
 
 PrincipleAndpacketBasis [Instructions for using the feature ticket](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Instructions for using the feature ticket. md).
@@ -227,7 +227,7 @@ python reincarnate. py --dst-qr "<B QR code>" --src-json data/12345678. json --s
 
 1. Pick source account A of 19 node data(orread `data/<A>. json`)
 2. use B ofQR Codelogin
-3. put A of `userMusicDetailList` **Batch**Upload to B — each packetMax. four tracks,
+3. put A of `userMusicDetailList`**Batch**Upload to B — each packetMax. four tracks,
   and automatically avoids**server-side two tracksPackage**(`[4,4,2]` → `[4,3,3]`)
 4. each packet**wait → Upload → logout(type=1)→ continued login**, Loop to end of transfer
 5. each packetof playlog Record from track**Reverse Synthesis**(`achievement` / `deluxscore` / `scoreRank` …)
@@ -236,7 +236,7 @@ python reincarnate. py --dst-qr "<B QR code>" --src-json data/12345678. json --s
 |---|---|---|
 | `--plan` | — | Only batch plans are listed, no packet is sent(**It is recommended to run this first**) |
 | `--limit N` | 0(All) | Only before relocation N first(use) |
-| `--per-packet N` | 4 | tracks per packet,**can only be 1 / 3 / 4** |
+| `--per-packet N` | 4 | tracks per packet, **can only be 1 / 3 / 4** |
 | `--wait N` | 5.0 | wait time before each upload |
 | `--clone-identity` | Off | `userName` / `accessCode` Clone Together(defaultkeep B's) |
 
@@ -259,16 +259,16 @@ python netdelivery. py --out D:\SDGB2026\update
 ```
 
 Interactive Selection Support: text/emptyMinutes, Interval(`1-3`),`a`=Select all,`n`=Select none,`q`=out.
-Download tape**continuePassing on**and progress/defaultto `download/`(not tracked).
+Download tape **continue Passing on** and progress/default to `download/` (not tracked).
 
-> this is**Read-only**Don't write any account data.
+> this is **Read-only**. Don't write any account data.
 > needSame directoryDownof `authv1. py` For ALL. Net Protocol Layer.
 
 ---
 
 ## How to write the main script
 
-**HaraThen: Not for every api calluselog.** logAlreadyat `api/` in
+**Hara Then: Not for every api call use log.** log Already at `api/` in
 
 ```python
 #!/usr/bin/env python3
@@ -311,9 +311,9 @@ if __name__ == "__main__":
 
 The Three Iron Laws:
 
-1. **Do not log** — eachPiece api Function will print automatically `=== Function name Get started ===` / `[result]`
-2. **Be sure to log out** — at `isLogin=True` timeNext LoginMeetings `returnCode=100`
-3. **The write interface should open the gate explicitly.** — Write only `dry_run=False` Not enough, Must be given at the same time `confirm=True`
+1. **Do not log** — each Piece api Function will print automatically `=== Function name Get started ===` / `[result]`
+2. **Be sure to log out** — at `isLogin=True` time Next Login Meetings `returnCode=100`
+3.**The write interface should open the gate explicitly.** — Write only `dry_run=False` Not enough, Must be given at the same time `confirm=True`
 
 For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Master Scripting Guide. md).
 
@@ -335,7 +335,7 @@ For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txi
 
 **It may be added in the future**
 
-- **text** — use
+-**text** — use
 - features(Task / Map / receive /……)
 - fullofreal machineoverwrite
 - `reincarnate. py` of

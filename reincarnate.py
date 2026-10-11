@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-reincarnate. py — data(): put A ofdatato B
+reincarnate. py — data(): put A of data to B
 ================================================================================
 
   ┌─ A ─────────────────────────────────────────────┐
   │ QR Code -> ParseQRCode -> UserLogin -> GetNeedUserData │
-  │ or: directlyread data/<userId>. json(Multiplexing)       │
+  │ or: directly read data/<userId>. json (Multiplexing)       │
   └────────────────────────────────────────────────────────┘
               ↓ node data
   ┌─ B ───────────────────────────────────────────┐
@@ -19,27 +19,27 @@ reincarnate. py — data(): put A ofdatato B
   └────────────────────────────────────────────────────────┘
 
 --------------------------------------------------------------------------------
-- each packet count:1 / 3 / 4 Yes,**exactly two will be rejected by the server**
+- each packet count: 1 / 3 / 4 Yes, **exactly two will be rejected by the server**
 --------------------------------------------------------------------------------
   one real-machine game(one credit)Up to dozens four tracks, So one UpsertUserAll in one packet
   userPlaylogList / userGamePlaylogList **Max. 4 item**.
 
-  - But measured:**each packetexactly two will be rejected by the server**(1 / 3 / 4 allcurrent).
-   So the batch batcher of the script will**Proactively avoid two tracksPackage**:
+  - But measured: **each packet exactly two will be rejected by the server** (1 / 3 / 4 all current).
+   So the batch batcher of the script will **Proactively avoid two tracks Package**:
 
      10 first -> [4, 4, 2] -> [4, 3, 3]
       6 first -> [4, 2]  -> [3, 3]
       two tracks -> [2]    -> [1, 1]
 
-  - each packetallmust contain**non-empty**of userPlaylogList — pitfall number 2 itemMeasured:
-   leaving it blank causesserverWhennopacket**text**(returnCode=1 But not out of stock.).
+  - each packet all must contain **non-empty** of userPlaylogList — pitfall number 2 item Measured:
+   leaving it blank causes server When no packet **text** (returnCode=1 But not out of stock.).
 
 --------------------------------------------------------------------------------
-- Why is it needed"continued login"
+- Why is it needed "continued login"
 --------------------------------------------------------------------------------
   UpsertUserAll of playlogId Must be equal to**login**of loginId
   (PacketUpsertUserAll. cs:31 / UserAllRequestVO).
-  This session is consumed at the end of a game, mustcontinued login is required for uploads —
+  This session is consumed at the end of a game, must continued login is required for uploads —
   the real machine uses"continued":
 
     Process/ContinueProcess. cs:403
@@ -47,18 +47,18 @@ reincarnate. py — data(): put A ofdatato B
 
   Corresponding to this project: UserLogin(user_id, token, is_continue=True)
   The only difference between it and a normal login is that UserLoginRequestVO. isContinue = true,
-  will return**of loginId / loginDateTime**, For the next innings UpsertUserAll Use.
+  will return **of loginId / loginDateTime**, For the next innings UpsertUserAll Use.
 
-  - logoutMust use **type=1(LogoutType. Logout)**.
+  - logout Must use **type=1 (LogoutType. Logout)**.
    real-machine packet capture confirms UserLogoutApi is type=1(Belt delayLog):
      {"userId":...,"type":1,"delayLog":{...}}
-   using continued login with 4(TestIn)will fail — thatis"/"semantics.
+   using continued login with 4 (TestIn) will fail — that is "/" semantics.
 
 --------------------------------------------------------------------------------
 - playlog Where did you come from?
 --------------------------------------------------------------------------------
   GetNeedUserData cannot obtain userPlaylogList(these are game records, with no corresponding Get interface),
-  So the script**reconstructing from track recordings**:
+  So the script **reconstructing from track recordings**:
 
     UserMusicDetail(9 Field)     -> UserPlaylog(110 Field)
     ─────────────────────────────     ─────────────────────────
@@ -80,7 +80,7 @@ usage
   # source data from saved JSON(No need to consume repeatedly A ofQR Code)
   python reincarnate. py --dst-qr <B QR code> --src-json data/12345678. json
 
-  # - realUpload
+  # - real Upload
   python reincarnate. py --dst-qr <B QR code> --src-json data/12345678. json --send
 
   # Just look at the plan, no packet is sent
@@ -93,7 +93,7 @@ usage
   --clone identity: userName / accessCode Clone Together(default**keep B's**)
   --no-continue   Do not renew the pass(Only send one bag, for debugging)
 
-- Meetings**write to**B(Irrevocable). Do not pass --send timeConstruct only packets.
+- Meetings **write to** B (Irrevocable). Do not pass --send time Construct only packets.
 - QR Code**has 10 Minutes**.
 """
 
@@ -135,7 +135,7 @@ from config import PLACE_ID, REGION_ID
 #: one real-machine gameMax. four tracks
 MAX_TRACKS_PER_CREDIT = 4
 
-#: - server-sidetracks per packet(Measured:**exactly two firstMeetings**)
+#: - server-side tracks per packet (Measured: **exactly two first Meetings**)
 #:  1 / 3 / 4 allcurrentOnly two tracksNo — So avoid it when batching..
 FORBIDDEN_TRACK_COUNTS = (2,)
 
@@ -145,7 +145,7 @@ ALLOWED_PER_PACKET = (1, 3, 4)
 
 def split_batches(total, per):
     """
-  put total firstCut"each packet <= per"of**and does not produce proscribed two tracksPackage**.
+  put total first Cut "each packet <= per" of **and does not produce proscribed two tracks Package**.
 
   Practice: First greedy press per Cut, Then correct the size to 2 of
 
@@ -378,7 +378,7 @@ def main() -> int:
 
         base_raw = GetNeedUserData(uid, token=token, place_id=PLACE_ID, region_id=REGION_ID)
         base_nodes = normalize_snapshot(base_raw)
-        log_info("BaselineAlreadyfetch")
+        log_info("Baseline Already fetch")
 
         # ---------------- 3. Batch ----------------
         per = int(opts["per_packet"])
@@ -388,10 +388,10 @@ def main() -> int:
         for _n in sizes:
             batches.append(musics[_pos:_pos + _n])
             _pos += _n
-        log_info("countof " + str(len(musics)) + " first -> " + str(len(batches))
+        log_info("count of " + str(len(musics)) + " first -> " + str(len(batches))
                  + " Package, each packet " + "/".join(str(n) for n in sizes[:12])
                  + ("..." if len(sizes) > 12 else "") + " first")
-        log_info(" - Avoided two tracksPackage(Measured just right 2 will be rejected by the server;1/3/4 allcurrent)")
+        log_info(" - Avoided two tracks Package (Measured just right 2 will be rejected by the server; 1/3/4 all current)")
 
         if opts["plan"]:
             for i, b in enumerate(batches):
@@ -400,18 +400,18 @@ def main() -> int:
             log_info("--plan: Column Only Plans, no packet is sent")
             return 0
 
-        # numberOnePackageonlyBeltnon-tracknodes()
+        # number One Package only Belt non-track nodes()
         shared_nodes = collect_nodes(src_nodes, base_nodes, opts["clone_identity"])
-        log_info("non-tracknodes " + str(len([k for k in shared_nodes if not k.startswith('isNew')]))
+        log_info("non-track nodes " + str(len([k for k in shared_nodes if not k.startswith('isNew')]))
                  + " will take place on the 1 Package upload")
 
         # ---------------- 4. packet upload ----------------
         # -(pressUse):
         #   login -> wait -> Upload -> logout(type=1) -> continued login -> wait -> Upload -> logout ->...
         #
-        # - logoutMust use type=1(LogoutType. Logout).
+        # - logout Must use type=1 (LogoutType. Logout).
         #  real-machine packet capture confirms UserLogoutApi is type=1(Belt delayLog);
-        #  using continued login with 4(TestIn)will fail — thatis"text/text"semantics.
+        #  using continued login with 4 (TestIn) will fail — that is "text/text" semantics.
         sent = 0
         for idx, batch in enumerate(batches):
             log_info("")
@@ -469,7 +469,7 @@ def main() -> int:
                            logout_type=LogoutType.Logout,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_warning("logoutFailed(continueDownOnePackage):" + str(exc))
+                log_warning("logout Failed (continue Down One Package): " + str(exc))
             session["logged_in"] = False
 
             # ---- - continued login: DownOnePackageof loginId ----
@@ -484,7 +484,7 @@ def main() -> int:
 
         if not opts["send"]:
             log_info("")
-            log_info("[dry-run] notPackaging. For real migration, please add --send(- will be added to your account B)")
+            log_info("[dry-run] not Packaging. For real migration, please add --send (will be added to your account B)")
             return 0
 
         log_info("")

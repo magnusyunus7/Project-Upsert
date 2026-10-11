@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-get_user_mission. py — Fetching user tasks and weekly data(GetUserMissionDataApi)
+get_user_mission. py — Fetching user tasks and weekly data (GetUserMissionDataApi)
 ================================================================================
 
-Take the player's quest progress and weekly data(real machine 6 itemTask).
+Take the player's quest progress and weekly data (real machine 6 item Task).
 
 Corresponding interface: GetUserMissionDataApi
 request body: UserIdRequestVO
@@ -12,7 +12,7 @@ Basis: source/Assembly-CSharp/Net. VO. Mai2/UserMissionRequestVO. cs
 
 - one interface sends two at the same time Upsert nodes:
   userMissionDataList Task List
-  userWeeklyData    Weekly data(- is**Object**Not an array)
+  userWeeklyData    Weekly data (- is **Object** Not an array)
 - Both backhaul Upsert timeallmustDiscardEachof userId Field.
 
 Example:
@@ -38,7 +38,7 @@ def GetUserMissionData(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetching user tasks and weekly data(Corresponding GetUserMissionDataApi).
+  Fetching user tasks and weekly data (Corresponding GetUserMissionDataApi).
 
   Returns:
     Raw Response dict:{"userId":.., "userWeeklyData":{..}, "userMissionDataList":[..]}

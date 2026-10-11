@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""maimai DX (maimai DX). ma2 chartparse.
+"""maimai DX (maimai DX). ma2 chart parse.
 
 -> note ofCorrespondingDecompile source code
  source/Assembly-CSharp/Manager/Ma2fileRecordID. cs
  (s_Ma2fileRecord_Data in Ma2Category. MA2_Note of 102 itemrecord)
-countCategoriesofDivideReprint
+count Categories of Divide Reprint
  source/Assembly-CSharp/Manager/GamePlayManager. cs NoteType2ScoreType()
-theoreticalMinutesweight
+theoretical Minutes weight
  source/Assembly-CSharp/Manager/NotesReader. cs calcTotal()
 """
 
@@ -21,7 +21,7 @@ WEIGHT_TAP = 500      # TAP / XTP / STR / XST / TTP(Touch And Tap Same as 500)
 WEIGHT_HOLD = 1000    # HLD / XHO / THO
 WEIGHT_SLIDE = 1500   # SI_ SCL SCR SUL SUR SSL SSR SV_ SXL SXR SLL SLR SF_
 WEIGHT_BREAK = 2500   # BRK / BST / BRTAP / BRHLD / BRSTR / BRSI_... and ExBreak
-BREAK_BONUS_THEORY = 100   # eachPiececritical perfect(Break)oftheoreticalReward Points
+BREAK_BONUS_THEORY = 100   # each Piece critical perfect (Break) of theoretical Reward Points
 
 CATEGORY_TAP = "Tap"
 CATEGORY_HOLD = "Hold"
@@ -81,11 +81,11 @@ _HOLD_DEFS = frozenset(("Hold", "BreakHold", "ExHold", "ExBreakHold", "TouchHold
 _TOUCH_DEFS = frozenset(("TouchTap", "TouchHold"))
 _CONNECT_DEFS = frozenset(("ConnectSlide",))
 
-# The timing of the decision is only Critical / TooLate of EX note(ExTap/ExStar/ExBreakTap/ExBreakStar)
+# The timing of the decision is only Critical / Too Late of EX note (ExTap/ExStar/ExBreakTap/ExBreakStar)
 EX_DEFS = frozenset(("ExTap", "ExStar", "ExBreakTap", "ExBreakStar"))
 
 # ---------------------------------------------------------------- notegroup
-# "notegroup"= countMinutesforfullrelatedSameofOnenote: weight, Optional Determination, Missed Gear, critical perfectRewardsfileBitallSame.
+# "notegroup" = count Minutes for full related Same of One note: weight, Optional Determination, Missed Gear, critical perfect Rewards file Bit all Same.
 # Classification by(Decompile source code):
 #  * countCategories NoteScore. EScoreType by GamePlayManager. NoteType2ScoreType() Decision
 #   (Break -> Break, item -> Slide, hold -> Hold, Remaining -> Tap/Touch)
@@ -151,12 +151,12 @@ _CATEGORY_BY_GROUP = {
 
 
 def note_group(def_name: str) -> Optional[str]:
-    """NotesTypeID. Def First name -> notegroup; continueitemetcNo scorenotereturns None."""
+    """Notes Type ID. Def First name -> notegroup; continue item etc No score note returns None."""
     return _GROUP_BY_DEF.get(def_name)
 
 
 def score_category(def_name: str) -> Optional[str]:
-    """Reprint GamePlayManager. NoteType2ScoreType() ofCategories(Tap/Hold/Slide/Break)."""
+    """Reprint GamePlayManager. NoteType2ScoreType() of Categories (Tap/Hold/Slide/Break)."""
     grp = note_group(def_name)
     if grp is None:
         return None
@@ -184,7 +184,7 @@ class Chart:
 
     @property
     def total_notes(self) -> int:
-        """countMinutesnoteTotal N(Connection slider not included)."""
+        """count Minutes note Total N (Connection slider not included)."""
         return sum(self.group_counts.get(g, 0) for g in GROUP_ORDER)
 
     @property
@@ -192,7 +192,7 @@ class Chart:
         return self.totals.get("T_NUM_ALL")
 
     def counts(self) -> Dict[str, int]:
-        """pressnotegroupsystemcount(For Scoring Models)."""
+        """press note group system count (For Scoring Models)."""
         return {g: self.group_counts.get(g, 0) for g in GROUP_ORDER}
 
     def category_summary(self) -> Dict[str, int]:
@@ -270,19 +270,19 @@ def parse_difficulty(text) -> int:
     if isinstance(text, int):
         if 0 <= text <= 4:
             return text
-        raise ValueError("difficultynone. Must be 0~4")
+        raise ValueError("difficulty none. Must be 0~4")
     key = str(text).strip().lower()
     if key in _DIFFICULTY_ALIASES:
         return _DIFFICULTY_ALIASES[key]
-    raise ValueError("noofdifficulty:%s(Available 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE: MASTER,"
+    raise ValueError("no of difficulty: %s (Available 0=BASIC 1=ADVANCED 2=EXPERT 3=MASTER 4=RE: MASTER,"
                      "or just write your name)" % text)
 
 
 def find_music_dir(game_path: str) -> str:
-    """put"/ Sinmai_Data / StreamingAssets / A000"allReturnedOneto A000/music."""
+    """put "/ Sinmai_Data / StreamingAssets / A000" all Returned One to A000/music."""
     p = os.path.abspath(os.path.expanduser(game_path))
     if not os.path.isdir(p):
-        raise FileNotFoundError("Absent:%s" % p)
+        raise FileNotFoundError("Absent: %s" % p)
     if os.path.basename(p).lower() == "music" and os.path.basename(os.path.dirname(p)).upper() == "A000":
         return p
     candidates = [
@@ -296,7 +296,7 @@ def find_music_dir(game_path: str) -> str:
     for c in candidates:
         if os.path.isdir(c) and os.path.basename(c).lower() == "music":
             return c
-    raise FileNotFoundError("at %s Not found under A000/music" % p)
+    raise FileNotFoundError("At %s not found under A000/music" % p)
 
 
 def music_dir_path(music_dir: str, music_id: int) -> str:
@@ -308,7 +308,7 @@ def chart_path(music_dir: str, music_id: int, difficulty: int) -> str:
 
 
 def parse_music_xml(path: str) -> Dict[str, object]:
-    """readTake Music. xml(Only use standard libraries), Take out song names and difficulty information."""
+    """read Take Music. xml (Only use standard libraries), Take out song names and difficulty information."""
     import xml.etree.ElementTree as ET
 
     info: Dict[str, object] = {"notes": []}

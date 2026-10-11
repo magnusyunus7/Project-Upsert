@@ -21,10 +21,10 @@ netdelivery. py — ALL. Net DLI(Download Instruction): check / Down. app And. o
     [OPTIONAL] INSTALL1=https://.../SDGB_A031_..._0. opt
           INSTALL2=https://.../SDGB_A005_..._0. opt
 
-  - Only INSTALLn= It is.**mustDownloadedPackage**; EXISTn= is"machineShouldAlreadyhasoffile",
+  - Only INSTALLn= It is. **must Downloaded Package**; EXISTn= is "machine Should Already has of file",
    Just the filename, Not a download.
 
-[Protocol Origin]— source/amdaemon. exe String(numberisfileOffset)
+[Protocol Origin] — source/amdaemon. exe String (number is file Offset)
      http://at. sys-all. cn/net/delivery/instruction   @0x788198
   Library    alw_lite/src/system39/alw_api_netdeliver. c    @0x63bf80
   stage   ALWE_NETDELIVER_PHASE_GET_DLINST_INFO       @0x63bde0
@@ -36,21 +36,21 @@ netdelivery. py — ALL. Net DLI(Download Instruction): check / Down. app And. o
 [Observed Conclusions](2026-10-06)
   title_ver=1.55 -> uri = patch(SDGB_patch_1.56... info) | option(SDGB_option_1.55... A005. info)
   title_ver=1.56 -> uri = | option(A031)   (patch Is Empty = already)
-  title_ver<=1.54 -> uri = null        (serverNothisPiece)
-  inof INSTALL YesBelt Range continuePassing on(returns 206 + Content-Range).
+  title_ver<=1.54 -> uri = null        (server No this Piece)
+  in of INSTALL Yes Belt Range continue Passing on (returns 206 + Content-Range).
   - History pack that has been suspended, Meetingstimes 504 — this isserver-issued that is not scripted.
 
 [usage]
-  python netdelivery. py            # use config. py inof Keychip check, after**Multi-select download**
+  python netdelivery. py            # use config. py in of Keychip check, after **Multi-select download**
   python netdelivery. py A63E01E9580      # specified Keychip
   python netdelivery. py --list        # List only, Don't download
   python netdelivery. py --all         # Full Bottom(No interaction)
   python netdelivery. py --only 1,3      # Only the next 1,3 item(No interaction)
-  python netdelivery. py --ver 1.55      # specifiedEscalations(default config. MAI_ENCODING)
+  python netdelivery. py --ver 1.55      # specified Escalations (default config. MAI_ENCODING)
   python netdelivery. py --out D:\SDGB2026\update
   python netdelivery. py --insecure      # Turn off TLS(CDN hastimeuse)
 
-  - Interactive Selection Support: text/emptyMinutes, Interval(As 1-3), a=Select all, n=Select none, q=out.
+  - Interactive Selection Support: text/empty Minutes, Interval (As 1-3), a = Select all, n = Select none, q = out.
 """
 
 from __future__ import annotations
@@ -191,11 +191,11 @@ def fetch_instruction_urls(client_id, *, title_ver, host, timeout):
             kv[k.strip()] = v
     result = kv.get("result", "")
     if result != "1":
-        raise AllnetError("DLI returns result=%s(Original:%s)" % (result, text.strip()[:200]))
+        raise AllnetError("DLI returns result=%s (Original: %s)" % (result, text.strip()[:200]))
 
     uri = kv.get("uri", "").strip()
     if uri in ("", "null"):
-        raise AllnetError("DLI returns uri=%s: thisPiece title_ver none"
+        raise AllnetError("DLI returns uri=%s: this Piece title_ver none"
                           "(--ver Example 1.55)" % (uri or "(empty)"))
 
     parts = uri.split("|")
@@ -290,12 +290,12 @@ def probe_all(items, *, timeout=PROBE_TIMEOUT, insecure=False):
                     item["size"] = int(content_length)
                     item["note"] = ""
                 elif status in (404, 504):
-                    item["note"] = "HTTP %d(noAvailable / thePackageAlreadyDown)" % status
+                    item["note"] = "HTTP %d (no Available / the Package Already Down)" % status
                 else:
                     item["note"] = "HTTP %d" % status
                 break
             except Exception as exc:
-                item["note"] = "Failed:%s" % exc
+                item["note"] = "Failed: %s" % exc
                 if attempt < 2:
                     time.sleep(1.5)
                     continue
@@ -330,7 +330,7 @@ def prompt_selection(items):
     print("     a = Select all  n = allNo  q = out")
     while True:
         try:
-            raw = input(" pleasemustDownloadedPackage > ").strip()
+            raw = input(" please must Downloaded Package > ").strip()
         except (EOFError, KeyboardInterrupt):
             print("")
             return None
@@ -367,7 +367,7 @@ def prompt_selection(items):
                 bad.append(token)
 
         if bad:
-            print(" [x] no%s(is 1-%d)" % (", ".join(bad), len(items)))
+            print(" [x] no %s (is 1-%d)" % (", ".join(bad), len(items)))
             continue
 
         ordered, seen = [], set()
@@ -376,7 +376,7 @@ def prompt_selection(items):
                 seen.add(i)
                 ordered.append(i)
         if not ordered:
-            print(" [x] noneAnyitem")
+            print(" [x] none Any item")
             continue
         return ordered
 
@@ -404,14 +404,14 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
                             insecure=insecure)
         except Exception as exc:
             if attempt == retries:
-                return False, "Failed:%s" % exc
+                return False, "Failed: %s" % exc
             time.sleep(2)
             continue
 
         if resp.status_code not in (200, 206):
             resp.close()
             if resp.status_code in (404, 504):
-                return False, "HTTP %d(noAvailable / thePackageAlreadyDown)" % resp.status_code
+                return False, "HTTP %d (no Available / the Package Already Down)" % resp.status_code
             if attempt == retries:
                 return False, "HTTP %d" % resp.status_code
             time.sleep(2)
@@ -450,7 +450,7 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
         except Exception as exc:
             resp.close()
             if attempt == retries:
-                return False, "Write interrupted:%s" % exc
+                return False, "Write interrupted: %s" % exc
             time.sleep(2)
             continue
         finally:
@@ -463,7 +463,7 @@ def download_file(url, dest, *, timeout=DOWNLOAD_TIMEOUT, retries=3, insecure=Fa
 
         if total is not None and written != total:
             if attempt == retries:
-                return False, "lengthNo %d Bytes, actual %d Bytes" % (total, written)
+                return False, "length No %d Bytes, actual %d Bytes" % (total, written)
             time.sleep(2)
             continue
 
@@ -506,14 +506,14 @@ def build_parser():
         ),
     )
     p.add_argument("keychip", nargs="?",
-                   help="Keychip(defaultTake config. py of KEYCHIP_ID)")
+                   help="Keychip (default Take config. py of KEYCHIP_ID)")
     p.add_argument("--ver", default=None,
-                   help="Escalate to ALL. Net of(defaultTake config. MAI_ENCODING)")
+                   help="Escalate to ALL. Net of (default Take config. MAI_ENCODING)")
     p.add_argument("--host", default=DEFAULT_HOST,
                    help="ALL. Net server(default %s)" % DEFAULT_HOST)
     p.add_argument("--out", default=DEFAULT_OUT_DIR,
                    help="Download catalog(default <script>/download)")
-    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="interfacetimesecondsnumber")
+    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="interface time seconds number")
     p.add_argument("--list", action="store_true", help="Column Only List with Straight Chain, Don't download")
     p.add_argument("--all", action="store_true", help="Select all(No interaction)")
     p.add_argument("--only", default=None, help="Specify only the serial number, As 1,3 or 1-3(No interaction)")
@@ -591,26 +591,26 @@ def main(argv=None):
 
     raw_keychip = resolve_keychip(args.keychip)
     if not raw_keychip:
-        print("error: Keychip, config. py inof KEYCHIP_ID is also empty.")
+        print("error: Keychip, config. py in of KEYCHIP_ID is also empty.")
         print("   Run once first python authv1. py <YourKeychip> put config. py Fill in.")
         return 2
     try:
         client_id = parse_keychip(raw_keychip)
     except ValueError as exc:
-        print("Keychip parseFailed:%s" % exc)
+        print("Keychip parse Failed: %s" % exc)
         return 2
 
     print("=== netdelivery (ALL. Net DLI) ===")
     print(" clientId: %s" % client_id)
     print(" title_ver: %s" % title_ver)
     print(" server: %s" % args.host)
-    print(" currentatcheck...")
+    print(" current at check...")
 
     try:
         items, meta = collect_packages(client_id, title_ver=title_ver, host=args.host,
                                        timeout=args.timeout, insecure=args.insecure)
     except (AllnetError, ValueError) as exc:
-        print("checkFailed:%s" % exc)
+        print("check Failed: %s" % exc)
         return 1
 
     for entry in meta["instructions"]:
@@ -625,11 +625,11 @@ def main(argv=None):
             print(" %s -> %s" % (entry["url"], entry.get("error", "?")))
 
     if not items:
-        print("noneDownloadedPackage.")
+        print("none Downloaded Package.")
         return 0
 
     if not args.no_probe:
-        print(" currentatpacketSize...")
+        print(" current at packet Size...")
         probe_all(items, insecure=args.insecure)
 
     print_packages(items)
@@ -652,7 +652,7 @@ def main(argv=None):
         chosen = list(range(len(items)))
     elif not sys.stdin or not sys.stdin.isatty():
         print("")
-        print(" Currently not an interactive terminal, notspecified --all / --only, Listed only.")
+        print(" Currently not an interactive terminal, not specified --all / --only, Listed only.")
         return 0
     else:
         chosen = prompt_selection(items)
@@ -660,7 +660,7 @@ def main(argv=None):
             print(" Canceled.")
             return 0
         if not chosen:
-            print(" noneAnyitem, out.")
+            print(" none Any item, out.")
             return 0
 
     out_dir = args.out
@@ -684,14 +684,14 @@ def main(argv=None):
         started = time.time()
         ok, message = download_file(item["url"], dest, insecure=args.insecure)
         if ok:
-            print("   Done, usetime %.1f seconds -> %s" % (time.time() - started, message))
+            print("   Done, use time %.1f seconds -> %s" % (time.time() - started, message))
         else:
-            print("   Failed:%s" % message)
+            print("   Failed: %s" % message)
             failed.append((item, message))
 
     print("")
     if failed:
-        print(" --- %d successes,%d failures ---" % (len(chosen) - len(failed), len(failed)))
+        print(" --- %d successes, %d failures ---" % (len(chosen) - len(failed), len(failed)))
         for item, message in failed:
             print("   [%2d] %s -> %s" % (item["idx"], item["name"], message))
         return 1

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-ping. py — Heartbeat Probe Alive(PingMaimaiChn)
+ping. py — Heartbeat Probe Alive (PingMaimaiChn)
 ================================================================================
 
 Features: Send a heartbeat to the game server,
 
 Corresponding interface: PingMaimaiChn
-request body:{}(source/Assembly-CSharp/Net. VO. Mai2/PingRequestVO. cs isempty)
+request body: {} (source/Assembly-CSharp/Net. VO. Mai2/PingRequestVO. cs is empty)
 Response:{"result": "Pong"}
 
-- interfaceFirst name(Easily misspelled, note):
+- interface First name (Easily misspelled, note):
   source/Assembly-CSharp/Net. Packet. Mai2/PacketPing. cs:22
     new NetQuery<PingRequestVO, PingResponseVO>("Ping", 0uL);
   The logical name passed by the client is **"Ping"**, NetQuery. cs:14 Make it up again "MaimaiChn" Suffix,
@@ -20,7 +20,7 @@ Response:{"result": "Pong"}
   (Packet. cs:96 use Query. Api. StartsWith("Ping") Determine if the cardiac packet,
    It is also based on the completion suffix "PingMaimaiChn".)
 
-- Why run it?(It's not just looking for work.):
+- Why run it? (It's not just looking for work.):
   Packet. cs:189 non- Ping interfaceallMeetingsBelt HTTP Head number = GameManager. PingMsec
   PingChecker. cs:227  GameManager. PingMsec = Ping Packet round trip in milliseconds
 
@@ -55,12 +55,12 @@ def Ping(
   Heartbeat Probe Alive.
 
   Parameter:
-    client_id: machine stateshortValue(Optional)
+    client_id: machine state short Value (Optional)
     timeout_ms: timeout milliseconds(Optional)
     client:   Reusable MaimaiNetClient(Optional)
 
   Returns:
-    True = serverreturns "Pong"
+    True = server returns "Pong"
   """
     log_info("Send Heartbeat Probe Active")
 
@@ -75,7 +75,7 @@ def Ping(
     if ok:
         log_info("Normal heartbeat: result=Pong")
     else:
-        log_warning("Heartbeat returned abnormal: result=" + str(result))
+        log_warning("Heartbeat returned abnormal: result= " + str(result))
     return ok
 
 

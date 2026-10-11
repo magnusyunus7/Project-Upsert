@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-get_user_kaleidx_scope. py — Take KALEIDX(GetUserKaleidxScopeApi / GetGameKaleidxScopeApi)
+get_user_kaleidx_scope. py — Take KALEIDX (GetUserKaleidxScopeApi / GetGameKaleidxScopeApi)
 ================================================================================
 
 Corresponding interface:
-  GetUserKaleidxScopeApi request body UserIdRequestVO(userId)
+  GetUserKaleidxScopeApi request body UserIdRequestVO (userId)
               Response  {userId, userKaleidxScopeList:[...]}
-  GetGameKaleidxScopeApi request body **emptyObject {}**(GameKaleidxScopeRequestVO noneAnyField)
+  GetGameKaleidxScopeApi request body **empty Object {}** (GameKaleidxScopeRequestVO none Any Field)
               Response  {gameKaleidxScopeList:[{gateId, phaseId}]}
 Basis:
   source/Assembly-CSharp/Net. VO. Mai2/UserKaleidxScopeRequestVO. cs
@@ -14,12 +14,12 @@ Basis:
   source/Assembly-CSharp/Net. VO. Mai2/GameKaleidxScopeResponseVO. cs
   source/2026-10-05. log:15,119
 
--- mustDistinguish(lead to userData Empty)
+-- must Distinguish (lead to userData Empty)
 --------------------------------------------------------------------------------
-GameKaleidxScopeResponseVO in**Only** gameKaleidxScopeList Field, none userData.
+GameKaleidxScopeResponseVO in **Only** gameKaleidxScopeList Field, none userData.
 file userData ofcurrentis GetUserDataApi(get_user_data. py).
 
-real-machine login"GetGameKaleidxScope ofResponseBelt userData"ispacketToolsputtimerelatedof
+real-machine login "GetGameKaleidxScope of Response Belt userData" is packet Tools put time related of
 Illusion caused by merging two responses — Do not give accordingly GetGameKaleidxScopeApi hair userId,
 Multiple fields will cause the server to return empty content.
 
@@ -46,10 +46,10 @@ def GetUserKaleidxScope(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Pick player KALEIDX(Corresponding GetUserKaleidxScopeApi).
+  Pick player KALEIDX (Corresponding GetUserKaleidxScopeApi).
 
   Returns:
-    Raw Response dict, Contains userKaleidxScopeList
+    Raw Response dict, Contains userKaleidxScopeList.
   """
     log_info("Pick player KALEIDX user_id=" + str(user_id))
     return _get("GetUserKaleidxScopeApi", UserIdRequestVO(userId=user_id), user_id,
@@ -63,12 +63,12 @@ def GetGameKaleidxScope(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take a full serving KALEIDX(Corresponding GetGameKaleidxScopeApi).
+  Take a full serving KALEIDX (Corresponding GetGameKaleidxScopeApi).
 
-  - request bodyisemptyObject {} — the RequestVO None of the fields,**Do not pass userId**.
+  - request body is empty Object {} — the RequestVO None of the fields, **Do not pass userId**.
 
   Returns:
-    Raw Response dict, Contains gameKaleidxScopeList
+    Raw Response dict, Contains gameKaleidxScopeList.
   """
     log_info("Take a full serving KALEIDX")
     return _get("GetGameKaleidxScopeApi", EmptyRequestVO(), 0,

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-get_user_favorite_item. py — Fetching user favorite tracks/Opponent(GetUserFavoriteItemApi)
+get_user_favorite_item. py — Fetching user favorite tracks / Opponent (GetUserFavoriteItemApi)
 ================================================================================
 
-Take the player's favorite songs(kind=1)or Collected Opponents(kind=2).
+Take the player's favorite songs (kind=1) or Collected Opponents (kind=2).
 
 Corresponding interface: GetUserFavoriteItemApi
 request body: UserFavoriteItemRequestVO(userId + kind + nextIndex + maxCount=100
@@ -48,10 +48,10 @@ def GetUserFavoriteItem(
 
   Parameter:
     user_id: user ID(Required)
-    kind:  1=receivemusic 2=receiveOpponent(default 1)
+    kind:  1=receive music 2=receive Opponent (default 1)
 
   Returns:
-    Raw Response dict, Contains userFavoriteItemList
+    Raw Response dict, Contains userFavoriteItemList.
   """
     log_info("Fetch user favorites: user_id=" + str(user_id) + " kind=" + str(kind)
              + " next_index=" + str(next_index))
@@ -75,12 +75,12 @@ def GetUserFavoriteItemAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetch user favorites(auto-pagingTakeFull).
+  Fetch user favorites (auto-paging Take Full).
 
   Returns:
     {"userFavoriteItemList": [...]}
   """
-    log_info("Fetch user favorites(Full Amount): user_id=" + str(user_id) + " kind=" + str(kind))
+    log_info("Fetch user favorites (Full Amount): user_id=" + str(user_id) + " kind=" + str(kind))
     items = get_all_pages(
         "GetUserFavoriteItemApi", user_id, "userFavoriteItemList",
         body_factory=lambda ni: UserFavoriteItemRequestVO(
@@ -88,5 +88,5 @@ def GetUserFavoriteItemAll(
             maxCount=100, isAllFavoriteItem=is_all_favorite_item),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("receiveitemfetch complete:" + str(len(items)) + " item")
+    log_info("receive item fetch complete: " + str(len(items)) + " item")
     return {"userFavoriteItemList": items}

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
-upsert_user_chargelog.py —— purchaseBuyFeature Tickets / Upload purchase history（UpsertUserChargelogApi）
+upsert_user_chargelog.py —— purchase Buy Feature Tickets / Upload purchase history（UpsertUserChargelogApi）
 ================================================================================
 
-Features：put「Bought a feature ticket」thisEscalate toserver，and the number of holdings of the ticket +1。
+Features：put「Bought a feature ticket」this Escalate to server，and the number of holdings of the ticket +1。
 
 Corresponding interface：UpsertUserChargelogApi
 request body  ：UserChargelogRequestVO（4 Field，order C# Declaration）
@@ -19,14 +19,14 @@ One、real machineofpurchaseBuy（source codecheck）
 --------------------------------------------------------------------------------
     Manager/TicketManager.cs:130  UseTicketPrepare(playerId, ticketId)
         ├─ ticket.ticketKind.id == 1（Paid tickets）
-        ├─ From OperationManager.GetGameChargeDataList() findthe chargeId of price
+        ├─ From OperationManager.GetGameChargeDataList() find the chargeId of price
         │     （= GetGameChargeApi ofResponse）
         ├─ TicketManager.cs:207  SetBuyPaidTicketData(playerId, ticketId)
         │     ├─ ChargeList inExistingthe chargeId -> stock++、update purchaseDate / validDate
         │     └─ none                      -> addedOneitem stock=1
         └─ TicketManager.cs:234  RequestUserCharge(playerId)
               ├─ VOExtensions.cs:436  ExportEnableUserCharge(ticketId)
-              │     -> Take**purchaseBuyAfter**（stock > 0）ofthatitem GetUserCharge
+              │     -> Take **purchase Buy After**（stock > 0）of that item GetUserCharge
               ├─ VOExtensions.cs:403  ExportUserChargelog(ticketId)
               │     -> chargeId = ticketId
               │        price    = DataManager.GetTicket(ticketId).creditNum   ★ No money price
@@ -61,7 +61,7 @@ Three、ticket.creditNum Where did you come from?
 --------------------------------------------------------------------------------
 Four、Safety gate
 --------------------------------------------------------------------------------
-    interfaceMeetings**realWriteA purchase history**，So no packing by default.：
+    interface Meetings **real Write A purchase history**，So no packing by default.：
         UpsertUserChargelog(...)                   -> raise ChargelogConfirmError
         UpsertUserChargelog(..., dry_run=True)     -> Construct only packets
         UpsertUserChargelog(..., confirm=True)     -> realSend
@@ -146,12 +146,12 @@ from .upsert_user_all import UpsertResponseVO, resolve_api_func
 
 
 class ChargelogConfirmError(RuntimeError):
-    """hasSide effectsofinterfaceSafety gateDown（time**notPackaging**）。"""
+    """has Side effects of interface Safety gate Down（time **not Packaging**）。"""
 
 
 class ChargelogGuardError(RuntimeError):
     """
-    Security check failed（time**notPackaging**）。
+    Security check failed（time **not Packaging**）。
 
     ★ agoUniqueofhairitem：**CurrentAlready heldFeature Tickets**。
 
@@ -193,7 +193,7 @@ class UserChargelogVO:
 
 @dataclass
 class UserChargelogRequestVO:
-    """request VO（UserChargelogRequestVO.cs，4 Field，orderDeclaration）。"""
+    """request VO（UserChargelogRequestVO.cs，4 Field，order Declaration）。"""
     userId: int
     userChargelog: UserChargelogVO
     userCharge: UserChargeVO
@@ -219,7 +219,7 @@ def ticket_price(charge_id: int, override: Optional[int] = None) -> int:
     if override is not None:
         return int(override)
     if int(charge_id) not in TICKET_CREDIT_NUM:
-        log_warning("TICKET_CREDIT_NUM innone chargeId=" + str(charge_id)
+        log_warning("TICKET_CREDIT_NUM in none chargeId=" + str(charge_id)
                     + " —— press 0 Process，Recommended Complementary Configuration")
         return 0
     return int(TICKET_CREDIT_NUM[int(charge_id)])
@@ -235,7 +235,7 @@ def now_cst(now: Optional[datetime] = None) -> datetime:
     Take「Beijing time now」；Passed on. now Just use it.（AlreadyisBeijing Time）。
 
     ★ Why explicitly +8 andNo datetime.now()：
-        TimeManager.GetNowTime() returntimes **DateTime.UtcNow**，
+        TimeManager.GetNowTime() returntimes**DateTime.UtcNow**，
         GetDateString() Again Add(CSToffset) —— i.e the date string in the game**Heng is Beijing time**，
         Irrelevant for native time zone。scriptatnon-Dongba DistrictmachineUptime datetime.now() will be wrong。
     """
@@ -252,7 +252,7 @@ def _now_string(now: Optional[datetime] = None) -> str:
         DateTimeFormat = "yyyy-MM-dd HH:mm:ss.f"
         GetDateString(unix) = GetDateTime(unix).ToString("yyyy-MM-dd HH:mm:ss.f")
 
-    ★★ noteTailthatPiece **.f**（One decimal place）—— real machinepacketlongthis：
+    ★★ noteTailthatPiece**.f**（One decimal place）—— real machinepacketlongthis：
            "purchaseDate":"2026-10-06 13:20:10.0"
        Write less about this ".0" serverMeetingsdirectly returnCode=0（Measured stepped on）。
        ★ and validDate useofisOne（text calc_valid_date），**Without**Decimal。
@@ -340,21 +340,21 @@ def UpsertUserChargelog(
     client: Optional[MaimaiNetClient] = None,
 ) -> Union[UserChargelogRequestVO, UpsertResponseVO]:
     """
-    purchaseBuyOnefeature tickets（UpsertUserChargelogApi，★ hasSide effects）。
+    purchase Buy One feature tickets（UpsertUserChargelogApi，★ has Side effects）。
 
     Parameter：
         user_id:         user ID（Required）
-        charge_id:       mustBuyof ID（Required，= GetGameChargeApi inof chargeId）
+        charge_id:       must Buy of ID（Required，= GetGameChargeApi in of chargeId）
                          ★ Paid tickets are 2/3/4/5/6（PAID_TICKET_IDS）
-        login_date_time: logintime（Required，★ Required == UserLoginApi of loginDateTime）
+        login_date_time: login time（Required，★ Required == UserLoginApi of loginDateTime）
         charge_list:     Current Ticket List（Optional）。Auto-adjust without passing GetUserChargeApi。
                          usecalculate「purchaseBuyAfterInventory」and if the ticket already exists。
         user_data:       Current userData（Optional）。Auto-adjust without passing GetUserDataApi。
                          useFill in playCount / playerRating。
-        stock:           ★ purchaseBuyAftertheofInventory；Do not pass = currenthas + 1
+        stock:           ★ purchase Buy After the of Inventory；Do not pass = current has + 1
         price:           ★ userChargelog.price；Do not pass = TICKET_CREDIT_NUM[charge_id]
-        purchase_date:   purchaseBuytimeString；Do not pass = currentat
-        valid_date:      hasString；Do not pass = currentat-4h+90d（text calc_valid_date）
+        purchase_date:   purchase Buy time String；Do not pass = current at
+        valid_date:      has String；Do not pass = current at-4h+90d（text calc_valid_date）
         play_count:      overwrite playCount（Take without passing userData.playCount）
         player_rating:   overwrite playerRating（Take without passing userData.playerRating）
         guard_purchasable: ★ default True = **Only allow to buy GetGameChargeApi Tickets listed**
@@ -389,13 +389,13 @@ def UpsertUserChargelog(
 
     # ---------- 1. Take current state ----------
     if charge_list is None:
-        log_info("notPassing on charge_list，Pick up current ticket ...")
+        log_info("not Passing on charge_list，Pick up current ticket ...")
         raw = resolve_api_func("GetUserCharge")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         charge_list = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
 
     if user_data is None:
-        log_info("notPassing on user_data，TakeCurrentfile ...")
+        log_info("not Passing on user_data，Take Current file ...")
         raw_ud = resolve_api_func("GetUserData")(
             user_id, client_id=client_id, timeout_ms=timeout_ms, client=client)
         user_data = (raw_ud.get("userData") if isinstance(raw_ud, dict) else None) or {}
@@ -406,7 +406,7 @@ def UpsertUserChargelog(
     #   serverpresent.notUpofMeetings returnCode=0 —— Measured Buy chargeId=5 That's the situation.。
     if guard_purchasable:
         if game_charge_list is None:
-            log_info("notPassing on game_charge_list，TakePurchasable list ...")
+            log_info("not Passing on game_charge_list，Take Purchasable list ...")
             _gc = resolve_api_func("GetGameCharge")(
                 client_id=client_id, timeout_ms=timeout_ms, client=client)
             game_charge_list = (_gc.get("gameChargeList")
@@ -443,7 +443,7 @@ def UpsertUserChargelog(
                    "  purchaseBuypleasePassing on guard_no_stock=False。")
             log_error(msg)
             raise ChargelogGuardError(msg)
-        log_warning("guard_no_stock=False —— This check has been skipped，continuepurchaseBuy")
+        log_warning("guard_no_stock=False —— This check has been skipped，continue purchase Buy")
     else:
         log_info("Security check passed：CurrentnonehasAnyFeature Tickets")
 
@@ -506,7 +506,7 @@ def UpsertUserChargelog(
 
     # ---------- 3. dry-run ----------
     if dry_run:
-        log_info("[dry-run] Purchase message constructed，notPackaging")
+        log_info("[dry-run] Purchase message constructed，not Packaging")
         log_debug("dry-run packet：" + __import__("json").dumps(
             req, ensure_ascii=False, default=str))
         return req
@@ -533,12 +533,12 @@ def UpsertUserChargelog(
         apiName=str(raw.get("apiName", "") or ""),
     )
     if resp.returnCode != 1:
-        msg = ("purchaseBuyFailed：returnCode=" + str(resp.returnCode)
+        msg = ("purchase Buy Failed：returnCode=" + str(resp.returnCode)
                + " apiName=" + resp.apiName)
         log_error(msg)
         raise RuntimeError(msg)
 
-    log_info("purchaseBuySuccess：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
+    log_info("purchase Buy Success：returnCode=" + str(resp.returnCode) + " apiName=" + resp.apiName)
     log_info("  First name " + name + " Inventory " + str(old_stock) + " -> " + str(stock))
     return resp
 
@@ -553,7 +553,7 @@ if __name__ == "__main__":
     def _main() -> int:
         setup_logging("chargelog_test")
         try:
-            log_info("constructOneZhang 2 Ticket multiplier purchase message（No Package Issued）")
+            log_info("construct One Zhang 2 Ticket multiplier purchase message（No Package Issued）")
             req = UpsertUserChargelog(
                 12345678, 2, 1791159576,
                 charge_list=[], user_data={"playCount": 1260, "playerRating": 15000},

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-get_user_music. py — Take user track scores(GetUserMusicApi)
+get_user_music. py — Take user track scores (GetUserMusicApi)
 ================================================================================
 
-Take an archive of the player's historical results for all tracks(real machine 739 group).
+Take an archive of the player's historical results for all tracks (real machine 739 group).
 
 Corresponding interface: GetUserMusicApi
 request body: UserMusicRequestVO(userId + nextIndex + maxCount=50)
@@ -12,10 +12,10 @@ Basis: source/Assembly-CSharp/Net. VO. Mai2/UserMusicRequestVO. cs
      source/Assembly-CSharp/Net. VO. Mai2/UserMusic. cs(Outer layers are grouped by song)
      source/Assembly-CSharp/Net. VO. Mai2/GetUserMusicDetail. cs(Inner layer by difficulty)
 
-- Response is**Two layers of nesting**: Outer layer per element is a song, Inner layer userMusicDetailList It is.
- press (musicId, level) ofResultsitemFlatten when picking.
+- Response is **Two layers of nesting**: Outer layer per element is a song, Inner layer userMusicDetailList It is.
+ press (musicId, level) of Results item Flatten when picking.
 
-- Callback Upsert timeOnly send backthis gameofthatOneitem(playCount +1), Remaining immovable.
+- Callback Upsert time Only send back this game of that One item (playCount +1), Remaining immovable.
 
 Example:
   from api import GetUserMusicDetail, UserMusicDetailFlat
@@ -41,13 +41,13 @@ def GetUserMusicDetail(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take user track scores(Single Page, Corresponding GetUserMusicApi).
+  Take user track scores (Single Page, Corresponding GetUserMusicApi).
 
   Parameter:
     next_index: Pagination Start Index(0 = first)
 
   Returns:
-    Raw Response dict, Contains userMusicList(Two layers of nesting)
+    Raw Response dict, Contains userMusicList (Two layers of nesting).
   """
     log_info("Take user track scores: user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
@@ -65,13 +65,13 @@ def GetUserMusicDetailAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take user track scores(auto-pagingTakeFull, Flattened into a single layer).
+  Take user track scores (auto-paging Take Full, Flattened into a single layer).
 
   Returns:
     {"userMusicList": [ {"musicId":..,"level":..,"playCount":..},... ]}
-    eachElementis**Single Bar (musicId, level) Results**, Not a nested structure grouped by song.
+    each Element is **Single Bar (musicId, level) Results**, Not a nested structure grouped by song.
   """
-    log_info("Take user track scores(Full Amount): user_id=" + str(user_id))
+    log_info("Take user track scores (Full Amount): user_id=" + str(user_id))
     groups = get_all_pages(
         "GetUserMusicApi", user_id, "userMusicList",
         body_factory=lambda ni: UserMusicRequestVO(
@@ -85,6 +85,6 @@ def GetUserMusicDetailAll(
             if isinstance(details, dict):
                 details = [details]
             flat.extend(details)
-    log_info("trackResultsfetch complete:" + str(len(flat)) + " item(Original "
+    log_info("track Results fetch complete: " + str(len(flat)) + " item (Original "
              + str(len(groups)) + " group)")
     return {"userMusicList": flat}

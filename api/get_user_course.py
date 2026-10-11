@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-get_user_course. py — Take the results of the user's topic mode(GetUserCourseApi)
+get_user_course. py — Take the results of the user's topic mode (GetUserCourseApi)
 ================================================================================
 
-Take Player COURSE()modeOffrecord(real machine 16 item).
+Take Player COURSE () mode Off record (real machine 16 item).
 
 Corresponding interface: GetUserCourseApi
-request body: UserCourseRequestVO(userId + nextIndex,**none maxCount**)
+request body: UserCourseRequestVO (userId + nextIndex, **none maxCount**)
 Response:{userId, length, nextIndex, userCourseList:[...]}
 Basis: source/Assembly-CSharp/Net. VO. Mai2/UserCourseRequestVO. cs
-     source/2026-10-05. log:55 request bodyis {"userId":..,"nextIndex":0}
+     source/2026-10-05. log:55 request body is {"userId":..,"nextIndex":0}
 
 Example:
   from api import GetUserCourse
@@ -35,10 +35,10 @@ def GetUserCourse(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take the results of the user's topic mode(Single Page, Corresponding GetUserCourseApi).
+  Take the results of the user's topic mode (Single Page, Corresponding GetUserCourseApi).
 
   Returns:
-    Raw Response dict, Contains userCourseList
+    Raw Response dict, Contains userCourseList.
   """
     log_info("Take the user's subject score: user_id=" + str(user_id) + " next_index=" + str(next_index))
     return _get(
@@ -56,16 +56,16 @@ def GetUserCourseAll(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take the user's subject score(auto-pagingTakeFull).
+  Take the user's subject score (auto-paging Take Full).
 
   Returns:
     {"userCourseList": [...]}
   """
-    log_info("Take the user's subject score(Full Amount): user_id=" + str(user_id))
+    log_info("Take the user's subject score (Full Amount): user_id=" + str(user_id))
     items = get_all_pages(
         "GetUserCourseApi", user_id, "userCourseList",
         body_factory=lambda ni: UserCourseRequestVO(userId=user_id, nextIndex=ni or 0),
         client_id=client_id, timeout_ms=timeout_ms, client=client,
     )
-    log_info("Resultsfetch complete:" + str(len(items)) + " item")
+    log_info("Results fetch complete: " + str(len(items)) + " item")
     return {"userCourseList": items}

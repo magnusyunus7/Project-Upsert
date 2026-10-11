@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-userlogin. py — usercurrentlogin(UserLoginApi)
+userlogin. py — user current login (UserLoginApi)
 ================================================================================
 
-Features: Create Login Session, returns loginId / loginDateTime / logindaysnumbersystemcount.
-   loginId And loginDateTime isFollow-upsettlementEscalationsAndlogoutof**Required**.
+Features: Create Login Session, returns loginId / loginDateTime / login days number system count.
+   loginId And loginDateTime is Follow-up settlement Escalations And logout of **Required**.
 
 Corresponding interface: UserLoginApi
 request body:10 fields, source/Assembly-CSharp/Net. VO. Mai2/UserLoginRequestVO. cs
@@ -14,7 +14,7 @@ Response: UserLoginResponseVO(returnCode=1 Success)
 --------------------------------------------------------------------------------
 - About loginDateTime(Strong correlation with subsequent interfaces, It's important to understand)
 --------------------------------------------------------------------------------
-  real machineTake is"Wall TimeWhen UTC time"ofsecondsnumber, i. e.
+  real machine Take is "Wall Time When UTC time" of seconds number, i. e.
 
     loginDateTime = standard Unix time + timeOffset
 
@@ -27,11 +27,11 @@ Response: UserLoginResponseVO(returnCode=1 Success)
      PacketUpsertUserAll. cs:31 / PacketUserLogout. cs:29 allMultiplexingtheValue,
      Inconsistent with login will be rejected by the server.
 
-  defaultpressreal machinecalculate; needspecifiedtimePassing on login_date_time.
+  default press real machine calculate; need specified time Passing on login_date_time.
 
 - About dateTime And loginDateTime of
-  dateTime   = ALL. Net time(Auth. AuthTime, standard Unix seconds)
-  loginDateTime= logintime(Special algorithm above)
+  dateTime   = ALL. Net time (Auth. AuthTime, standard Unix seconds)
+  loginDateTime = login time (Special algorithm above)
   Both appear in the UserLoginRequestVO in, But only loginDateTime Will be multiplexed by subsequent interfaces.
 
 Example:
@@ -59,7 +59,7 @@ from .maimai_net import (
 
 @dataclass
 class UserLoginRequestVO:
-    """request VO(Corresponding UserLoginRequestVO, Field order photo C# Declaration)."""
+    """request VO (Corresponding UserLoginRequestVO, Field order photo C# Declaration)."""
     userId: int
     accessCode: str = ""
     regionId: int = 0
@@ -75,9 +75,9 @@ class UserLoginRequestVO:
 @dataclass
 class UserLoginResponseVO:
     """
-  Response VO(Corresponding UserLoginResponseVO).
+  Response VO (Corresponding UserLoginResponseVO).
 
-  - The last two fields are**Client Backfill**of, serverNoReturns:
+  - The last two fields are **Client Backfill** of, server No Returns:
     loginDateTime — PacketUserLogin. cs:43 userequestValueBackfill,
              UpsertUserAll / UserLogout allMultiplexing
     dateTime   — requesthairoutof ALL. Net time,
@@ -110,7 +110,7 @@ def UserLogin(
     client: Optional[MaimaiNetClient] = None,
 ) -> UserLoginResponseVO:
     """
-  usercurrentlogin(Create Login Session).
+  user current login (Create Login Session).
 
   Parameter:
     user_id:     user ID(Required)
@@ -118,11 +118,11 @@ def UserLogin(
     access_code:  (Optional, Is Empty)
     region_id:    Area ID(Optional, default config. REGION_ID)
     place_id:    Store ID(Optional, default config. PLACE_ID)
-    client_id:    machine stateshortValue(Optional)
-    is_continue:   isNocontinue(Optional)
+    client_id:    machine state short Value (Optional)
+    is_continue:   is No continue (Optional)
     generic_flag:  useBit(Optional)
-    date_time:    ALL. Net time(Optional, defaultCurrent Unix seconds)
-    login_date_time: logintime(Optional, defaultpressreal machinecalculate)
+    date_time:    ALL. Net time (Optional, default Current Unix seconds)
+    login_date_time: login time (Optional, default press real machine calculate)
     timeout_ms:   timeout milliseconds(Optional, default 60 seconds)
     client:     Reusable MaimaiNetClient(Optional)
 
@@ -133,7 +133,7 @@ def UserLogin(
     RuntimeError: returnCode!= 1
   """
     log_info(
-        "usercurrentlogin: user_id=" + str(user_id)
+        "user current login: user_id=" + str(user_id)
         + " region_id=" + str(region_id) + " place_id=" + str(place_id)
     )
 
@@ -144,8 +144,8 @@ def UserLogin(
         login_date_time = login_date_time_now()
 
     log_debug(
-        "timedateTime=" + str(date_time) + " loginDateTime=" + str(login_date_time)
-        + "(timeOffset " + str(local_utc_offset_seconds()) + " seconds)"
+        "time dateTime=" + str(date_time) + " loginDateTime=" + str(login_date_time)
+        + " (time Offset " + str(local_utc_offset_seconds()) + " seconds)"
     )
 
     raw = request_dict(
@@ -170,7 +170,7 @@ def UserLogin(
     resp = UserLoginResponseVO(**{k: v for k, v in raw.items() if k in known})
 
     if resp.returnCode != 1:
-        msg = "loginFailed: returnCode=" + str(resp.returnCode)
+        msg = "login Failed: returnCode=" + str(resp.returnCode)
         log_error(msg)
         raise RuntimeError(msg)
 
@@ -178,14 +178,14 @@ def UserLogin(
     #  serverNoreturnstheField, Client backfill with request value; Follow-up UpsertUserAll / UserLogout Multiplexing.
     if not resp.loginDateTime:
         resp.loginDateTime = login_date_time
-        log_debug("servernotreturns loginDateTime, pressreal machineforBackfillfor " + str(login_date_time))
+        log_debug("server not returns loginDateTime, press real machine for Backfill for " + str(login_date_time))
 
     # - Backfill dateTime: requestactualhairoutof ALL. Net time.
     #  UpsertUserAll of userData. dateTime mustuse(real machineplaceMatch).
     resp.dateTime = date_time
 
     log_info(
-        "userloginSuccess: loginId=" + str(resp.loginId)
+        "user login Success: loginId=" + str(resp.loginId)
         + " loginDateTime=" + str(resp.loginDateTime)
         + " dateTime=" + str(resp.dateTime)
         + " lastLoginDate=" + resp.lastLoginDate
@@ -214,7 +214,7 @@ if __name__ == "__main__":
                 print("  " + name.ljust(24) + "= " + str(getattr(lg, name)))
             return 0
         except Exception as exc:
-            log_error("userloginFailed:" + str(exc))
+            log_error("user login Failed: " + str(exc))
             return 1
         finally:
             teardown_logging()

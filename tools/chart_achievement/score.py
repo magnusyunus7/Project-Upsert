@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""maimai DX achievement rate / DX Minute Calculation Model(pressnotegroup).
+"""maimai DX achievement rate / DX Minute Calculation Model (press note group).
 
-achievement rate(source/Assembly-CSharp/Manager/GameScoreList. cs:1238-1310 CalcUpdate())::
+achievement rate (source/Assembly-CSharp/Manager/GameScoreList. cs:1238-1310 CalcUpdate())::
 
   Achivement = num / _allPerfectScore * 100 + num2 / _breakBonusScore
 
-where num = Σ score NoteScore. GetJudgeScore(timing, countCategories)
-   num2 = Σ critical perfectReward Points(Only the overwhelmingly acclaimed notes have)NoteScore. GetJudgeScore(timing, BreakBonus)
-   _allPerfectScore = Σ eachPiecenoteofweight(NotesReader. calcTotal())
-   _breakBonusScore = 100 × critical perfectnotenumber
+where num = Σ score NoteScore. GetJudgeScore (timing, count Categories)
+   num2 = Σ critical perfect Reward Points (Only the overwhelmingly acclaimed notes have) NoteScore. GetJudgeScore (timing, BreakBonus)
+   _allPerfectScore = Σ each Piece note of weight (NotesReader. calcTotal())
+   _breakBonusScore = 100 × critical perfect note number
 Minutes = 101.0000%(hascritical perfect)/ 100.0000%(nocritical perfect).
 
 DX Minutes(JudgeResultSt. UpdateScore + NoteJudge. ConvertJudge)::
@@ -50,8 +50,8 @@ JUDGE_LABEL = {
 }
 DX_PER = {"cp": 3, "perfect": 2, "great": 1, "good": 0, "miss": 0}
 
-#: eachPiecenotegroupin, DetermineactualcanAppearanceof (Lost points, critical perfectReward Points) group
-#: Lost points = thenoteweight - actual Score; Reward points are only for praise(countCategories Break)noteat.
+#: each Piece note group in, Determine actual can Appearance of (Lost points, critical perfect Reward Points) group
+#: Lost points = the note weight - actual Score; Reward points are only for praise (count Categories Break) note at.
 GROUP_OPTIONS: Dict[str, Dict[str, Tuple[Tuple[int, int], ...]]] = {
     GROUP_TAP: {
         "cp": ((0, 0),),
@@ -125,7 +125,7 @@ EXACT_TIME_BUDGET = 8.0     # DP oftimecalculate(seconds), timetimesInterval Mod
 # ------------------------------------------------------------------ theoreticalValue
 @dataclass
 class Theory:
-    """Scoring Theoretical Value of a Spectrum."""
+    """Scoring Theoretical Value of a chart."""
 
     counts: Dict[str, int]              # notegroup -> notenumber
     weights: Dict[str, int]             # notegroup -> Single note full weight
@@ -141,12 +141,12 @@ class Theory:
 
     @property
     def break_notes(self) -> int:
-        """critical perfectnoteTotal(countCategoriesfor Break ofnote)."""
+        """critical perfect note Total (count Categories for Break of note)."""
         return sum(self.counts.get(g, 0) for g in _GROUP_BAD_STEP)
 
     @property
     def denominator(self) -> int:
-        """achievement rateofDenominator:100 - Σc/D in D."""
+        """achievement rate of Denominator: 100 - Σc/D in D."""
         if self.break_bonus_score:
             return self.all_perfect_score * self.break_bonus_score
         return self.all_perfect_score
@@ -157,7 +157,7 @@ class Theory:
 
     @property
     def perfect_capacity(self) -> int:
-        """Allow to appear Perfect ofcritical perfectnotenumber(Break And Break(holdDetermine))."""
+        """Allow to appear Perfect of critical perfect note number (Break And Break (hold Determine))."""
         return (self.counts.get(GROUP_BREAK, 0)
                 + self.counts.get(GROUP_BREAK_FLAT, 0))
 
@@ -172,14 +172,14 @@ def _lattice_of(th: "Theory") -> int:
 
 
 def theory_from_counts(counts: Dict[str, int]) -> Theory:
-    """by"notegroup -> notenumber"constructtheoreticalValue."""
+    """by "note group -> note number" construct theoretical Value."""
     clean: Dict[str, int] = {}
     for key, value in (counts or {}).items():
         if key not in GROUP_OPTIONS:
-            raise ValueError("cannot obtainfnotegroup:%r" % (key,))
+            raise ValueError("cannot obtain note group: %r" % (key,))
         value = int(value or 0)
         if value < 0:
-            raise ValueError("notenumberCannot be%s=%d" % (key, value))
+            raise ValueError("note number Cannot be %s=%d" % (key, value))
         if value:
             clean[key] = value
     all_perfect = 0
@@ -213,7 +213,7 @@ def theory_from_chart(chart: Chart) -> Theory:
 
 # ------------------------------------------------------------------ Single note cost
 def _cost(th: Theory, loss: int, bonus: int) -> int:
-    """put (Lost points, Reward Points) calculateonenumber c, Enable Achievement Rate = 100 - Σc / D."""
+    """put (Lost points, Reward Points) calculate one number c, Enable Achievement Rate = 100 - Σc / D."""
     if th.break_bonus_score:
         return 100 * th.break_bonus_score * loss - th.all_perfect_score * bonus
     return 100 * loss
@@ -224,7 +224,7 @@ def _edge_cost(th: Theory, group: str, judge: str, want_max: bool) -> Optional[i
     if not opts:
         return None
     values = [_cost(th, loss, bonus) for loss, bonus in opts]
-    # want_max"achievement rate", andachievement rate = 100 - Σc/D, So at the least cost..
+    # want_max "achievement rate", and achievement rate = 100 - Σc/D, So at the least cost..
     return min(values) if want_max else max(values)
 
 

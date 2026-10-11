@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_user_ghost. py — Fetching user ghost data(GetUserGhostApi)
+get_user_ghost. py — Fetching user ghost data (GetUserGhostApi)
 ================================================================================
 
-Take Player"Ghosts"Match Record(real machine 15 item).
+Take Player "Ghosts" Match Record (real machine 15 item).
 
 Corresponding interface: GetUserGhostApi
 request body: UserIdRequestVO
 Response:{length, userGhostList:[...]}
 Basis: source/Assembly-CSharp/Net. VO. Mai2/UserGhostRequestVO. cs
 
-  - Upsert Side userGhost defaultleave blank: source code VOExtensions. cs:235 is
+  - Upsert Side userGhost default leave blank: source code VOExtensions. cs:235 is
     dst. userGhost = (! src. MyGhost. NeedSave)? null: new GetUserGhost[1] {...};
-   Only"this gameGenerateGhosts"Only returned, network scriptReprintNooutGhostsdata.
+   Only "this game Generate Ghosts" Only returned, network script Reprint No out Ghosts data.
 
 Example:
   from api import GetUserGhost
@@ -37,10 +37,10 @@ def GetUserGhost(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetching user ghost data(Corresponding GetUserGhostApi).
+  Fetching user ghost data (Corresponding GetUserGhostApi).
 
   Returns:
-    Raw Response dict, Contains userGhostList
+    Raw Response dict, Contains userGhostList.
   """
     log_info("Fetching user ghost data: user_id=" + str(user_id))
     return _get("GetUserGhostApi", UserIdRequestVO(userId=user_id), user_id,

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-api Package — systemOneExport
+api Package — system One Export
 ================================================================================
 
-The master script only needs from api import... you get all the features..
+The master script only needs from api import ... you get all the features.
 
-- fileAt the time of importBelow _API_FUNCS inListofeachPieceFunctionUp"log",
+- file At the time of import Below _API_FUNCS in List of each Piece Function Up "log",
  So the main script has already got a logged version. — callusetimeMeetingsoutput:
 
    === ParseQRCode Get started ===
@@ -14,34 +14,34 @@ The master script only needs from api import... you get all the features..
     [result] Success tuple(2 item)(time 412 ms)
    === ParseQRCode run completion ===
 
- Master Script**Not required**Write Decorator, You don't have to bury it yourself..
+ Master Script **Not required** Write Decorator, You don't have to bury it yourself.
 
 --------------------------------------------------------------------------------
 text(One api A script)
 --------------------------------------------------------------------------------
  Infrastructure
   log_setup. py       systemOnelog(INFO / DEBUG Dual Mode)
-  maimai_net. py      network(AES / deflate / URL obfuscation / Cookie)
-  user_getter_common. py  Taking the number of feet from the common base(request VO / _get / )
+  maimai_net. py      network (AES / deflate / URL obfuscation / Cookie)
+  user_getter_common. py  Taking the number of feet from the common base (request VO / _get / )
 
  Session Link
   chime. py           QR login -> userId + token
-  get_game_settings. py     GetGameSettingApi()
+  get_game_settings. py     GetGameSettingApi ()
   ping. py           Heartbeat Probe Alive
-  get_user_preview. py     GetUserPreviewApi(user)
-  userlogin. py         UserLoginApi(currentlogin -> loginId + loginDateTime)
+  get_user_preview. py      GetUserPreviewApi (user)
+  userlogin. py         UserLoginApi (current login -> loginId + loginDateTime)
   userlogout. py        UserLogoutApi(logout)
 
- Upload / settlement(hasSide effectsofinterface)
+ Upload / settlement (has Side effects of interface)
   upsert_user_all. py      - UpsertUserAllApi(Upload Grades)
-  upsert_user_chargelog. py   UpsertUserChargelogApi(purchase tickets Tickets)
-  get_need_user_data. py    - settlement snapshot orchestration(systemOnecalluseBelowofFetch Script),
+  upsert_user_chargelog. py   UpsertUserChargelogApi (purchase tickets Tickets)
+  get_need_user_data. py    - settlement snapshot orchestration (system One call use Below of Fetch Script),
                  and trail the results to <Engineering Root>/data/<userId>. json
 
- - Naming conventions: server API Nameside Belt Get of,**scriptFirst nameAndFunction nameAlwaysBelt get / Get**
+ - Naming conventions: server API Name side Belt Get of, **script First name And Function name Always Belt get / Get**
   (Don't be ambiguous). So the following documents are all get_ Beginning.
 
- Take number — GetUser*(one interface, one script)
+ Take number — GetUser* (one interface, one script)
   get_user_data. py       GetUserDataApi
   get_user_extend. py      GetUserExtendApi
   get_user_option. py      GetUserOptionApi
@@ -315,7 +315,7 @@ from .user_getter_common import (
 )
 
 # ---------------------------------------------------------------------------
-# 5) Fetch Script(one interface, one script)
+# 5) Fetch Script (one interface, one script)
 # ---------------------------------------------------------------------------
 
 from .get_user_data import GetUserData
@@ -351,7 +351,7 @@ from .get_user_new_item import GetUserNewItemList, UserNewItemListRequestVO
 from .get_game_charge import GetGameCharge, GameChargeRequestVO
 
 # ---------------------------------------------------------------------------
-# 6) needlogof api Function(added api timeputFunction namePlustothisin)
+# 6) need log of api Function (added api time put Function name Plus to this in)
 # ---------------------------------------------------------------------------
 
 _API_FUNCS = (
@@ -427,13 +427,13 @@ _API_FUNCS = (
 )
 
 # ---------------------------------------------------------------------------
-# 7) Import and Wrap: Warranty from api import X toofisBeltlogof
+# 7) Import and Wrap: Warranty from api import X to of is Belt log of
 # ---------------------------------------------------------------------------
 
 autowrap(globals(), _API_FUNCS)
 
 # ---------------------------------------------------------------------------
-# 8) systemOneExport
+# 8) system One Export
 # ---------------------------------------------------------------------------
 
 __all__ = [

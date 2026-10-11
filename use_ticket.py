@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-use_ticket. py — consumecurrenthasofFeatures(use UpsertUserAll"useone game")
+use_ticket. py — consume current has of Features (use UpsertUserAll "use one game")
 ================================================================================
 
 a complete"use"
@@ -12,12 +12,12 @@ a complete"use"
 --------------------------------------------------------------------------------
 - Why you can use UpsertUserAll consume
 --------------------------------------------------------------------------------
-  GetUserChargeApi And UpsertUserAllApi inof userChargeList **fullrelatedSame**
+  GetUserChargeApi And UpsertUserAllApi in of userChargeList **full related Same**
   (UserCharge. cs: chargeId / stock / purchaseDate / validDate),
-  So just put the UpsertUserAll of userChargeList nodeschange"the stock - 1",
-  the server willforthisticketsthisone gameuse
+  So just put the UpsertUserAll of userChargeList nodes change "the stock - 1",
+  the server will for this ticket this one game use
 
-  real machineEmpirical(gamehook packet 2026-10-06 22:23 thatone game, currentuse 2 Ticket multiplier):
+  real machine Empirical (gamehook packet 2026-10-06 22:23 that one game, current use 2 Ticket multiplier):
 
     userChargeList: [
      {"chargeId":2,"stock":0,...},  <- When I bought it, it was 1, this gameusechange 0
@@ -29,7 +29,7 @@ a complete"use"
     userPlaylogList[0]. playCredit   = 2
     userData. lastPlayCredit      = 2
 
-  - playCredit ofcalculate(source/.../Net. VO. Mai2/VOExtensions. cs:838-845):
+  - playCredit of calculate (source/.../Net. VO. Mai2/VOExtensions. cs:838-845):
 
     playCredit = Credit. GameCostEnoughPlay()     // number, game = 1
           + TicketManager. GetTicketCredit(ticketId) // of creditNum
@@ -37,7 +37,7 @@ a complete"use"
    2 Coupon multiplier's creditNum = 1 -> playCredit = 1 + 1 = 2 (Consistent with real machine grab bag)
    creditNum TICKET_CREDIT_NUM.
 
-  - real-machine in the packet**none** isNewChargeList thisnodes(It's not in 36 out of nodes),
+  - real-machine in the packet **none** isNewChargeList this nodes (It's not in 36 of nodes),
    So there's no need to give bit strings here either..
 
 --------------------------------------------------------------------------------
@@ -50,9 +50,9 @@ usage
   python use_ticket. py <QR Code> --send --music-id 143 --level 4
   python use_ticket. py <QR Code> --send --skip-entry   # skipAdmission data download
 
-- consumewill be written to the server(Irrevocable). Do not pass --send timeConstruct only packets.
+- consume will be written to the server (Irrevocable). Do not pass --send time Construct only packets.
 - QR Code**has 10 Minutes**.
-- current**none**hasfeature ticketstimedirectly(noneconsumeof).
+- current **none** has feature tickets time directly (none consume of).
 """
 
 from __future__ import annotations
@@ -91,7 +91,7 @@ from config import (
 
 
 def read_charges(user_id, label):
-    """call GetUserChargeApi, and go back to (All, hasof)."""
+    """call GetUserChargeApi, and go back to (All, has of)."""
     raw = GetUserCharge(user_id)
     lst = (raw.get("userChargeList") if isinstance(raw, dict) else None) or []
     log_info("[" + label + "] Current Ticket " + str(len(lst)) + " item:")
@@ -106,7 +106,7 @@ def read_charges(user_id, label):
                  + " validDate=" + str(c.get("validDate"))
                  + ("  ← - has" if stock > 0 else ""))
     held = [c for c in lst if isinstance(c, dict) and int(c.get("stock", 0) or 0) > 0]
-    log_info("[" + label + "] hasinfeature tickets:" + str(len(held)) + " Zhang")
+    log_info("[" + label + "] has in feature tickets: " + str(len(held)) + " Zhang")
     return lst, held
 
 
@@ -161,22 +161,22 @@ def main() -> int:
 
         preview = GetUserPreview(user_id, token)
         if preview.isLogin:
-            log_error("placeinAlreadyloginpleaseFirstatmachine statelogoutorwaitSessiontime")
+            log_error("place in Already login; please first at machine state logout or wait Session time")
             return 2
 
         login = UserLogin(user_id, token, region_id=REGION_ID, place_id=PLACE_ID)
         session.update(login_dt=login.loginDateTime, logged_in=True)
 
-        # ---- - readcurrent features ----
-        all_charges, held = read_charges(user_id, "consumeago")
+        # ---- - read current features ----
+        all_charges, held = read_charges(user_id, "consume ago")
 
         if opts["list"]:
             log_info("--list: Tickets only, Do nothing to write")
             return 0
 
         if not held:
-            log_error("current**nonehasAnyfeature tickets**, noneconsumeof")
-            log_error(" Please use if you want to buy tickets buy_ticket. py; Tickets already in your possession will be sent to userChargeList in stock > 0.")
+            log_error("current **none has Any feature tickets**, none consume of")
+            log_error(" Please use buy_ticket. py if you want to buy tickets; Tickets already in your possession will be sent to userChargeList in stock > 0.")
             return 4
 
         # ---- ----
@@ -187,8 +187,8 @@ def main() -> int:
                     target = c
                     break
             if target is None:
-                log_error("specifiedof chargeId=" + str(opts["ticket_id"])
-                          + " Not currently in possession; hasofhas:"
+                log_error("specified of chargeId=" + str(opts["ticket_id"])
+                          + " Not currently in possession; has of has: "
                           + ", ".join(str(c.get("chargeId")) for c in held))
                 return 4
         else:
@@ -198,13 +198,13 @@ def main() -> int:
         credit_num = int(TICKET_CREDIT_NUM.get(ticket_id, 0) or 0)
         play_credit = int(PLAY_CREDIT) + credit_num
 
-        log_info("mustconsumeofchargeId=" + str(ticket_id) + " " + ticket_name(ticket_id)
+        log_info("must consume of chargeId=" + str(ticket_id) + " " + ticket_name(ticket_id)
                  + " stock=" + str(target.get("stock"))
                  + " creditNum=" + str(credit_num)
                  + " -> playCredit=" + str(PLAY_CREDIT) + "+" + str(credit_num)
                  + "=" + str(play_credit))
 
-        # ---- - constructof userChargeList: stock - 1, Rest as is ----
+        # ---- - construct of userChargeList: stock - 1, Rest as is ----
         new_stock = int(target.get("stock", 0) or 0) - 1
         if new_stock < 0:
             new_stock = 0
@@ -216,19 +216,19 @@ def main() -> int:
             if int(item.get("chargeId", -1)) == ticket_id:
                 item["stock"] = new_stock
                 log_info("  userChargeList in chargeId=" + str(ticket_id)
-                         + " of stock:" + str(target.get("stock")) + " -> " + str(new_stock))
+                         + " of stock: " + str(target.get("stock")) + " -> " + str(new_stock))
             new_list.append(item)
 
-        # ---- Admission data download(real machineAt the same time, it UpsertUserAll ofBaseline Snapshot)----
+        # ---- Admission data download (real machine At the same time, it UpsertUserAll of Baseline Snapshot) ----
         snapshot = None
         if not opts["skip_entry"]:
             snapshot = GetNeedUserData(user_id, token=token,
                                        place_id=PLACE_ID, region_id=REGION_ID)
             _sum = summarize_snapshot(snapshot)
-            log_info("Admission data download complete:" + str(len(_sum)) + " nodes, Failed "
+            log_info("Admission data download complete: " + str(len(_sum)) + " nodes, Failed "
                      + str(len(snapshot.get("_failed") or [])) + " Piece")
 
-        # ---- - use UpsertUserAll"usethisticketsone game"----
+        # ---- - use UpsertUserAll "use this ticket one game" ----
         #  play. use_ticket_id -> userGamePlaylogList[0]. useTicketId
         #  play. play_credit  -> userGamePlaylogList[0]. playCredit / userPlaylogList[]. playCredit
         #             / userData. lastPlayCredit
@@ -256,13 +256,13 @@ def main() -> int:
         # ---- - Review: stock Should be subtracted 1 ----
         _, held_after = read_charges(user_id, "consumeAfter")
         if not opts["send"]:
-            log_info("[dry-run] notPackaging. If you want to really consume, please add --send(- will be written to the server)")
+            log_info("[dry-run] not Packaging. If you want to really consume, please add --send (- will be written to the server)")
             return 0
 
         still = [c for c in held_after if int(c.get("chargeId", -1)) == ticket_id]
         if still:
-            log_warning("chargeId=" + str(ticket_id) + " Still in possession(stock="
-                        + str(still[0].get("stock")) + ")— servercanpost-upload")
+            log_warning("chargeId=" + str(ticket_id) + " Still in possession (stock="
+                        + str(still[0].get("stock")) + ") — server can post-upload")
             return 6
         log_info("- already consumed: chargeId=" + str(ticket_id) + " No longer in possession ✅")
         return 0
@@ -279,7 +279,7 @@ def main() -> int:
                            logout_type=LogoutType.TestIn,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_error("[receiveTail] Force Logout Failed(Session may need to wait for server timeout):" + str(exc))
+                log_error("[receiveTail] Force Logout Failed (Session may need to wait for server timeout): " + str(exc))
         teardown_logging()
 
 

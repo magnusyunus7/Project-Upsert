@@ -8,12 +8,12 @@ authv1. py — ALL. Net(alAbEx v4) machine-state Keychip -> clientId / regionId 
   config. py numberTwothatSatvalues
     KEYCHIP_ID / CLIENT_ID / REGION_ID / PLACE_ID / PLACE_NAME / REGION_NAME
   All from **AMDaemon On startup, toward ALL. Net the server mustofresult**.
-  server(maimai-gm. wahlap. com)**noneAnyinterface**will return them —
-  So in the past, this project could only be copied manually from the real machine message.(config. py inthat).
+  server(maimai-gm. wahlap. com) **none Any interface** will return them —
+  So in the past, this project could only be copied manually from the real machine message (config. py in that).
 
   scriptput AMDaemon ofthisOneAs isone
 
-[Protocol Origin]— All can be used in source/amdaemon. exe ofStringinpresent. Up(numberisfileOffset)
+[Protocol Origin] — All can be used in source/amdaemon. exe of String in present. Up (number is file Offset)
      http://at. sys-all. cn/net/initialize          @0x788170
   Alternate   http://at. sys-allnet. cn/net/initialize         Measurements are also available
   Library    alAbEx_lite Ver 4.00.01 (src/lib/alabex_pv4_lite)   @0x784a31
@@ -39,12 +39,12 @@ authv1. py — ALL. Net(alAbEx v4) machine-state Keychip -> clientId / regionId 
 [usage]
   python authv1. py A63E01E9580        # check(result)
   python authv1. py A63E-01C30471007      # Full with hyphens Keychip It's okay.
-  python authv1. py A63E01E9580 --json     # machineread
+  python authv1. py A63E01E9580 --json     # machine read
   python authv1. py A63E01E9580 --write    # Force write-back config. py
   python authv1. py A63E01E9580 --no-write   # Force Do Not Write
   python authv1. py --batch keychip. csv    # check(CSV numberOneColumnsis Keychip)
 
-  - isNowrite-back config. py, default config. py inof AUTHV1_WRITE_CONFIG Switch.
+  - is No write-back config. py, default config. py in of AUTHV1_WRITE_CONFIG Switch.
 
 [Also used as a protocol library]
   from authv1 import allnet_post, initialize, delivery_instruction, parse_keychip
@@ -73,8 +73,8 @@ from Crypto.Util.Padding import pad
 # Protocol Constants
 # =============================================================================
 
-# ALL. Net server(National uniform SDGB). Two domains point to different machine rooms, the actual test can be used;
-# defaultuse sys-allnet. cn(And maimai-gm. wahlap. com Same machine room, short).
+# ALL. Net server (National uniform SDGB). Two domains point to different machine rooms, the actual test can be used;
+# default use sys-allnet. cn (And maimai-gm. wahlap. com Same machine room, short).
 ALLNET_HOSTS = (
     "http://at. sys-allnet. cn",
     "http://at. sys-all. cn",
@@ -92,7 +92,7 @@ TITLE_ID = "SDGB"
 AES_KEY = bytes([47, 63, 106, 111, 43, 34, 76, 38, 92, 67, 114, 57, 40, 61, 107, 71])
 AES_IV = bytes(16)
 
-# request header. Basis: exe in "Pragma" + "DFI"(@0x7883cc) And "Windows/Lite"(@0x788508).
+# request header. Basis: exe in "Pragma" + "DFI" (@0x7883cc) And "Windows/Lite" (@0x788508).
 HEADERS = {
     "User-Agent": "SDGB; Windows/Lite",
     "Pragma": "DFI",
@@ -105,8 +105,8 @@ DEFAULT_TIMEOUT = 20
 CLIENT_ID_LEN = 11
 CLIENT_ID_RE = re.compile(r"^[0-9A-F]{" + str(CLIENT_ID_LEN) + r"}$")
 
-# Escalate to ALL. Net ofreal machine 1.56 ROM actual measurement is still reported 1.55(And Mai-Encoding Match);
-# defaultTake config. MAI_ENCODING, Return this literal if you can't get it.
+# Escalate to ALL. Net of real machine 1.56 ROM actual measurement is still reported 1.55 (And Mai-Encoding Match);
+# default Take config. MAI_ENCODING, Return this literal if you can't get it.
 DEFAULT_TITLE_VER = "1.55"
 
 RESULT_TEXT = {
@@ -126,15 +126,15 @@ class AllnetError(RuntimeError):
 # =============================================================================
 
 def encode_request(text: str) -> bytes:
-    """-> UpBytes16 Byte Full 0 Prefix + PKCS7 + AES-128-CBC(IV=0)."""
+    """-> Up Bytes 16 Byte Full 0 Prefix + PKCS7 + AES-128-CBC (IV=0)."""
     body = AES_IV + text.encode("utf-8")
     return AES.new(AES_KEY, AES.MODE_CBC, AES_IV).encrypt(pad(body, AES.block_size))
 
 
 def decode_response(raw: bytes) -> str:
-    """UpBytes -> ago 16 Bytes are IV, followed by AES-128-CBC Cipher"""
+    """Up Bytes -> ago 16 Bytes are IV, followed by AES-128-CBC Cipher"""
     if len(raw) < 32 or len(raw) % AES.block_size:
-        raise AllnetError("Abnormal response length:%d Bytes(should >=32 and is 16 oftimesnumber)" % len(raw))
+        raise AllnetError("Abnormal response length: %d Bytes (should >=32 and is 16 of times number)" % len(raw))
     plain = AES.new(AES_KEY, AES.MODE_CBC, raw[:16]).decrypt(raw[16:])
     n = plain[-1]
     if 1 <= n <= AES.block_size:
@@ -144,7 +144,7 @@ def decode_response(raw: bytes) -> str:
 
 def allnet_post(path, body, *, host=DEFAULT_HOST, timeout=DEFAULT_TIMEOUT, retries=3):
     """
-  POST One encryption request, returnsdecryptAfterof(Shape like "result=1&place_id=...").
+  POST One encryption request, returns decrypt After of (Shape like "result=1&place_id=...").
 
   - Measured at. sys-allnet. cn Occasionally disconnects directly(RemoteDisconnected),
    So here's the right**network**Failed Retreat Retry; Business code is not 1 Don't retry.
@@ -160,7 +160,7 @@ def allnet_post(path, body, *, host=DEFAULT_HOST, timeout=DEFAULT_TIMEOUT, retri
             if attempt < retries:
                 time.sleep(1.5 * attempt)
                 continue
-            raise AllnetError("request %s Failed(Retried %d ):%s" % (url, retries, exc)) from exc
+            raise AllnetError("request %s Failed (Retried %d): %s" % (url, retries, exc)) from exc
 
         if resp.status_code != 200:
             if resp.status_code >= 500 and attempt < retries:
@@ -202,10 +202,10 @@ def parse_keychip(raw: str) -> str:
   """
     s = re.sub(r"[\s\-]", "", str(raw)).upper()
     if len(s) < CLIENT_ID_LEN:
-        raise ValueError("Keychip Too short:%r(%d Bit)" % (raw, CLIENT_ID_LEN))
+        raise ValueError("Keychip Too short: %r (%d Bit)" % (raw, CLIENT_ID_LEN))
     cid = s[:CLIENT_ID_LEN]
     if not CLIENT_ID_RE.match(cid):
-        raise ValueError("Keychip non-%r(Hexadecimal uppercase expected)" % raw)
+        raise ValueError("Keychip non-%r (Hexadecimal uppercase expected)" % raw)
     return cid
 
 
@@ -225,14 +225,14 @@ def make_keychip(client_id: str, place_id) -> str:
 
 def initialize(client_id, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
                timeout=DEFAULT_TIMEOUT):
-    """POST /net/initialize — machine statereturnsOriginal"""
+    """POST /net/initialize — machine state returns Original"""
     body = "title_id=%s&title_ver=%s&client_id=%s" % (TITLE_ID, title_ver, client_id)
     return allnet_post(PATH_INITIALIZE, body, host=host, timeout=timeout)
 
 
 def delivery_instruction(client_id, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
                          timeout=DEFAULT_TIMEOUT):
-    """POST /net/delivery/instruction — DLI, returnsOriginal(Contains uri= )."""
+    """POST /net/delivery/instruction — DLI, returns Original (Contains uri= )."""
     body = "title_id=%s&title_ver=%s&client_id=%s" % (TITLE_ID, title_ver, client_id)
     return allnet_post(PATH_DELIVERY_INSTRUCTION, body, host=host, timeout=timeout)
 
@@ -267,11 +267,11 @@ def query_keychip(keychip, *, title_ver=DEFAULT_TITLE_VER, host=DEFAULT_HOST,
     info = {
         "ok": result == "1",
         "result": result,
-        "result_text": RESULT_TEXT.get(result, "notreturns %s" % result),
+        "result_text": RESULT_TEXT.get(result, "not returns %s" % result),
         "title_id": TITLE_ID,
         "title_ver": title_ver,
         "host": host,
-        # --- Five of the six values(KEYCHIP_ID isvalue)---
+        # --- Five of the six values (KEYCHIP_ID is value) ---
         "client_id": cid,
         "region_id": region_id,
         "place_id": place_id,
@@ -312,7 +312,7 @@ WRITEBACK_KEYS = ("CLIENT_ID", "REGION_ID", "PLACE_ID", "PLACE_NAME", "REGION_NA
 
 
 def _replace_assignment(text, name, literal):
-    """put config. py inUniqueOne Row NAME =... NAME = literal."""
+    """put config. py in Unique One Row NAME =... NAME = literal."""
     pattern = re.compile(r"^(%s[ \t]*=[ \t]*).*$" % re.escape(name), re.M)
     new_text, count = pattern.subn(lambda m: m.group(1) + literal, text, count=1)
     if count != 1:
@@ -462,14 +462,14 @@ def main(argv=None):
 
     if not args.keychip:
         build_parser().print_help()
-        print("\nerror: pleaseone Keychip, or with --batch specified CSV.")
+        print("\nerror: please one Keychip, or with --batch specified CSV.")
         return 2
 
     try:
         info = query_keychip(args.keychip, title_ver=title_ver,
                              host=args.host, timeout=args.timeout)
     except (AllnetError, ValueError) as exc:
-        print("checkFailed:%s" % exc)
+        print("check Failed: %s" % exc)
         return 1
 
     if args.json:
@@ -482,10 +482,10 @@ def main(argv=None):
         try:
             write_back_config(info)
         except AllnetError as exc:
-            print("write-back failed:%s" % exc)
+            print("write-back failed: %s" % exc)
             return 1
     elif not args.json:
-        print(" [notwrite-back] want it to write back automatically: put config. py of AUTHV1_WRITE_CONFIG change True,"
+        print(" [not write-back] want it to write back automatically: put config. py of AUTHV1_WRITE_CONFIG change True,"
               "or add --write")
     return 0
 

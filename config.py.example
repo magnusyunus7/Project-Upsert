@@ -3,18 +3,18 @@
 config. py — DX network script · configuration item
 ================================================================================
 
--- this is**file**. make a copy before first use:
+-- this is **file**. Make a copy before first use:
 
     cp config. py. example config. py     # Linux / macOS
     copy config. py. example config. py    # Windows
 
-  After completing the required Section 2"machine state and store"of 6 values, Otherwise, the script sends out a request
+  After completing the required Section 2 "machine state and store" of 6 values, Otherwise, the script sends out a request
   another machine's ID, the server will.
 
   - config. py at. gitignore in — It belongs to your private configuration, Don't submit.
 ================================================================================
 
-file contents**user-editable**content, The rest of the protocol constants are written in their respective scripts.
+file contents **user-editable** content, The rest of the protocol constants are written in their respective scripts.
 
 Split into six pieces:
  1. network and encryption constants(AES Key, Protocol Version, server)
@@ -37,7 +37,7 @@ all logging, review the source first before changing.
 #    (request header Mai-Encoding value of;1.56 ROM the actual test is still sent 1.55)
 MAI_ENCODING = "1.55"
 
-# --- time(seconds)---
+# --- time (seconds) ---
 # Basis: source/Assembly-CSharp/Net/NetConfig. cs:7-11
 TIMEOUT_MS = 10000     # interface
 TIMEOUT_LONG_MS = 60000   # login / settlement upload
@@ -47,11 +47,11 @@ TIMEOUT_LONG_MS = 60000   # login / settlement upload
 # Two, machine state and store
 # =============================================================================
 
-# Client ID(Keychip shortValue)
+# Client ID (Keychip short Value)
 # Basis: source/Assembly-CSharp/Net. Packet. Mai2/PacketGetGameSetting. cs:23
 #    clientId = AMDaemon. System. KeychipId. ShortValue
-# Measured: real-machine login clientId Constant equals Keychip shortValue
-# - Morphology = 15 Bit Keychip After removing the hyphen**ago 11 Bit**(Uppercase hex).
+# Measured: real-machine login clientId Constant equals Keychip short Value
+# - Morphology = 15 Bit Keychip After removing the hyphen **ago 11 Bit** (Uppercase hex).
 CLIENT_ID = ""         # -- Required: Shape like "A63E01C3047"
 
 # Area ID / Store ID
@@ -61,18 +61,18 @@ CLIENT_ID = ""         # -- Required: Shape like "A63E01C3047"
 REGION_ID = 0          # -- Required: Your area ID
 PLACE_ID = 0          # -- Required: Your store ID
 
-# Keychip ID(machine stateUnique, Full format with hyphens)
+# Keychip ID (machine state Unique, Full format with hyphens)
 # -- this isofmachine state, Do not share this value; Fill in the wrong server and it will be rejected.
 # Basis: source/Assembly-CSharp/Manager/ChimeReaderManager. cs:250
 #    KeychipID = AMDaemon. System. KeychipId. Value
 # - group = CLIENT_ID offirst 4 digits + "-" + CLIENT_ID remaining digits plus + PLACE_ID
 #   Example: CLIENT_ID "A63E01C3047" + PLACE_ID 1007 -> "A63E-01C30471007"
-#  So it's made up of the two values above**text**, Don't manipulate.
+#  So it's made up of the two values above **text**, Don't manipulate.
 KEYCHIP_ID = (CLIENT_ID[:4] + "-" + CLIENT_ID[4:] + str(PLACE_ID)) if CLIENT_ID else ""
 
 # Store Name / Area Name
 #
-# - Why it had to be filled in manually before:**servernoneAnyinterfacereturntimesStore Name**.
+# - Why it had to be filled in manually before: **server none Any interface return times Store Name**.
 #  source/2026-10-05. log All Responses:
 #   - GetGameSettingApi Only Returns gameSetting, noFirst name
 #   - GetUserDataApi of lastPlaceName back is null
@@ -90,13 +90,13 @@ REGION_NAME = ""        # -- Required: Area Name
 
 # --- authv1 Write back switch ---
 #
-# authv1. py(Keychip -> machine state)checktoresultAfter, isNo**write-back config. py**.
+# authv1. py (Keychip -> machine state) check to result After, is No **write-back config. py**.
 #
-#  True: eachcheckAfter successful, put CLIENT_ID / REGION_ID / PLACE_ID /
+#  True: each check After successful, put CLIENT_ID / REGION_ID / PLACE_ID /
 #      PLACE_NAME / REGION_NAME Five values rewritten into config. py.
 #      (KEYCHIP_ID isValue, will automatically change with it, No need to write.)
 #      changes create a backup file config. py. bak, Write a bad configuration.
-#  False: Only print results, immovable config. py.(default, Safety)
+#  False: Only print results, immovable config. py. (default, Safety)
 #
 # Command line can be temporarily overwritten:--write Force Write / --no-write Force Do Not Write.
 AUTHV1_WRITE_CONFIG = False
@@ -145,8 +145,8 @@ UPSERT_CHARGELOG_CONFIRM = False
 #  i. e. userPlaylogList[0] Field.
 #
 # - Two"data"of(Don't mess around.):
-#  userPlaylogList   this game**Raw Decision Input** — servercalculateMinutes, Write a transcript
-#  userMusicDetailList press (musicId, level) of**Historical Archives** — this gamethatitem playCount +1
+#  userPlaylogList   this game **Raw Decision Input** — server calculate Minutes, Write a transcript
+#  userMusicDetailList press (musicId, level) of **Historical Archives** — this game that item playCount +1
 #  Below PLAY_* feed both at the same time, Guaranteed consistency.
 
 # --- trackAnddifficulty ---
@@ -194,7 +194,7 @@ PLAY_EXTRA_FLAG = 1721     # userExtend. extraFlag
 
 # --- this gameUseofSnapshot(characterId1..5 / Level / Awakening)---
 #
-# - semantic:**playtime**ofSnapshotValue, Don't add experience — thisOne.
+# - semantic: **play time** of Snapshot Value, Don't add experience — this One.
 #  (settlementAfteroflevelat upsertUserAll. userCharacterList in, thatplaceonly +text)
 #  real machineEmpirical(source/2026-10-05. log:123 Same message):
 #    userPlaylogList[0]. characterLevel1..5 = 3800/4455/134/134/134 ← Snapshot(playago)
@@ -219,7 +219,7 @@ PLAY_IS_EVENT_MODE = False
 PLAY_IS_NEW_FREE = False
 PLAY_IS_FREEDOM_MODE = False
 
-# --- machine statecountnumber(- noFromserver, Can only be filled in manually)---
+# --- machine state count number (- no From server, Can only be filled in manually) ---
 #
 # Basis: source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:881
 #    result. playCount = Backup. localParameter. playCount
@@ -302,9 +302,9 @@ PLAY_MAP_DISTANCE_GAIN = 0
 #  Warn when there are no entries.
 PLAY_CHARACTER_EXP_GAIN = 0
 
-# --- - About userGetPointList / userLoginBonusList(leave blankJust do it)---
+# --- - About userGetPointList / userLoginBonusList (leave blank Just do it) ---
 #
-# thisnodesis**loginRewardshair**Produced by, playsettlementNot requiredCallback:
+#  this nodes is **login Rewards hair** Produced by, play settlement Not required Callback:
 #
 #  userGetPointList(in/numberdetails)
 #   real machine 39 UpsertUserAll in,**25 Is Empty(64%)**;
@@ -329,12 +329,12 @@ PLAY_SHOP_ITEM_IDS = []
 # Five, UpsertUserAll Safety gate
 # =============================================================================
 #
-# - this is**The only one with side effects**ofinterface: will write the actual results of this bureau into the server, Irrevocable.
+# - this is **The only one with side effects** of interface: will write the actual results of this bureau into the server, Irrevocable.
 #  Keep False(default), callusetimeRequiredexplicitPassing on confirm=True onlycurrentPackaging.
 #  change True will be released permanently(Not recommended).
 UPSERT_CONFIRM = False
 
-# realPackagingagoofCooling Wait(seconds)
+# real Packaging ago of Cooling Wait (seconds)
 #
 # - semantic:**each**realSend UpsertUserAll Before, allwaitthisseconds(Includes first time).
 #  of: Escalationsreal machine — real machineFromlogintosettlementEscalations 80 seconds,
@@ -350,11 +350,11 @@ UPSERT_SEND_COOLDOWN_SEC = 60
 # Sat, log
 # =============================================================================
 #
-#  "info" Output only api scriptofAndresult:
+#  "info" Output only api script of And result:
 #       === XxxApi Get started ===
 #       === XxxApi run completion ===
 #
-#  "debug" Based on the above, outTowards api Data sent vs. api returntimesofdata:
+#  "debug" Based on the above, out Towards api Data sent vs. api return times of data:
 #       → request XxxApi URL / request header / request body JSON Full
 #       ← Response XxxApi / time / Response header / Response body JSON Full
 #

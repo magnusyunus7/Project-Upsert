@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-get_need_user_data. py — settlement snapshot orchestration(systemOnecalluseScripts for each fetch)
+get_need_user_data. py — settlement snapshot orchestration (system One call use Scripts for each fetch)
 ================================================================================
 
-Features: One-click grab UpsertUserAll needofAllBaselinedata, text"nodesDictionary".
+Features: One-click grab UpsertUserAll need of All Baseline data, text "nodes Dictionary".
 
--**Choreography only**, The fetching logic is all in their own api scriptin(get_user_data. py / get_user_map. py …).
+- **Choreography only**, The fetching logic is all in their own api script in (get_user_data. py / get_user_map. py …).
 
 --------------------------------------------------------------------------------
 Why snapshots are needed
 --------------------------------------------------------------------------------
-server response. userData is**overwrite**semantic, Pair differential nodes are**Only return variations**semantic.
-mustputthis gameofVariationcurrentoutMust have one first"logintimeofserver"As baseline,
-and then superimpose the impact of the game on the baseline. — thisisSnapshotofuse.
+server response. userData is **overwrite** semantic, Pair differential nodes are **Only return variations** semantic.
+must put this game of Variation current out Must have one first "login time of server" As baseline,
+and then superimpose the impact of the game on the baseline. — this is Snapshot of use.
 
 real machineControl(source/2026-10-05. log):
 
@@ -44,7 +44,7 @@ from config import CLIENT_ID, PLACE_ID, PLAY_SHOP_ITEM_IDS, REGION_ID, TIMEOUT_M
 from .log_setup import log_debug, log_info, log_warning
 from .maimai_net import MaimaiNetClient
 
-# Scripts for each fetch(one interface, one script)
+# Scripts for each fetch (one interface, one script)
 from .get_user_data import GetUserData
 from .get_user_extend import GetUserExtend
 from .get_user_option import GetUserOption
@@ -70,22 +70,22 @@ from .get_user_kaleidx_scope import GetUserKaleidxScope
 # fall<Engineering Root>/data/<userId>. json
 # =============================================================================
 
-#: Engineering Root Directory(fileat <root>/api/ Down)
+#: Engineering Root Directory (file at <root>/api/ Down)
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
 
-#: userdata<Engineering Root>/data
+#: userdata <Engineering Root>/data
 DATA_DIR: Path = PROJECT_ROOT / "data"
 
 
 def user_data_path(user_id: int) -> Path:
-    """userdataoffall<Engineering Root>/data/<userId>. json"""
+    """userdata of fall <Engineering Root>/data/<userId>. json"""
     return DATA_DIR / (str(int(user_id)) + ". json")
 
 
 def save_user_data(snapshot: Dict[str, Any], user_id: int,
                    path: Optional[str] = None) -> str:
     """
-  put GetNeedUserData toofdatato <Engineering Root>/data/<userId>. json.
+  put GetNeedUserData to of data to <Engineering Root>/data/<userId>. json.
 
   - **dataisoverwritedata**(Not Append, It's not a merger).
   - AbsentMeetings
@@ -103,34 +103,34 @@ def save_user_data(snapshot: Dict[str, Any], user_id: int,
         with open(str(target), "w", encoding="utf-8") as fp:
             json.dump(snapshot, fp, ensure_ascii=False, indent=2, default=str)
     except Exception as exc:
-        log_warning("userdatafallFailed(Does not affect this run):" + str(exc))
+        log_warning("userdata fall Failed (Does not affect this run): " + str(exc))
         return str(target)
     size = 0
     try:
         size = os.path.getsize(str(target))
     except Exception:
         pass
-    log_info("userdataAlready(overwrite):" + str(target) + " " + str(size) + " Bytes")
+    log_info("userdata Already (overwrite): " + str(target) + " " + str(size) + " Bytes")
     return str(target)
 
 
 def load_user_data(user_id: int, path: Optional[str] = None) -> Dict[str, Any]:
     """
-  readtimes <Engineering Root>/data/<userId>. json.
+  read times <Engineering Root>/data/<userId>. json.
 
   findNotofiletimeraise FileNotFoundError(calluseDecisionmustDon'tFallback tofetch).
   """
     target = Path(path) if path else user_data_path(user_id)
     if not target.exists():
-        raise FileNotFoundError("userdatafileAbsent:" + str(target))
+        raise FileNotFoundError("userdata file Absent: " + str(target))
     with open(str(target), "r", encoding="utf-8") as fp:
         data = json.load(fp)
-    log_info("userdataLoaded:" + str(target))
+    log_info("userdata Loaded: " + str(target))
     return data
 
 
 def list_saved_user_ids() -> List[int]:
-    """List data/ All saved under userId(pressfileFirst nameparse, skipparseFailedof)."""
+    """List data/ All saved under userId (press file First name parse, skip parse Failed of)."""
     if not DATA_DIR.exists():
         return []
     out: List[int] = []
@@ -144,7 +144,7 @@ def list_saved_user_ids() -> List[int]:
     return sorted(out)
 
 
-#: defaultmustofnodes(orderi. e. fetchorder)
+#: default must of nodes (order i. e. fetch order)
 #: - Columns only UpsertUserAll currentneedof; Showcaseinterface(text/text/Competition…)Not in this column.
 DEFAULT_SNAPSHOT_NODES: tuple = (
     "userData",
@@ -185,23 +185,23 @@ def GetNeedUserData(
     save_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-  fetchsettlementallBaselinedata.
+  fetch settlement all Baseline data.
 
   Parameter:
     user_id:    user ID(Required)
     token:     Session Token(Optional, Most fetch interfaces do not require)
-    client_id:   machine stateshortValue
+    client_id:   machine state short Value
     place_id:   Store ID
     region_id:   Area ID
     shop_item_ids: Store Product List(Optional, default config. PLAY_SHOP_ITEM_IDS)
-    nodes:     mustofnodes(Optional, default DEFAULT_SNAPSHOT_NODES)
+    nodes:     must of nodes (Optional, default DEFAULT_SNAPSHOT_NODES)
     timeout_ms:  timeout milliseconds
     client:    Reusable MaimaiNetClient
     strict:    True = Exception thrown if either interface fails;
             False(default)= recordFailedskip, Ensure that the link does not collapse
-    save:     True(default)= fallto <Engineering Root>/data/<userId>. json
-            (- dataisoverwritedata)
-    save_path:   fall(Optional, Ignore save ofdefaultThen)
+    save:     True (default) = fall to <Engineering Root>/data/<userId>. json
+            (- data is overwrite data)
+    save_path:   fall (Optional, Ignore save of default Then)
 
   Returns:
     {
@@ -212,29 +212,29 @@ def GetNeedUserData(
 ...
      "_failed": [ {"node":.., "error":..},... ]
     }
-    thisPieceYesdirectlyPass to UpsertUserAll(snapshot=...), Alternatively json fall
+    this Piece Yes directly Pass to UpsertUserAll(snapshot=...), Alternatively json fall
   """
     wanted = list(nodes) if nodes else list(DEFAULT_SNAPSHOT_NODES)
-    log_info("fetchsettlement snapshot: user_id=" + str(user_id) + " nodesnumber=" + str(len(wanted)))
+    log_info("fetch settlement snapshot: user_id=" + str(user_id) + " nodes number=" + str(len(wanted)))
 
     raw: Dict[str, Any] = {}
     failed: List[Dict[str, str]] = []
 
     def _call(node: str, fn, *args, **kwargs):
-        """nodesFailure of a single interface does not affect the overall."""
+        """nodes Failure of a single interface does not affect the overall."""
         try:
             raw[node] = fn(*args, **kwargs)
             return True
         except Exception as exc:
             failed.append({"node": node, "error": type(exc).__name__ + ": " + str(exc)})
-            log_warning("nodes " + node + " Fetch failed:" + type(exc).__name__ + ": " + str(exc))
+            log_warning("nodes " + node + " Fetch failed: " + type(exc).__name__ + ": " + str(exc))
             if strict:
                 raise
             return False
 
     common = dict(client_id=client_id, timeout_ms=timeout_ms, client=client)
 
-    # ---- itemfetch(orderAnd DEFAULT_SNAPSHOT_NODES Match)----
+    # ---- item fetch (order And DEFAULT_SNAPSHOT_NODES Match) ----
     if "userData" in wanted:
         _call("userData", GetUserData, user_id, **common)
 
@@ -294,7 +294,7 @@ def GetNeedUserData(
             _call("userShopItemStockList", GetUserShopStock, user_id,
                   shop_item_id_list=ids, **common)
         else:
-            log_debug("not PLAY_SHOP_ITEM_IDS, skipInventorynodes")
+            log_debug("not PLAY_SHOP_ITEM_IDS, skip Inventory nodes")
 
     if "userFavoritemusicList" in wanted:
         _call("userFavoritemusicList", GetUserFavoriteItemAll, user_id, 1, **common)
@@ -307,7 +307,7 @@ def GetNeedUserData(
 
     raw["_failed"] = failed
     raw["_userId"] = int(user_id)
-    log_info("settlement snapshotfetchDone: Success " + str(len(raw) - 2) + " nodes, Failed "
+    log_info("settlement snapshot fetch Done: Success " + str(len(raw) - 2) + " nodes, Failed "
              + str(len(failed)) + " Piece")
 
     # - fall<Engineering Root>/data/<userId>. json(overwrite)
@@ -315,34 +315,34 @@ def GetNeedUserData(
         try:
             save_user_data(raw, user_id, path=save_path)
         except Exception as exc:
-            log_warning("userdatafallFailed(Does not affect this run):" + str(exc))
+            log_warning("userdata fall Failed (Does not affect this run): " + str(exc))
 
     return raw
 
 
 def save_snapshot(snapshot: Dict[str, Any], path: str) -> str:
-    """putSnapshotto JSON file(Easy to reuse offline / Manual Reconciliation)."""
+    """put Snapshot to JSON file (Easy to reuse offline / Manual Reconciliation)."""
     with open(path, "w", encoding="utf-8") as fp:
         json.dump(snapshot, fp, ensure_ascii=False, indent=2, default=str)
-    log_info("Snapshot saved:" + path)
+    log_info("Snapshot saved: " + path)
     return path
 
 
 def load_snapshot(path: str) -> Dict[str, Any]:
-    """From JSON filereadtimesSnapshot."""
+    """From JSON file read times Snapshot."""
     with open(path, "r", encoding="utf-8") as fp:
         data = json.load(fp)
-    log_info("Snapshot loaded:" + path)
+    log_info("Snapshot loaded: " + path)
     return data
 
 
 def summarize_snapshot(snapshot: Dict[str, Any]) -> Dict[str, int]:
     """
-  systemcountSnapshotEachnodesofitemnumber, Convenient for quick checks(returns {nodesFirst name: itemnumber}).
+  system count Snapshot Each nodes of item number, Convenient for quick checks (returns {nodes First name: item number}).
 
   itemnumberMeaning:
     userData thisArray of elements -> 1
-    userMusicDetailList thislist -> afterofitemnumber
+    userMusicDetailList this list -> after of item number
   """
     out: Dict[str, int] = {}
     for node, value in (snapshot or {}).items():
@@ -405,7 +405,7 @@ if __name__ == "__main__":
                 save_snapshot(snap, save_path)
             return 0
         except Exception as exc:
-            log_error("fetchSnapshotFailed:" + str(exc))
+            log_error("fetch Snapshot Failed: " + str(exc))
             return 1
         finally:
             teardown_logging()

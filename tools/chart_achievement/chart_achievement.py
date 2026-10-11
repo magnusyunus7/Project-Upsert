@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""DX chartachievement rate / DX Minutes Calculator。
+"""DX chart achievement rate / DX Minutes Calculator。
 
-currentTowards：text chart + Number of each decision -> calculateachievement rateAnd DX Minutes
+current Towards：text chart + Number of each decision -> calculate achievement rate And DX Minutes
 Reverse：text chart + achievement rate   -> Reverse all feasible decision combinations vs. DX Minutes
 
-Depends only Python standardLibrary。
+Depends only on Python standard Library。
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ def die(msg: str, code: int = 2) -> "None":
 
 # --------------------------------------------------------------- chart
 def _enrich(chart: Chart, path: str) -> Chart:
-    """From the same directory as Music.xml FullFirst name / difficulty / level（Notoskip）。"""
+    """From the same directory as Music.xml Full First name / difficulty / level（Not skip）。"""
     base = os.path.basename(path)
     stem = os.path.splitext(base)[0]
     if "_" in stem:
@@ -76,7 +76,7 @@ def _enrich(chart: Chart, path: str) -> Chart:
 def load_from_file(path: str) -> Chart:
     path = os.path.abspath(os.path.expanduser(path))
     if not os.path.isfile(path):
-        die("chartfileAbsent：%s" % path)
+        die("chart file Absent：%s" % path)
     return _enrich(parse_ma2(path), path)
 
 
@@ -88,7 +88,7 @@ def load_from_game(game_path: str, music_id: int, difficulty: int) -> Chart:
         hint = ""
         if os.path.isdir(alt):
             have = sorted(f for f in os.listdir(alt) if f.lower().endswith(".ma2"))
-            hint = "；thetrackcurrenthaschart：" + (", ".join(have) if have else "no")
+            hint = "；the track current has chart：" + (", ".join(have) if have else "no")
         die("findNotochart：%s%s" % (path, hint))
     chart = parse_ma2(path)
     chart.music_id = music_id
@@ -124,8 +124,8 @@ def print_chart(chart: Chart, th: Theory) -> None:
     if chart.connect_count:
         print("            （There is another %d connected slider nodes，No score）" % chart.connect_count)
     bonus = "  +  critical perfectRewards %d" % th.break_bonus_score if th.break_bonus_score else ""
-    print("  theoreticalMinutes    %d%s" % (th.all_perfect_score, bonus))
-    print("  theoreticalDX    %d" % th.max_dx)
+    print("  theoretical Minutes    %d%s" % (th.all_perfect_score, bonus))
+    print("  theoretical DX    %d" % th.max_dx)
     print("  Minutes      %s" % pct(th.max_achievement))
     for w in chart.warnings:
         print("  [text]    %s" % w)
@@ -145,7 +145,7 @@ def print_forward(chart: Chart, result) -> None:
     print(LINE)
     print("result")
     print("  achievement rate      %s ~ %s" % (pct(result.achievement_min), pct(result.achievement_max)))
-    print("  pressExample  %s" % pct(result.achievement_ref))
+    print("  press Example  %s" % pct(result.achievement_ref))
     print("  DX Minutes       %d / %d  (%.2f%%)"
           % (result.dx, th.max_dx, 100.0 * result.dx / th.max_dx if th.max_dx else 0.0))
     if result.achievement_min != result.achievement_max:
@@ -168,7 +168,7 @@ def print_reverse(chart: Chart, outcome) -> None:
     if not rows:
         if mode == "exact":
             cap = outcome.get("exact_cap") or 0
-            print("  （No solution found in strict validation scope：Bad notes ≤ %d ofgroupinnonecanouttheValueof）" % cap)
+            print("  （No solution found in strict validation scope：Bad notes ≤ %d of group in none can out the Value of）" % cap)
             if outcome.get("more_unverified"):
                 print("  [note] Bad notes over %d candidate combinations without validation（There's no guarantee there's no solution.）" % cap)
         else:
@@ -250,12 +250,12 @@ def ask_int(prompt: str, default: Optional[int] = None) -> Optional[int]:
         try:
             return int(raw)
         except ValueError:
-            print("  pleasenumber")
+            print("  please number")
 
 
 def interactive(args) -> None:
     print("=" * 60)
-    print("DX chartachievement rate / DX Minutes countcalculate")
+    print("DX chart achievement rate / DX Minutes count calculate")
     print("=" * 60)
     chart = None
     while chart is None:
@@ -293,7 +293,7 @@ def interactive(args) -> None:
                 target = Fraction(raw.rstrip("%"))
                 break
             except (ValueError, ZeroDivisionError):
-                print("  pleasenumber")
+                print("  please number")
         mode = ask("Inverse calculation method：1) text（Only the combination that can really play the completion rate can be listed）  2) Interval（The number of judgments is only used for estimation）  [1]: ", "1")
         args.mode = "range" if mode.startswith("2") else "exact"
         run_reverse(chart, th, target, args)

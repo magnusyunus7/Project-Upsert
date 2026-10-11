@@ -90,11 +90,11 @@ from api import (
 # - PLAY_CHARACTERS — Originally in config. py, currenttoscriptinAs**data**
 # =============================================================================
 #
-# description: PlayData. characters currentatdefaultis**emptyList**, valueby
+# description: PlayData. characters current at default is **empty List**, value by
 #    derive_play_characters() Push from server snapshot(config inofvalueMeetings).
-#    thisinKeep a copyreal-machine sample, For self-testing"batch packets"useExample.
+#    this in Keep a copy real-machine sample, For self-testing "batch packets" use Example.
 #
-# Value = real machine charaSlot [395, 101, 400402, 400401, 200401] ofplayagolevel
+# Value = real machine charaSlot [395, 101, 400402, 400401, 200401] of play ago level
 PLAY_CHARACTERS = [
     {"characterId": 395,    "level": 3800, "awakening": 5},
     {"characterId": 101,    "level": 4455, "awakening": 5},
@@ -312,7 +312,7 @@ sync_bits_to_arrays(ua)
 check("Bitstring completion by array length", ua["isNewMapList"] == "000", ua["isNewMapList"])
 
 ua["userCharacterList"] = [{"characterId": 1}]
-ua["isNewCharacterList"] = "111"      # Existing value, lengthNotimeTruncation
+ua["isNewCharacterList"] = "111"      # Existing value, length No time Truncation
 sync_bits_to_arrays(ua)
 check("Truncate when bit string is too long", ua["isNewCharacterList"] == "1", ua["isNewCharacterList"])
 
@@ -336,20 +336,20 @@ delta2, flags2 = build_delta([{"mapId": 3, "distance": 1}], server, ("mapId",))
 check("New entry -> Bitstring 1", flags2 == "1", flags2)
 
 delta3, flags3 = build_delta(local, server, None)
-check("nokeytimeBitstringFull 1", flags3 == "1", flags3)
+check("no key time Bitstring Full 1", flags3 == "1", flags3)
 
 # receiveexample(Duplicate engraving machine source/2026-10-05. log:123 of "22212")
 fav_local = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 fav_server = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 10, 11)]
 fav_delta, fav_flags = build_favorite_delta(fav_local, fav_server)
 check("receiveDo not cull, Constantly return all 5 item", len(fav_delta) == 5, str(len(fav_delta)))
-check("serverhasCorresponding itemKind -> 2", fav_flags == "22222", fav_flags)
+check("server has Corresponding itemKind -> 2", fav_flags == "22222", fav_flags)
 
 # real machineitemKind=10 of Get The response is {"itemKind": null}
 fav_server_raw = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 11)]
 fav_server_raw.append({"itemKind": None, "itemIdList": []})
 _, fav_flags_raw = build_favorite_delta(fav_local, fav_server_raw)
-check("itemKind=null ofthatitem -> 1(Duplicate engraving machine 22212)", fav_flags_raw == "22212", fav_flags_raw)
+check("itemKind=null of that item -> 1 (Duplicate engraving machine 22212)", fav_flags_raw == "22212", fav_flags_raw)
 
 # Normalized Pocket Bottom: Baseline is get_user_favorite. py itemKind After, serverListin 5 Piece kind full,
 # I can't see it when I look at the list alone itemKind=10 Originally null, Must rely on assume_missing explicitDeclaration.
@@ -380,11 +380,11 @@ check("playlogId current", pl["playlogId"] == 7692848101484135861)
 # - loginDate is**standard Unix seconds**(VOExtensions. cs:1290 GetUnixTime ofreturnsValue),
 #  No loginDateTime. Eastern Eight Wards loginDateTime - 28800.
 #  real machine 1791159576-28800=1791130776, in the packetis...777(Bad 1 seconds,
-#  inreal machine is"time -> secondsString -> Resolve"ofTruncation, noactualImpact).
-check("loginDate isstandard Unix seconds(loginDateTime - timeOffset)",
+#  in real machine is "time -> seconds String -> Resolve" of Truncation, no actual Impact).
+check("loginDate is standard Unix seconds (loginDateTime - timeOffset)",
       abs(pl["loginDate"] - (1791159576 - 28800)) <= 1,
       str(pl["loginDate"]))
-check("playDate isplaylog(7 agocalculatePrevious day)",
+check("playDate is playlog (7 ago calculate Previous day)",
       pl["playDate"] == "2026-10-04", pl["playDate"])
 check("trialPlayAchievement = -1", pl["trialPlayAchievement"] == -1)
 check("extNum4 == categoryIndex", pl["extNum4"] == __import__("config").PLAY_CATEGORY_INDEX)
@@ -592,12 +592,12 @@ check("userData. point Keep baseline value unchanged(Do not issue credits)",
 # - characterLevel is**playago**level; userCharacterList Only after playing(+1).
 #  real machineEmpirical: playlog 3800/4455/134 <-> userCharacterList 3801/4456/135
 _clv = {c["characterId"]: c["level"] for c in ua2b["userCharacterList"]}
-check("userCharacterList isplayAfterlevel(395: 3800->3801)",
+check("userCharacterList is play After level (395: 3800->3801)",
       _clv.get(395) == 3801, str(_clv))
-check("userCharacterList isplayAfterlevel(101: 4455->4456)",
+check("userCharacterList is play After level (101: 4455->4456)",
       _clv.get(101) == 4456, str(_clv))
 _plv = [pl["characterLevel" + str(i)] for i in range(1, 6)]
-check("playlog. characterLevelN isplayagolevel(3800/4455/134/134/134)",
+check("playlog. characterLevelN is play ago level (3800/4455/134/134/134)",
       _plv == [3800, 4455, 134, 134, 134], str(_plv))
 check("playlog. characterLevelN itemetcin PLAY_CHARACTERS of level",
       _plv == [int(c["level"]) for c in PLAY_CHARACTERS], str(_plv))
@@ -729,11 +729,11 @@ check("userWeeklyData isObject", isinstance(ua2["userWeeklyData"], dict))
 check("user2pPlaylog isObject", isinstance(ua2["user2pPlaylog"], dict))
 
 # Bitstring
-check("isNewMapList length == userMapList itemnumber",
+check("isNewMapList length == userMapList item number",
       len(ua2["isNewMapList"]) == len(ua2["userMapList"]))
-check("isNewMusicDetailList length == itemnumber",
+check("isNewMusicDetailList length == item number",
       len(ua2["isNewMusicDetailList"]) == len(ua2["userMusicDetailList"]))
-check("isNewCharacterList length == itemnumber",
+check("isNewCharacterList length == item number",
       len(ua2["isNewCharacterList"]) == len(ua2["userCharacterList"]))
 check("All 11 itemBit String Lengthallpresent.",
       all(len(ua2[b]) == len(ua2[a]) for b, a in BITS_TO_ARRAY.items()),
@@ -758,7 +758,7 @@ check("isNewLoginBonusList is an empty string",
 
 section("12. Snapshot Normalization")
 
-check("None -> emptyDictionary", normalize_snapshot(None) == {})
+check("None -> empty Dictionary", normalize_snapshot(None) == {})
 check("Idempotent when already a node dictionary",
       set(normalize_snapshot(ua2)) == set(NODE_ORDER))
 check("{'upsertUserAll': {...}} Packaging",
@@ -833,7 +833,7 @@ _fav_raw = [{"itemKind": k, "itemIdList": []} for k in (3, 1, 2, 11)]
 _fav_raw.append({"itemKind": None, "itemIdList": []})
 _, _fav_bits = build_favorite_delta(_fav_local, _fav_raw)
 check("receiveBitstringUse only 1/2, Doesn't show up 0", set(_fav_bits) <= {"1", "2"}, _fav_bits)
-check("Raw Baseline(itemKind=null)get 22212", _fav_bits == "22212", _fav_bits)
+check("Raw Baseline (itemKind=null) get 22212", _fav_bits == "22212", _fav_bits)
 
 
 # =============================================================================
@@ -855,9 +855,9 @@ os.remove(_extra_path)
 check("emptyString -> {}", load_extra_data("  ") == {})
 try:
     load_extra_data("[1,2,3]")
-    check("top-levelNot an objecttimeshouldraise PatchError", False, "not raisedExceptions")
+    check("top-level Not an object time should raise PatchError", False, "not raised Exceptions")
 except PatchError:
-    check("top-levelNot an objecttimeraise PatchError", True)
+    check("top-level Not an object time raise PatchError", True)
 
 # ---- userofExampleuserKaleidxScopeList + Bitstring ----
 _kaleidx = [{
@@ -996,7 +996,7 @@ _mine_cl = json.dumps(
 check("- The ticket purchase message is consistent with the real machine grabbing bytes(328 Bytes)",
       _mine_cl == REAL_CHARGELOG,
       "\n real machine=" + REAL_CHARGELOG + "\n My=" + _mine_cl)
-check("real-machine packetlength 328 Bytes", len(REAL_CHARGELOG.encode()) == 328,
+check("real-machine packet length 328 Bytes", len(REAL_CHARGELOG.encode()) == 328,
       str(len(REAL_CHARGELOG.encode())))
 
 # ---- packet(Field order photo C# Declaration)----
@@ -1032,7 +1032,7 @@ _creq2 = UpsertUserChargelog(
     12345678, 5, 1791159576, charge_list=[], user_data={}, dry_run=True,
     game_charge_list=[{"chargeId": 5, "price": 4}],
     purchase_date="2026-10-04 18:22:10")
-check("hasthetimeInventoryFrom 0 -> 1", _creq2.userCharge.stock == 1, str(_creq2.userCharge.stock))
+check("has the time Inventory From 0 -> 1", _creq2.userCharge.stock == 1, str(_creq2.userCharge.stock))
 check("5 Ticket multiplier price = 4(creditNum)", _creq2.userChargelog.price == 4)
 check("validDate calculate(2027-01-02 04:00:00)",
       _creq2.userCharge.validDate == "2027-01-02 04:00:00", _creq2.userCharge.validDate)
@@ -1045,7 +1045,7 @@ try:
                         user_data={}, dry_run=True)
     check("Should be tossed when already in possession of a feature ticket ChargelogGuardError", False, "not raisedExceptions")
 except ChargelogGuardError as exc:
-    check("Throw when you already have a feature ticket ChargelogGuardError(notPackaging)", True)
+    check("Throw when you already have a feature ticket ChargelogGuardError (not Packaging)", True)
     check("inistickets", "chargeId=5" in str(exc), str(exc)[:120])
 try:
     UpsertUserChargelog(12345678, 2, 1791159576,
@@ -1062,7 +1062,7 @@ try:
                         user_data={}, dry_run=True)
     check("Unlisted tickets should be thrown away ChargelogGuardError", False, "not raisedExceptions")
 except ChargelogGuardError as exc:
-    check("Buy Unlisted Ticket Throw ChargelogGuardError(notPackaging)", True)
+    check("Buy Unlisted Ticket Throw ChargelogGuardError (not Packaging)", True)
     check("inListPurchasable list", "[2, 3]" in str(exc), str(exc)[:150])
 check("Tickets on the Buy List can be purchased through(2)",
       UpsertUserChargelog(12345678, 2, 1791159576,
@@ -1099,7 +1099,7 @@ try:
                         user_data={}, dry_run=False)
     check("Unopened gates for ticketing should be tossed ChargelogConfirmError", False, "not raisedExceptions")
 except ChargelogConfirmError:
-    check("Buy tickets without opening the gate to throw ChargelogConfirmError(notPackaging)", True)
+    check("Buy tickets without opening the gate to throw ChargelogConfirmError (not Packaging)", True)
 
 
 # =============================================================================
@@ -1111,11 +1111,11 @@ section("14. Side Effects Gate(no packet is sent)")
 try:
     UpsertUserAll(12345678, 7692848101484135861,
                   login_date_time=1791159576, snapshot=baseline, dry_run=False)
-    check("nottimeshouldraise ConfirmRequiredError", False, "not raisedExceptions")
+    check("no time should raise ConfirmRequiredError", False, "not raised Exceptions")
 except ConfirmRequiredError:
-    check("nottimeraise ConfirmRequiredError(notPackaging)", True)
+    check("no time raise ConfirmRequiredError (not Packaging)", True)
 except Exception as exc:
-    check("nottimeshouldraise ConfirmRequiredError", False,
+    check("no time should raise ConfirmRequiredError", False,
           type(exc).__name__ + ": " + str(exc))
 
 req2 = UpsertUserAll(12345678, 7692848101484135861,
@@ -1186,7 +1186,7 @@ for _t in range(1, 300):
         _g = _split(_t, _p)
         if sum(_g) != _t or 2 in _g or any(x > _p or x < 1 for x in _g):
             _bad.append((_t, _p, _g))
-check("1..299 first × per∈{1,3,4} allNoGenerate two tracksPackage", not _bad, str(_bad[:3]))
+check("1..299 first × per∈{1,3,4} all No Generate two tracks Package", not _bad, str(_bad[:3]))
 
 check("--per-packet Allowed Values = (1, 3, 4)",
       __import__("reincarnate").ALLOWED_PER_PACKET == (1, 3, 4))

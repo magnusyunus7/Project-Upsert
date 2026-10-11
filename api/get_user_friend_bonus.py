@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-get_user_friend_bonus. py — Fetching user friend miles(GetUserFriendBonusApi)
+get_user_friend_bonus. py — Fetching user friend miles (GetUserFriendBonusApi)
 ================================================================================
 
-Collect friend miles that players can claim this time(getMiles).
+Collect friend miles that players can claim this time (getMiles).
 
 Corresponding interface: GetUserFriendBonusApi
 request body: UserIdRequestVO
@@ -34,7 +34,7 @@ def GetUserFriendBonus(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetching user friend miles(Corresponding GetUserFriendBonusApi).
+  Fetching user friend miles (Corresponding GetUserFriendBonusApi).
 
   Returns:
     Raw Response dict:{"returnCode":1, "userId":.., "getMiles":..}
@@ -50,13 +50,13 @@ def GetUserFriendBonus(
 
 def extract_gift_points(friend_bonus: Dict[str, Any]) -> int:
     """
-  Pull from friend mileage response getMiles(fetchofinnumber).
+  Pull from friend mileage response getMiles (fetch of in number).
 
   Parameter:
     friend_bonus: GetUserFriendBonus ofreturnsValue
 
   Returns:
-    getMiles number(If you can't get it, it's 0)
+    getMiles number (If you can't get it, it's 0).
   """
     try:
         return int((friend_bonus or {}).get("getMiles", 0) or 0)

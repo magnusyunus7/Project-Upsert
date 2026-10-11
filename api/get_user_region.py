@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-get_user_region. py — Fetch user area play statistics(GetUserRegionApi)
+get_user_region. py — Fetch user area play statistics (GetUserRegionApi)
 ================================================================================
 
 Take the number of times players play in each region.
@@ -34,10 +34,10 @@ def GetUserRegion(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetch user area play statistics(Corresponding GetUserRegionApi).
+  Fetch user area play statistics (Corresponding GetUserRegionApi).
 
   Returns:
-    Raw Response dict, Contains userRegionList
+    Raw Response dict, Contains userRegionList.
   """
     log_info("Fetch user area statistics: user_id=" + str(user_id))
     return _get("GetUserRegionApi", UserIdRequestVO(userId=user_id), user_id,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-get_user_recommend_music. py — Get recommended tracks(GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi)
+get_user_recommend_music. py — Get recommended tracks (GetUserRecommendRateMusicApi / GetUserRecommendSelectMusicApi)
 ================================================================================
 
 Corresponding interface:
@@ -36,10 +36,10 @@ def GetUserRecommendRateMusic(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take recommended last track(Corresponding GetUserRecommendRateMusicApi).
+  Take recommended last track (Corresponding GetUserRecommendRateMusicApi).
 
   Returns:
-    Raw Response dict, Contains userRecommendRateMusicIdList
+    Raw Response dict, Contains userRecommendRateMusicIdList.
   """
     log_info("Take recommended last track: user_id=" + str(user_id))
     return _get("GetUserRecommendRateMusicApi", UserIdRequestVO(userId=user_id), user_id,
@@ -54,10 +54,10 @@ def GetUserRecommendSelectMusic(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Take recommended songs(Corresponding GetUserRecommendSelectMusicApi).
+  Take recommended songs (Corresponding GetUserRecommendSelectMusicApi).
 
   Returns:
-    Raw Response dict, Contains userRecommendSelectionMusicIdList
+    Raw Response dict, Contains userRecommendSelectionMusicIdList.
   """
     log_info("Take recommended songs: user_id=" + str(user_id))
     return _get("GetUserRecommendSelectMusicApi", UserIdRequestVO(userId=user_id), user_id,

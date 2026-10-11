@@ -4,12 +4,12 @@
 buy_ticket. py — Sample Master Script: QR login → purchase tickets Tickets → logout
 ================================================================================
 
-a complete"Buy tickets"
+a complete "Buy tickets"
 
   ParseQRCode -> GetUserPreview -> UserLogin -> UpsertUserChargelog -> UserLogout
 
-UpsertUserChargelog These things happen automatically internally.(So the main script doesn't have to worry about it.):
-  1. call GetUserChargeApi Get the current ticket list(calculate"purchaseBuyAfterInventory")
+UpsertUserChargelog These things happen automatically internally. (So the main script doesn't have to worry about it.):
+  1. call GetUserChargeApi Get the current ticket list (calculate "purchaseBuyAfterInventory")
   2. call GetUserDataApi Take playCount / playerRating
   3. press TicketManager. cs:564 calculate validDate(currentat -4h +90d, Pick a date to make up 04:00:00)
   4. check TICKET_CREDIT_NUM(moved to api/upsert_user_chargelog. py)Get
@@ -21,12 +21,12 @@ usage
 --------------------------------------------------------------------------------
   python buy_ticket. py <QR Code>            # Messages only, no packet is sent
   python buy_ticket. py <QR Code> --list         # Only current tickets and available tickets are listed
-  python buy_ticket. py <QR Code> --charge-id 3     # specified(default 5 = 5Ticket multiplier)
+  python buy_ticket. py <QR Code> --charge-id 3     # specified (default 5 = 5 Ticket multiplier)
   python buy_ticket. py <QR Code> --charge-id 2 --send  # - realpurchaseBuy
   python buy_ticket. py <QR Code> --charge-id 2 --send --debug
-  python buy_ticket. py <QR Code> --charge-id 2 --send --skip-entry  # skipAdmission data download
+  python buy_ticket. py <QR Code> --charge-id 2 --send --skip-entry  # skip Admission data download
 
-Paid tickets(api. PAID_TICKET_IDS):
+Paid tickets (api. PAID_TICKET_IDS):
   2 = 2timesチケット  creditNum 1
   3 = 3timesチケット  creditNum 2
   4 = 4timesチケット  creditNum 3
@@ -35,7 +35,7 @@ Paid tickets(api. PAID_TICKET_IDS):
 
 - realpurchaseBuyMeetingsWriteA purchase history(Irrevocable). Do not pass --send timeConstruct only packets.
 
-- QR Code Yes**time**(**has 10 Minutes**), after aimedb returns errorID=2
+- QR Code Yes **time** (**has 10 Minutes**), after aimedb returns errorID=2
  — **Not Measured by Frequency**, Just do it.
 
 - purchaseBuyagoMeetingsFirstcheckOncefeature tickets;**buying while feature tickets are heldBuy**(purchaseBuyhasTitle Risk).
@@ -71,7 +71,7 @@ from config import PLACE_ID, REGION_ID
 
 def show_charges(user_id, label):
     """
-  - call GetUserChargeApi current Ticketand go back to stock > 0 ofthat
+  - call GetUserChargeApi current Ticket and go back to stock > 0 of that
 
   -- Why do we check before running and after running?:
     real machineOnly in"this gamemustusethistickets"timeonlypurchaseBuy, The buyer will be used immediately(stock--),
@@ -93,7 +93,7 @@ def show_charges(user_id, label):
                  + " validDate=" + str(c.get("validDate"))
                  + ("  ← - has" if stock > 0 else ""))
     held = [c for c in lst if isinstance(c, dict) and int(c.get("stock", 0) or 0) > 0]
-    log_info("[" + label + "] hasinfeature tickets:" + str(len(held)) + " Zhang")
+    log_info("[" + label + "] has in feature tickets: " + str(len(held)) + " Zhang")
     return held
 
 
@@ -137,7 +137,7 @@ def main() -> int:
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
     try:
         # ---- -- Earliest pre-check: thisticketsCurrent**Is it on the shelf?** ----
-        #  - GetGameChargeApi No login required(user_id=0), So put in**before**,
+        #  - GetGameChargeApi No login required (user_id=0), So put in **before**,
         #   Exit if unsatisfied — Don't waste QR codes, Nor does it generate any login sessions.
         #  Basis TicketManager. cs:137-150: real machineAlsoOnlyBuy GetGameChargeApi Tickets listed.
         shop = GetGameCharge().get("gameChargeList") or []
@@ -202,7 +202,7 @@ def main() -> int:
             if opts["wait_before"] > 0:
                 log_info("Wait before buying a ticket " + str(opts["wait_before"]) + " seconds...")
                 time.sleep(opts["wait_before"])
-                log_info("waitStart your purchase")
+                log_info("wait Start your purchase")
 
             # ---- purchaseBuy ----
             # - One function, done.: Pick up current ticket/file -> Security check -> calculate validDate/price -> -> Packaging
@@ -219,7 +219,7 @@ def main() -> int:
         held_after = show_charges(user_id, "purchaseBuyAfter")
 
         if aborted:
-            log_info("Aborted by security check,**notPackaging**; Above are the results of the post-abort review")
+            log_info("Aborted by security check, **not Packaging**; Above are the results of the post-abort review")
             if len(held_after) == len(held_before):
                 log_info("Review and confirm: nothairVariation ✅")
             else:
@@ -227,10 +227,10 @@ def main() -> int:
             return 3
 
         if not opts["send"]:
-            log_info("[dry-run] notPackaging. If you want to make an actual purchase, please add --send(- will be written to the purchase history)")
+            log_info("[dry-run] not Packaging. If you want to make an actual purchase, please add --send (will be written to the purchase history)")
             return 0
         if held_after:
-            log_info("purchaseBuyAfterhas " + str(len(held_after)) + " tickets(purchaseBuySuccess)")
+            log_info("purchaseBuyAfter has " + str(len(held_after)) + " tickets (purchaseBuySuccess)")
         else:
             log_warning("purchaseBuyAfternonechecktohasin — servercanpost-upload,"
                         "or tickets were immediately consumed")

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-get_user_rating. py — Fetch Users Rating details(GetUserRatingApi)
+get_user_rating. py — Fetch Users Rating details (GetUserRatingApi)
 ================================================================================
 
-Take Player Rating(/ / Next Tier Candidate + Bit).
+Take Player Rating (/ / Next Tier Candidate + Bit).
 
 Corresponding interface: GetUserRatingApi
 request body: UserIdRequestVO
@@ -11,7 +11,7 @@ Response:{userId, userRating:{rating, ratingList, newRatingList, nextRatingList,
                nextNewRatingList, udemae}}
 Basis: source/Assembly-CSharp/Net. VO. Mai2/UserRatingRequestVO. cs
 
-- Callback Upsert timeis**Array of elements** userRatingList:[{...}], Not an object.
+- Callback Upsert time is **Array of elements** userRatingList:[{...}], Not an object.
 
 Example:
   from api import GetUserRating
@@ -36,10 +36,10 @@ def GetUserRating(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Fetch Users Rating details(Corresponding GetUserRatingApi).
+  Fetch Users Rating details (Corresponding GetUserRatingApi).
 
   Returns:
-    Raw Response dict, Contains userRating Child Objects
+    Raw Response dict, Contains userRating Child Objects.
   """
     log_info("Fetch Users Rating details: user_id=" + str(user_id))
     return _get("GetUserRatingApi", UserIdRequestVO(userId=user_id), user_id,

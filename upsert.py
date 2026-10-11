@@ -4,8 +4,8 @@
 upsert. py — Master Script: QR login → Upload Grades → logout
 ================================================================================
 
-itemonlyFourandAnd**You don't have to write your own logs** —
-eachPiece api Function is automatically printed when called:
+item only Four and And **You don't have to write your own logs** —
+each Piece api Function is automatically printed when called:
 
   === UserLogin Get started ===
    [interfacedescription] usercurrentlogin(Open this login session).
@@ -15,13 +15,13 @@ eachPiece api Function is automatically printed when called:
 
 logmodechange config. py One Row:
 
-  LOG_LEVEL = "info"   Show only api scriptofandresult
-  LOG_LEVEL = "debug"  ShowcaseTowards api Data sent vs. api returnsofdata
+  LOG_LEVEL = "info"   Show only api script of and result
+  LOG_LEVEL = "debug"  Showcase Towards api Data sent vs. api returns of data
 
 logfile(Two types of writing at the same time):
 
-  logs/latest. log    Contains only**Current time**Master Script Run(Next override)
-  logs/YYYY-MM-DD. log  Storage**Same day**All generated logs(Plus)
+  logs/latest. log    Contains only **Current time** Master Script Run (Next override)
+  logs/YYYY-MM-DD. log  Storage **Same day** All generated logs (Plus)
 
 --------------------------------------------------------------------------------
 usage
@@ -41,11 +41,11 @@ usage
 - UpsertUserAll One function completes the entire settlement link
 --------------------------------------------------------------------------------
   1. Baseline Snapshot(Passing on snapshot timeuse token)
-  2. Push Local from Snapshot 5 Roles only(playagolevel)
-  3. constructthis gameResultsdetails userPlaylogList
+  2. Push Local from Snapshot 5 Roles only (play ago level)
+  3. construct this game Results details userPlaylogList
   4. callFront connector GetUserNewItemListApi
   5. group upsertUserAll of 36 nodes(Snapshot Baseline + this gamecalculate + Differential)
-  6. Merge extra_data inofExternal JSON
+  6. Merge extra_data in of External JSON
   7. Self-inspection before contract issuance
   8. Cooling -> realPackaging
   9. post-upload validation(serverdata, ofGo)
@@ -79,8 +79,8 @@ usage
 
   - keyMust be upsertUserAll of 36 One of nodes(Contains 11 item isNew* Bitstring),
    A typo will explicitly report the error and list the available node names.
-  - correspondingBitstringtimeMeetingspressnumbergrouplength "0" and prompt —
-   addeditempleaseexplicitPassing on "1","0" Inventory update.
+  - corresponding Bitstring time Meetings press number group length "0" and prompt —
+   added item please explicit Passing on "1", "0" Inventory update.
   - JSON at**before**Just check, Wrongly Write Directly Exit, No QR code wasted.
 
  ── Call directly from within the code api ofetc ──
@@ -121,7 +121,7 @@ from config import PLACE_ID, REGION_ID
 
 
 def parse_args(argv):
-    """parse: numberOnenon- -- The parameters at the beginning are QR codes."""
+    """parse: number One non- -- The parameters at the beginning are QR codes."""
     opts = {"qr": "", "send": False, "debug": False, "no_verify": False,
             "cooldown": None, "extra_data": []}
     i = 0
@@ -168,25 +168,25 @@ def main() -> int:
             for item in opts["extra_data"]:
                 part = load_extra_data(item)
                 merged.update(part)
-                log_info("--extra-data read " + str(len(part)) + " nodes:" + ", ".join(part))
+                log_info("--extra-data read " + str(len(part)) + " nodes: " + ", ".join(part))
         except PatchError as exc:
-            log_error("--extra-data parseFailed:" + str(exc))
+            log_error("--extra-data parse Failed: " + str(exc))
             return 6
 
         # nodesFirst nameAlsoherecheck(Otherwise, you will have to wait until you are logged in to package before reporting an error., one)
         unknown = [k for k in merged if k not in NODE_TYPES]
         if unknown:
-            log_error("--extra-data inhasnotnodesFirst name:" + ", ".join(unknown))
-            log_error(" Available Nodes(" + str(len(NODE_ORDER)) + " Piece):" + ", ".join(NODE_ORDER))
+            log_error("--extra-data has no nodes First name: " + ", ".join(unknown))
+            log_error(" Available Nodes (" + str(len(NODE_ORDER)) + " Piece): " + ", ".join(NODE_ORDER))
             return 6
 
         if not merged:
-            log_warning("--extra-data parseoutisemptyof, Ignore")
+            log_warning("--extra-data parse out is empty of, Ignore")
         else:
             extra = merged
             log_info("--extra-data Total " + str(len(extra)) + " nodes:" + ", ".join(extra))
 
-    # Session Status: Guaranteed to log out in case of abnormalities(Otherwise, your account will be stuck on isLogin=True, Next Login returnCode=100)
+    # Session Status: Guaranteed to log out in case of abnormalities (Otherwise, your account will be stuck on isLogin=True, Next Login returnCode=100)
     session = {"user_id": 0, "token": "", "login_dt": 0, "logged_in": False}
     try:
         # ---- QR Code -> userId + token ----
@@ -196,14 +196,14 @@ def main() -> int:
         # ----"at"of ----
         preview = GetUserPreview(user_id, token)
         if preview.isLogin:
-            log_error("placeinAlreadyloginpleaseFirstatmachine statelogoutorwaitSessiontime")
+            log_error("place in Already login; please first at machine state logout or wait Session time")
             return 2
 
-        # ---- login: to playlogId And loginDateTime(settlementEscalationsmustuse)----
+        # ---- login: to playlogId And loginDateTime (settlement Escalations must use) ----
         login = UserLogin(user_id, token, region_id=REGION_ID, place_id=PLACE_ID)
         session.update(login_dt=login.loginDateTime, logged_in=True)
 
-        # ---- settlement:- A function takes care of the construction + Packaging + post-upload validation ----
+        # ---- settlement: A function takes care of the construction + Packaging + post-upload validation ----
         UpsertUserAll(
             user_id, login.loginId,
             login_date_time=login.loginDateTime,
@@ -224,14 +224,14 @@ def main() -> int:
         log_error(type(exc).__name__ + ": " + str(exc))
         return 1
     finally:
-        # Log out from the bottom of the pocket: loginAndlogoutSession, Otherwise, the account card will be isLogin=True
+        # Log out from the bottom of the pocket: login And logout Session, Otherwise, the account card will be isLogin=True
         if session["logged_in"]:
             try:
                 UserLogout(session["user_id"], session["token"], session["login_dt"],
                            logout_type=LogoutType.TestIn,
                            region_id=REGION_ID, place_id=PLACE_ID)
             except Exception as exc:
-                log_error("[receiveTail] Force Logout Failed(Session may need to wait for server timeout):" + str(exc))
+                log_error("[receiveTail] Force Logout Failed (Session may need to wait for server timeout): " + str(exc))
         teardown_logging()
 
 

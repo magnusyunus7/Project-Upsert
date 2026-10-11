@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-get_user_charge. py — Pick up user tickets(GetUserChargeApi)
+get_user_charge. py — Pick up user tickets (GetUserChargeApi)
 ================================================================================
 
-Take the holdings of the player's tickets(real machine 3 item).
+Take the holdings of the player's tickets (real machine 3 item).
 
 Corresponding interface: GetUserChargeApi
 request body: UserIdRequestVO
 Response:{userId, length, userChargeList:[{chargeId, stock, purchaseDate, validDate, extNum1}]}
 Basis: source/Assembly-CSharp/Net. VO. Mai2/UserChargeRequestVO. cs
 
-- Callback Upsert timemustDiscard extNum1(real machine Upsert in the packetnonethisfields).
+- Callback Upsert time must Discard extNum1 (real machine Upsert in the packet none this fields).
 
 Example:
   from api import GetUserCharge
@@ -35,10 +35,10 @@ def GetUserCharge(
     client: Optional[MaimaiNetClient] = None,
 ) -> Dict[str, Any]:
     """
-  Pick up user tickets(Corresponding GetUserChargeApi).
+  Pick up user tickets (Corresponding GetUserChargeApi).
 
   Returns:
-    Raw Response dict, Contains userChargeList
+    Raw Response dict, Contains userChargeList.
   """
     log_info("Pick up user tickets: user_id=" + str(user_id))
     return _get("GetUserChargeApi", UserIdRequestVO(userId=user_id), user_id,

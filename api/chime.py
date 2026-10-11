@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-chime. py — QR login(QR Code -> userId + token)
+chime. py — QR login (QR Code -> userId + token)
 ================================================================================
 
-Features: putQR code string(or QR code URL)Hand over aimedb server, fetch userId And token.
+Features: put QR code string (or QR code URL) Hand over aimedb server, fetch userId And token.
 
 Corresponding interface: POST https://ai. sys-allnet. cn/wc_aime/api/get_data
 
@@ -30,7 +30,7 @@ source/Assembly-CSharp/Manager/ChimeReaderManager. cs:250-255
 
 docs/maimai DX_QR loginmd
   - first name key = SHA-256(chipID + timestamp + SIGN_KEY) Uppercase hex
-  - - request header[nocan]Belt Content-Type, Otherwise, the server returns errorID=57
+  - - request header [no can] Belt Content-Type, Otherwise, the server returns errorID=57
   - qrCode What the field says is 64 Potential loading, Not complete 84 String
 
 --------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ from urllib.parse import urlparse
 from config import KEYCHIP_ID
 
 # =============================================================================
-# aimedb QR login constants(Originally at config. py,2026-10-06 sink to this module)
+# aimedb QR login constants (Originally at config. py, 2026-10-06 sink to this module)
 # =============================================================================
 # Basis: source/ChimeLib. NET/ChimeLib/NET/COMM/CCommGetUserData. cs
 #    + docs Branch"maimai DX_QR login"
@@ -67,7 +67,7 @@ AIMEDB_HOST = "ai. sys-allnet. cn"
 AIMEDB_PORT = 443
 AIMEDB_PATH = "/wc_aime/api/get_data"
 
-#: first nameKey(With Leading X,32 Character)
+#: first name Key (With Leading X, 32 Character)
 #: chimelib_dll. dll. rdata UTF-16 @0x00B040, packetMatch
 QR_SIGN_KEY = "XcW5FW4cPArBXEk4vzKz3CIrMuA5EVVW"
 
@@ -88,9 +88,9 @@ QR_PREFIX_LEN = 20              # SGWC(4) + MAID(4) + timestamp(12)
 QR_PAYLOAD_LEN = 64
 QR_TOTAL_LEN = QR_PREFIX_LEN + QR_PAYLOAD_LEN   # 84
 
-#: defaultmachine state chipID
+#: default machine state chipID
 #:
-#: -- Must use**Full Format**(Hyphenated), Not short value — this isPieceof
+#: -- Must use **Full Format** (Hyphenated), Not short value — this is Piece of
 #:   source/Assembly-CSharp/Manager/ChimeReaderManager. cs:250
 #:     KeychipID = AMDaemon. System. KeychipId. Value;     // Full Format
 #:   source/Assembly-CSharp/Manager/ChimeReaderManager. cs:255
@@ -99,7 +99,7 @@ QR_TOTAL_LEN = QR_PREFIX_LEN + QR_PAYLOAD_LEN   # 84
 #:   source/Assembly-CSharp/Net. Packet. Mai2/PacketGetGameSetting. cs:23
 #:     clientId = AMDaemon. System. KeychipId. ShortValue;   // shortValue
 #:
-#:   i. e.: aimedb useFull KeychipId, serveruse ShortValue.
+#:   i. e.: aimedb use Full KeychipId, server use ShortValue.
 #:   docs Branched"QR login"§3.4 inAlsohasCorrespondingpackettowards
 #:   token And chipID useMeetingslead toFollow-upinterface"returnCode=1 But not out of stock.".
 DEFAULT_CHIP_ID = KEYCHIP_ID
@@ -111,11 +111,11 @@ DEFAULT_CHIP_ID = KEYCHIP_ID
 
 def _extract_qr_from_url(url: str) -> str:
     """
-  From QR Code URL fetchFull 84 String.
+  From QR Code URL fetch Full 84 String.
 
   URL Shape like:
     https://wq. wahlap. net/qrcode/req/MAID2610022219463A.... html? l=...&t=...&d=...
-  Take /qrcode/req/ And. html between 80 Character, Fill in front "SGWC".
+  Take /qrcode/req/ and .html between 80 Character, Fill in front "SGWC".
   """
     path = urlparse(url).path
     match = re.search(r"/qrcode/req/([^/]+)\. html", path)
@@ -125,7 +125,7 @@ def _extract_qr_from_url(url: str) -> str:
 
 
 def _normalize_qr(qr_input: str) -> str:
-    """URL or string -> standard 84 Character QR code string(With formatting checksum)."""
+    """URL or string -> standard 84 Character QR code string (With formatting checksum)."""
     qr = (qr_input or "").strip()
 
     if qr.startswith("http://") or qr.startswith("https://"):
@@ -134,16 +134,16 @@ def _normalize_qr(qr_input: str) -> str:
 
     if len(qr) != QR_TOTAL_LEN:
         raise ValueError(
-            "The length of the QR code should be " + str(QR_TOTAL_LEN) + " Character, actual " + str(len(qr)) + " Character:" + qr
+            "The length of the QR code should be " + str(QR_TOTAL_LEN) + " Character, actual " + str(len(qr)) + " Character: " + qr
         )
     if not qr.startswith(QR_PREFIX):
-        raise ValueError("The QR code must be '" + QR_PREFIX + "' Beginning:" + qr)
+        raise ValueError("The QR code must be '" + QR_PREFIX + "' Beginning: " + qr)
     if qr[4:8] != QR_GAME_ID:
         raise ValueError(
-            "QR Code GameID should be '" + QR_GAME_ID + "', actual '" + qr[4:8] + "':" + qr
+            "QR Code GameID should be '" + QR_GAME_ID + "', actual '" + qr[4:8] + "': " + qr
         )
     if not all(c in "0123456789ABCDEF" for c in qr[QR_PREFIX_LEN:]):
-        raise ValueError("QR code payload must be in uppercase hex:" + qr)
+        raise ValueError("QR code payload must be in uppercase hex: " + qr)
 
     log_debug(
         "QR code verification passed: timestamp=" + qr[8:20]
@@ -154,11 +154,11 @@ def _normalize_qr(qr_input: str) -> str:
 
 def _build_body(qr_string: str, chip_id: str) -> Tuple[bytes, str, str]:
     """
-  constructrequest body.
+  construct request body.
 
   first name(§4.1):
     key = SHA-256(chipID + timestamp + SIGN_KEY). hexdigest(). upper()
-    - inExcluding qrCode, Excluding titlekey
+    - in Excluding qrCode, Excluding titlekey
 
   qrCode Field(CCommQRCode. EraseHashIdentifier):
     qr_string[20:] i. e. 64 Potential loading
@@ -186,7 +186,7 @@ def _send(body_bytes: bytes) -> dict:
   Send HTTPS POST and parse JSON Response.
 
   - request headerOnly Connection / User-Agent / Content-Length.
-   nocanPlus Content-Type — Plus, you'll get errorID=57(§3.3).
+   no can Plus Content-Type — Plus, you'll get errorID=57 (§3.3).
   """
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
@@ -196,7 +196,7 @@ def _send(body_bytes: bytes) -> dict:
         "Connection": "Keep-Alive",
         "User-Agent": QR_USER_AGENT,
         "Content-Length": str(len(body_bytes)),
-        # - placenoPlus Content-Type
+        # - place no Plus Content-Type
     }
 
     conn = http.client.HTTPSConnection(AIMEDB_HOST, AIMEDB_PORT, context=ctx, timeout=20)
@@ -212,7 +212,7 @@ def _send(body_bytes: bytes) -> dict:
     try:
         return json.loads(text)
     except Exception as exc:
-        raise RuntimeError("aimedb Response is not legal JSON:" + text[:300]) from exc
+        raise RuntimeError("aimedb Response is not legal JSON: " + text[:300]) from exc
 
 
 def _parse(resp: dict) -> Tuple[int, str]:
@@ -223,12 +223,12 @@ def _parse(resp: dict) -> Tuple[int, str]:
 
     if error_id != 0:
         raise RuntimeError(
-            "QR loginFailed: errorID=" + str(error_id) + ", Response=" + json.dumps(resp, ensure_ascii=False)
+            "QR login Failed: errorID=" + str(error_id) + ", Response=" + json.dumps(resp, ensure_ascii=False)
             + "\n errorID=57 isQR CodeAlready/Already in use, or request headband Content-Type"
         )
     if user_id == -1 or not token:
         raise RuntimeError(
-            "QR loginFailed: userID=" + str(user_id) + ", token='" + token + "'"
+            "QR login Failed: userID=" + str(user_id) + ", token='" + token + "'"
         )
     return int(user_id), str(token)
 
@@ -239,20 +239,20 @@ def _parse(resp: dict) -> Tuple[int, str]:
 
 def ParseQRCode(qr_input: str, *, chip_id: str = DEFAULT_CHIP_ID) -> Tuple[int, str]:
     """
-  parseQR Codefetch userId And token.
+  parse QR Code fetch userId And token.
 
   Parameter:
-    qr_input: 84 Character QR code string(SGWCMAID...), or QR code URL
-    chip_id: machine state Keychip shortValue(Optional, defaultTake config. CLIENT_ID)
+    qr_input: 84 Character QR code string (SGWCMAID...), or QR code URL
+    chip_id: machine state Keychip short Value (Optional, default Take config. CLIENT_ID)
 
   Returns:
-    (user_id, token) Tuples, can be passed directly to GetUserPreview / UserLogin etc
+    (user_id, token) Tuples, can be passed directly to GetUserPreview / UserLogin etc.
 
   Exceptions:
     ValueError:  Invalid QR code format
     RuntimeError: serverreturnserrorornetworkExceptions
   """
-    log_info("parseQR Codelogin: chip_id=" + chip_id)
+    log_info("parse QR Code login: chip_id=" + chip_id)
 
     qr_string = _normalize_qr(qr_input)
     body_bytes, timestamp, key = _build_body(qr_string, chip_id)
@@ -272,11 +272,11 @@ def ParseQRCode(qr_input: str, *, chip_id: str = DEFAULT_CHIP_ID) -> Tuple[int, 
         api_name="aimedb/get_data",
     )
 
-    log_info("Send login request: timestamp=" + timestamp + " host=" + AIMEDB_HOST + AIMEDB_PATH)
+    log_info("Send login request: timestamp=" + timestamp + " host= " + AIMEDB_HOST + AIMEDB_PATH)
     resp = _send(body_bytes)
     user_id, token = _parse(resp)
 
-    log_info("QR loginSuccess: user_id=" + str(user_id) + " token=" + token[:8] + "...(length "
+    log_info("QR login Success: user_id=" + str(user_id) + " token=" + token[:8] + "... (length "
              + str(len(token)) + ")")
     return user_id, token
 
@@ -294,7 +294,7 @@ if __name__ == "__main__":
         setup_logging("chime_test")
         try:
             if len(sys.argv) < 2:
-                print("usage: python -m api. chime <QR code string orURL> [chip_id]")
+                print("usage: python -m api. chime <QR code string or URL> [chip_id]")
                 return 1
             chip = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_CHIP_ID
             user_id, token = ParseQRCode(sys.argv[1], chip_id=chip)
@@ -303,7 +303,7 @@ if __name__ == "__main__":
             print("token  =", token)
             return 0
         except Exception as exc:
-            log_error("QR loginFailed:" + str(exc))
+            log_error("QR login Failed: " + str(exc))
             return 1
         finally:
             teardown_logging()
