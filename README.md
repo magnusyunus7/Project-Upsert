@@ -1,14 +1,3 @@
-<h1 align="center">WaHappy</h1>
-
-<p align="center">
- <b>maimai DX of</b><br>
- Purpose: maimai DXofcanplayget
-</p>
-
-<p align="center">AIofuse</p>
-
----
-
 ## Current Status: v0
 
 | script | |
@@ -17,8 +6,8 @@
 | **`buy_ticket. py`** | ✅ **Available** — purchase tickets Tickets |
 | **`use_ticket. py`** | ✅ **Available** — consume current tickets |
 | **`reincarnate. py`** | 🔧 **Not achieved** — data() |
-| **`netdelivery. py`** | ✅ **Available** — check / Down `. app` / `. opt` updatePackage(Read-only) |
-| `api/` Down 40+ Interface modules | 🔧 Achieved and passed zero network self-test, But **not all in real machine Up** |
+| **`netdelivery. py`** | ✅ **Available** — check / Down `. app` / `. opt` update Package (Read-only) |
+| `api/` Down 40+ Interface modules | 🔧 Achieved and passed zero-network self-test, But **not all in real machine Up** |
 
 **file** at [`docs` Branch](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs), text [file](#file).
 
@@ -27,7 +16,7 @@
 ## item
 
 ```
-WaHappy/
+RootFolder/
 ├── config. py      configuration item(machine state / data / log)-
 ├── config. py. example
 ├── upsert. py      - Master Script: QR login → Upload Grades → logout
@@ -52,9 +41,9 @@ WaHappy/
 ```
 
 **count**: `api/` in each piece script = one interface, Exposure to one **callable function**.
-The main script is only responsible for orchestration, log and all at `api/` Internal.
+The main script is only responsible for orchestration, logging, and all at `api/` internal.
 
-**Naming conventions**: server API Nameside Belt `Get` of, **scriptFirst nameAndFunction nameAlwaysBelt `get` / `Get`**
+**Naming conventions**: server API Name side Belt `Get` of, **script First name And Function name Always Belt `get` / `Get`**
 (Don't be ambiguous). So the retrieval scripts are all `get_*. py`, The function is `GetXxx`.
 
 ---
@@ -80,14 +69,14 @@ after **Required** Fill in **`config. py` number Two "machine state and store"**
 
 | Variable | Fill in what |
 |---|---|
-| `CLIENT_ID` | Keychip shortValue(15 Bit Keychip Remove hyphen before 11 Bit), Shape like `A63E01ABCDE` |
+| `CLIENT_ID` | Keychip short Value (15 Bit Keychip Remove hyphen before 11 Bit), Shape like `A63E01ABCDE` |
 | `PLACE_ID` | Your store ID |
 | `REGION_ID` | Your area ID |
 | `PLACE_NAME` | Store Name |
 | `REGION_NAME` | Area Name |
-| `KEYCHIP_ID` | **byAboveTwoValue**, Don't manipulate |
+| `KEYCHIP_ID` | **by Above Two Value**, Don't manipulate |
 
-> ⚠️ If you fill it out incorrect, The request sent out carries the identity of someone else's machine, the server will directly
+> ⚠️ If you fill it out incorrectly, The request sent out carries the identity of someone else's machine, and the server will directly
 >
 > `config. py` at `. gitignore` in — It's your private configuration, **Don't submit**.
 
@@ -104,14 +93,14 @@ python selftest. py    # network Should 249 item Full (Not dependent on your con
 | `upsert. py` | Upload an Inning Result | - has | ✅ |
 | `buy_ticket. py` | purchase tickets Tickets | - has | ✅ |
 | `use_ticket. py` | consume current tickets | - has | ✅ |
-| `reincarnate. py` | data() | - has | ✅(; optional) |
+| `reincarnate. py` | data() | - has | ✅ (optional) |
 | `netdelivery. py` | check / Down `. app` / `. opt` updatePackage | Read-only | ❌ |
 | `selftest. py` | network | no | ❌ |
 
-> **All scripts with side effects are not packaged by default**: Do not pass `--send` time Construct only packets (dry-run).
-> Want to read the message without consequences, Run once without `--send`.
+> **All scripts with side effects are not packaged by default**: Do not pass `--send`; construct only packets (dry-run).
+> Want to read the message without consequences? Run once without `--send`.
 
-> QR code from the machine's"QR login"getTake, **has 10 Minutes**(Not Measured by Frequency).
+> QR code from the machine's "QR login" get Take, **has 10 Minutes** (Not Measured by Frequency).
 
 ---
 
@@ -130,40 +119,40 @@ python upsert. py "<QR Code>" --send --cooldown 0  # skip the 60-second cooldown
 python upsert. py "<QR Code>" --send --no-verify  # skipUploadAfterofpost-upload validation
 ```
 
-**play data/resultsOnlychange `config. py` of `PLAY_*`, Don't touch any code.**
+**play data/results Only change `config. py` of `PLAY_*`, Don't touch any code.**
 
 ### nodes: `--extra-data`
 
-Want to manually overwrite certain nodes(Asthis gametoof KaleidxScope ):
+Want to manually overwrite certain nodes (As this game too of KaleidxScope):
 
 ```bash
 python upsert. py "<QR Code>" --send --extra-data extra. json
 ```
 
-keyMust be `upsertUserAll` of**36 nodes**One, Mistakes will be reported and available node names will be listed.
+key Must be `upsertUserAll` of **36 nodes** One, Mistakes will be reported and available node names will be listed.
 **JSON Verify before scanning**, Write error and exit directly, Don't waste QR codes.
 
-> ⚠️ at PowerShell / CMD in JSON Easily swallowed double quotes, **It is recommended to always use documents**.
+> ⚠️ At PowerShell / CMD, JSON easily swallows double quotes; **it is recommended to always use documents**.
 
-### - `isNew*`Bitstring:0 / 1 / 2 ofMeaning
+### - `isNew*` Bitstring: 0 / 1 / 2 of Meaning
 
-eachNumbergroupnodesalloneitem `isNew*`Bitstring, **One corresponds to an entry in the array**(orderMust be consistent).
+each Number group nodes all one item `isNew*` Bitstring, **One corresponds to an entry in the array** (order Must be consistent).
 
 Basis `source/Assembly-CSharp/Net. VO. Mai2/VOExtensions. cs:309-364` of `BuildListData()`:
 
 | Bit | Meaning | serverfor |
 |---|---|---|
-| `0` | **Inventory update** — datain**Existing**Entries with the same primary key | UPDATE |
-| `1` | **added** — datain**none**Entries with the same primary key | INSERT |
-| `2` | **noVariation** — Only `userFavoriteList` use, Other nodes will not appear | skip |
+| `0` | **Inventory update** — data in **Existing** Entries with the same primary key | UPDATE |
+| `1` | **added** — data in **none** Entries with the same primary key | INSERT |
+| `2` | **no Variation** — Only `userFavoriteList` use, Other nodes will not appear | skip |
 
 Primary Key See `api/upsert_user_all. py` of `DIFF_PRIMARY_KEYS`
 (As `userKaleidxScopeList` use `gateId`,`userMusicDetailList` use `musicId`+`level`).
 
-> ⚠️**Fill in existing entries `1` Meetings HTTP 500** — the server willGo INSERT A duplicate record.
-> real-machine in the packet `isNewFavoriteList = "22212"`, Can be seen visually 0/1/2 useof
+> ⚠️ **Fill in existing entries `1` Meetings HTTP 500** — the server will Go INSERT A duplicate record.
+> real-machine in the packet `isNewFavoriteList = "22212"`, Can be seen visually 0/1/2 use of
 
-> **Not sure what to fill in?** Look first `data/<YouruserId>. json` in Corresponding nodes:
+> **Not sure what to fill in?** Look first `data/<YouruserId>. json` in corresponding nodes:
 > Primary key already exists → `0`, Absent → `1`.
 
 ---
@@ -182,7 +171,7 @@ python buy_ticket.py "<QR Code>" --charge-id 2 --send   # real purchase
 | 3 | 3timesチケット | 2 |
 | 5 | 5timesチケット | 4 |
 
-> default `--charge-id 5`.**Tickets on shelves are different from store to store**, Before you buy `--list`.
+> default `--charge-id 5`. **Tickets on shelves are different from store to store**; before you buy, use `--list`.
 
 ### It does security checks.
 
@@ -199,20 +188,18 @@ python use_ticket. py "<QR Code>" --list         # Only currently held tickets a
 python use_ticket. py "<QR Code>" --ticket-id 2 --send  # - realconsume
 ```
 
-**Principle**:`GetUserChargeApi` And `UpsertUserAllApi` inof `userChargeList`**fullrelatedSame**,
+**Principle**: `GetUserChargeApi` And `UpsertUserAllApi` inof `userChargeList` **fullrelatedSame**,
 Therefore, the target ticket in the node `stock` Subtract 1, Then let playlog Bring on `useTicketId` / `playCredit`,
 serverforthisticketsthisone gameuse
 
 > **Typical use**: in time `buy_ticket. py` Will refuse to buy again;
 > If you want to buy another one, use this one first.
 
-PrincipleAndpacketBasis [Instructions for using the feature ticket](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Instructions for using the feature ticket. md).
-
 ---
 
 ## reincarnate. py —
 
-putOne( A)ofdatatoone( B).
+put One (A) of data to one (B).
 
 ```bash
 # source data from a QR code(Will network to catch A ofdataand landed on data/<A>. json)
@@ -223,14 +210,14 @@ python reincarnate. py --dst-qr "<B QR code>" --src-json data/12345678. json --p
 python reincarnate. py --dst-qr "<B QR code>" --src-json data/12345678. json --send
 ```
 
-**What did it do?**:
+**What did it do?**
 
-1. Pick source account A of 19 node data(orread `data/<A>. json`)
-2. use B ofQR Codelogin
-3. put A of `userMusicDetailList`**Batch**Upload to B — each packetMax. four tracks,
-  and automatically avoids**server-side two tracksPackage**(`[4,4,2]` → `[4,3,3]`)
-4. each packet**wait → Upload → logout(type=1)→ continued login**, Loop to end of transfer
-5. each packetof playlog Record from track**Reverse Synthesis**(`achievement` / `deluxscore` / `scoreRank` …)
+1. Pick source account A of 19 node data (or read `data/<A>. json`)
+2. use B of QR Code login
+3. put A of `userMusicDetailList` **Batch** Upload to B — each packet Max. four tracks,
+  and automatically avoids **server-side two tracks Package** (`[4,4,2]` → `[4,3,3]`)
+4. each packet **wait → Upload → logout(type=1) → continued login**, Loop to end of transfer
+5. each packet of playlog Record from track **Reverse Synthesis** (`achievement` / `deluxscore` / `scoreRank` …)
 
 | Parameter | default | description |
 |---|---|---|
@@ -240,9 +227,7 @@ python reincarnate. py --dst-qr "<B QR code>" --src-json data/12345678. json --s
 | `--wait N` | 5.0 | wait time before each upload |
 | `--clone-identity` | Off | `userName` / `accessCode` Clone Together(defaultkeep B's) |
 
-> ⚠️ **not** Suggested first `--plan`, Again `--limit 8` Small Batch Trial.
-
-Complete process, Batch Rules, continuedAndlogoutofBasis [description](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/description. md).
+> ⚠️ **not** Suggested first `--plan`; again, use `--limit 8` for a small batch trial.
 
 ---
 
@@ -258,17 +243,17 @@ python netdelivery. py --ver 1.55   # specifiedEscalations(default config. MAI_E
 python netdelivery. py --out D:\SDGB2026\update
 ```
 
-Interactive Selection Support: text/emptyMinutes, Interval(`1-3`),`a`=Select all,`n`=Select none,`q`=out.
+Interactive Selection Support: text/empty Minutes, Interval (`1-3`), `a` = Select all, `n` = Select none, `q` = out.
 Download tape **continue Passing on** and progress/default to `download/` (not tracked).
 
 > this is **Read-only**. Don't write any account data.
-> needSame directoryDownof `authv1. py` For ALL. Net Protocol Layer.
+> need Same directory Down of `authv1. py` For ALL. Net Protocol Layer.
 
 ---
 
 ## How to write the main script
 
-**Hara Then: Not for every api call use log.** log Already at `api/` in
+**Hara Then: Not for every api call use log.** Logging is already at `api/` in
 
 ```python
 #!/usr/bin/env python3
@@ -313,7 +298,7 @@ The Three Iron Laws:
 
 1. **Do not log** — each Piece api Function will print automatically `=== Function name Get started ===` / `[result]`
 2. **Be sure to log out** — at `isLogin=True` time Next Login Meetings `returnCode=100`
-3.**The write interface should open the gate explicitly.** — Write only `dry_run=False` Not enough, Must be given at the same time `confirm=True`
+3. **The write interface should open the gate explicitly.** — Write only `dry_run=False` Not enough, Must be given at the same time `confirm=True`
 
 For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Master Scripting Guide. md).
 
@@ -329,14 +314,14 @@ For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txi
 - ✅ consumehasoffeature tickets
 - ✅ dataSnapshotfall(`data/<userId>. json`)
 - ✅ data()
-- ✅ check / Down `. app` / `. opt` updatePackage
+- ✅ check / Down `. app` / `. opt` update Package
 - ✅ network 249 item
 - ✅ MelonLoader packet Mod(`gamehook/`)
 
 **It may be added in the future**
 
--**text** — use
-- features(Task / Map / receive /……)
+- **text** — use
+- features (Task / Map / receive / ……)
 - fullofreal machineoverwrite
 - `reincarnate. py` of
 
@@ -344,5 +329,5 @@ For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txi
 
 ## Disclaimer
 
-itemonlyFor**Learning and Protocol Research**Use. Any consequences arising from the use of this tool are the sole responsibility of the user.
-pleaseitemDo not use it to undermine game fairness.
+item only For **Learning and Protocol Research** Use. Any consequences arising from the use of this tool are the sole responsibility of the user.
+please item Do not use it to undermine game fairness.
