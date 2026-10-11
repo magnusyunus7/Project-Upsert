@@ -9,8 +9,6 @@
 | **`netdelivery. py`** | ✅ **Available** — check / Down `. app` / `. opt` update Package (Read-only) |
 | `api/` Down 40+ Interface modules | 🔧 Achieved and passed zero-network self-test, But **not all in real machine Up** |
 
-**file** at [`docs` Branch](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs), text [file](#file).
-
 ---
 
 ## item
@@ -299,8 +297,6 @@ The Three Iron Laws:
 1. **Do not log** — each Piece api Function will print automatically `=== Function name Get started ===` / `[result]`
 2. **Be sure to log out** — at `isLogin=True` time Next Login Meetings `returnCode=100`
 3. **The write interface should open the gate explicitly.** — Write only `dry_run=False` Not enough, Must be given at the same time `confirm=True`
-
-For the full guide, see [Master Scripting Guide](https://git. fragrance. moe/Txiaochen/wahappy/src/branch/docs/docs/Master Scripting Guide. md).
 
 ---
 
