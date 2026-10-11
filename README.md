@@ -14,7 +14,7 @@
 ## item
 
 ```
-WaHappy/
+RootFolder/
 ├── config. py      configuration item(machine state / data / log)-
 ├── config. py. example
 ├── upsert. py      - Master Script: QR login → Upload Grades → logout
